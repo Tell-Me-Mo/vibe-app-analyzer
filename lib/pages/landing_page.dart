@@ -109,7 +109,7 @@ class _LandingPageState extends ConsumerState<LandingPage> {
 
         // Title
         Text(
-          'App Analyzer',
+          'VibeCheck',
           style: Theme.of(context).textTheme.displaySmall?.copyWith(
                 fontSize: 40,
                 fontWeight: FontWeight.w800,
@@ -119,7 +119,7 @@ class _LandingPageState extends ConsumerState<LandingPage> {
 
         // Subtitle
         Text(
-          'Analyze your AI-generated apps for security & monitoring insights',
+          'Check the vibe of your AI-generated code for security & monitoring gaps',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: const Color(0xFF94A3B8),
               ),

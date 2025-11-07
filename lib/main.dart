@@ -15,13 +15,13 @@ void main() async {
 
   runApp(
     const ProviderScope(
-      child: AppAnalyzerApp(),
+      child: VibeCheckApp(),
     ),
   );
 }
 
-class AppAnalyzerApp extends StatelessWidget {
-  const AppAnalyzerApp({super.key});
+class VibeCheckApp extends StatelessWidget {
+  const VibeCheckApp({super.key});
 
   @override
   Widget build(BuildContext context) {

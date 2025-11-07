@@ -1,14 +1,19 @@
-# App Analyzer
+# VibeCheck
 
-A Flutter web application that analyzes GitHub repositories for security vulnerabilities and monitoring opportunities using AI.
+Check the vibe of your AI-generated code. An intelligent analyzer that scans GitHub repositories for security vulnerabilities and monitoring opportunities in AI-generated applications.
 
 ## Features
 
 - 🔒 **Security Analysis**: Detects vulnerabilities in AI-generated code (hardcoded secrets, SQL injection, XSS, etc.)
 - 📊 **Monitoring Analysis**: Identifies missing business metrics and observability opportunities
 - 🤖 **AI-Powered**: Uses OpenAI GPT-4o-mini for intelligent code analysis
-- 🔗 **GitHub Integration**: Direct links to code locations on GitHub
+- 🔗 **GitHub Integration**: Direct links to code locations on GitHub with line numbers
 - 💾 **Analysis History**: Saves previous analysis results locally
+- 🎨 **Modern UI**: Clean, dark-themed interface with gradient accents
+
+## Live Demo
+
+🌐 **https://analyzer.tellmemo.io**
 
 ## Setup
 
@@ -22,8 +27,8 @@ A Flutter web application that analyzes GitHub repositories for security vulnera
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd app_analyzer
+git clone https://github.com/Tell-Me-Mo/vibe-app-analyzer.git
+cd vibe-app-analyzer
 ```
 
 2. Install dependencies:
@@ -61,18 +66,15 @@ flutter build web --release --wasm
 | `OPENAI_API_KEY` | Yes | Your OpenAI API key for GPT-4o-mini |
 | `GITHUB_TOKEN` | No | GitHub Personal Access Token (increases rate limit from 60 to 5,000 req/hour) |
 
-## Deployment
-
-The app is deployed at: https://analyzer.tellmemo.io
-
 ## How It Works
 
 1. User enters a public GitHub repository URL
 2. App fetches the repository code via GitHub API
 3. Code is sent to OpenAI GPT-4o-mini with specialized prompts
-4. AI analyzes the code and returns structured findings
-5. Results are displayed with file paths, line numbers, and fix suggestions
-6. Users can click file paths to view the code on GitHub
+4. AI analyzes the code and returns structured findings with exact file locations
+5. Results are displayed with clickable file paths and line numbers
+6. Users can click links to view the vulnerable code on GitHub
+7. Each issue includes a Claude Code prompt to fix it
 
 ## Security Notes
 
@@ -87,8 +89,17 @@ The app is deployed at: https://analyzer.tellmemo.io
 - **Riverpod** for state management
 - **OpenAI GPT-4o-mini** for AI analysis
 - **GitHub API** for repository access
-- **Nginx** with SSL for production hosting
+- **Nginx** with SSL/TLS for production hosting
+- **Let's Encrypt** for SSL certificates
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
 MIT
+
+---
+
+Made with ❤️ by [Tell-Me-Mo](https://github.com/Tell-Me-Mo)
