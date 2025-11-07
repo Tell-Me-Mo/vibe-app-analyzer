@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import '../config/app_config.dart';
@@ -13,6 +14,9 @@ class OpenAIService {
   OpenAIService()
       : _dio = Dio(BaseOptions(
           baseUrl: AppConfig.openaiApiUrl,
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 90),
+          sendTimeout: const Duration(seconds: 30),
           headers: {
             'Authorization': 'Bearer ${AppConfig.openaiApiKey}',
             'Content-Type': 'application/json',
@@ -25,11 +29,29 @@ class OpenAIService {
     required String code,
     required AnalysisType analysisType,
   }) async {
+    return _retryWithExponentialBackoff(
+      () => _performAnalysis(
+        repositoryUrl: repositoryUrl,
+        repositoryName: repositoryName,
+        code: code,
+        analysisType: analysisType,
+      ),
+      maxRetries: 3,
+    );
+  }
+
+  /// Performs the actual analysis with comprehensive error handling
+  Future<AnalysisResult> _performAnalysis({
+    required String repositoryUrl,
+    required String repositoryName,
+    required String code,
+    required AnalysisType analysisType,
+  }) async {
     try {
       final prompt = _buildPrompt(code, analysisType);
 
       final response = await _dio.post(
-        '',
+        '/v1/chat/completions',
         data: {
           'model': AppConfig.openaiModel,
           'messages': [
@@ -41,8 +63,47 @@ class OpenAIService {
         },
       );
 
-      final content = response.data['choices'][0]['message']['content'];
-      final analysisData = jsonDecode(content);
+      // Comprehensive null-safety checks
+      final responseData = response.data;
+      if (responseData == null) {
+        throw Exception('OpenAI API returned null response');
+      }
+
+      if (responseData is! Map<String, dynamic>) {
+        throw Exception('OpenAI API returned invalid response format');
+      }
+
+      final choices = responseData['choices'];
+      if (choices == null || choices is! List || choices.isEmpty) {
+        throw Exception('OpenAI API response missing choices array');
+      }
+
+      final firstChoice = choices[0];
+      if (firstChoice == null || firstChoice is! Map<String, dynamic>) {
+        throw Exception('Invalid choice format in OpenAI response');
+      }
+
+      final message = firstChoice['message'];
+      if (message == null || message is! Map<String, dynamic>) {
+        throw Exception('Missing message in OpenAI response');
+      }
+
+      final content = message['content'];
+      if (content == null || content is! String || content.isEmpty) {
+        throw Exception('Missing or invalid content in OpenAI response');
+      }
+
+      // Parse JSON with error handling
+      Map<String, dynamic> analysisData;
+      try {
+        final decoded = jsonDecode(content);
+        if (decoded is! Map<String, dynamic>) {
+          throw Exception('OpenAI returned non-object JSON');
+        }
+        analysisData = decoded;
+      } on FormatException catch (e) {
+        throw Exception('Failed to parse OpenAI JSON response: ${e.message}');
+      }
 
       return _parseAnalysisResult(
         repositoryUrl: repositoryUrl,
@@ -50,8 +111,79 @@ class OpenAIService {
         analysisType: analysisType,
         data: analysisData,
       );
+    } on DioException catch (e) {
+      // Handle specific HTTP error codes
+      if (e.response?.statusCode == 429) {
+        throw Exception(
+          'OpenAI rate limit exceeded. Please wait a few minutes and try again.',
+        );
+      } else if (e.response?.statusCode == 401) {
+        throw Exception(
+          'OpenAI API key is invalid or expired. Please check your configuration.',
+        );
+      } else if (e.response?.statusCode == 400) {
+        final errorMsg = e.response?.data?['error']?['message'] ?? 'Bad request';
+        throw Exception('OpenAI API error: $errorMsg');
+      } else if (e.response?.statusCode == 500 || e.response?.statusCode == 502 || e.response?.statusCode == 503) {
+        throw Exception(
+          'OpenAI service is temporarily unavailable. Please try again later.',
+        );
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        throw Exception(
+          'Connection to OpenAI timed out. Please check your internet connection.',
+        );
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        throw Exception(
+          'OpenAI is taking too long to respond. The repository may be too large.',
+        );
+      } else if (e.type == DioExceptionType.sendTimeout) {
+        throw Exception(
+          'Failed to send request to OpenAI. The repository may be too large.',
+        );
+      } else {
+        throw Exception('Network error: ${e.message}');
+      }
     } catch (e) {
-      throw Exception('Failed to analyze code: $e');
+      // Re-throw if already formatted
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Unexpected error during analysis: $e');
+    }
+  }
+
+  /// Retry logic with exponential backoff for transient failures
+  Future<T> _retryWithExponentialBackoff<T>(
+    Future<T> Function() operation, {
+    int maxRetries = 3,
+  }) async {
+    int attempt = 0;
+
+    while (true) {
+      try {
+        return await operation();
+      } catch (e) {
+        attempt++;
+
+        // Don't retry on non-transient errors
+        if (e is Exception) {
+          final errorMsg = e.toString();
+          if (errorMsg.contains('rate limit exceeded') ||
+              errorMsg.contains('API key is invalid') ||
+              errorMsg.contains('Bad request') ||
+              errorMsg.contains('too large')) {
+            rethrow;
+          }
+        }
+
+        if (attempt >= maxRetries) {
+          rethrow;
+        }
+
+        // Exponential backoff: 2^attempt seconds (2s, 4s, 8s)
+        final delaySeconds = pow(2, attempt).toInt();
+        await Future.delayed(Duration(seconds: delaySeconds));
+      }
     }
   }
 
@@ -193,19 +325,68 @@ REMEMBER: Every recommendation MUST include the exact filePath and lineNumber wh
     required AnalysisType analysisType,
     required Map<String, dynamic> data,
   }) {
-    final summary = AnalysisSummary.fromJson(data['summary']);
+    // Validate summary exists and is valid
+    final summaryData = data['summary'];
+    if (summaryData == null || summaryData is! Map<String, dynamic>) {
+      throw Exception('Analysis response missing or invalid summary object');
+    }
+
+    AnalysisSummary summary;
+    try {
+      summary = AnalysisSummary.fromJson(summaryData);
+    } catch (e) {
+      throw Exception('Failed to parse analysis summary: $e');
+    }
 
     List<SecurityIssue>? securityIssues;
     List<MonitoringRecommendation>? monitoringRecommendations;
 
     if (analysisType == AnalysisType.security) {
-      securityIssues = (data['issues'] as List?)
-          ?.map((issue) => SecurityIssue.fromJson(issue))
-          .toList();
+      final issuesData = data['issues'];
+
+      if (issuesData != null) {
+        if (issuesData is! List) {
+          throw Exception('Security issues must be an array');
+        }
+
+        try {
+          securityIssues = issuesData.map((issue) {
+            if (issue is! Map<String, dynamic>) {
+              throw Exception('Each issue must be an object');
+            }
+
+            // Validate required fields
+            _validateSecurityIssue(issue);
+
+            return SecurityIssue.fromJson(issue);
+          }).toList();
+        } catch (e) {
+          throw Exception('Failed to parse security issues: $e');
+        }
+      }
     } else {
-      monitoringRecommendations = (data['recommendations'] as List?)
-          ?.map((rec) => MonitoringRecommendation.fromJson(rec))
-          .toList();
+      final recsData = data['recommendations'];
+
+      if (recsData != null) {
+        if (recsData is! List) {
+          throw Exception('Monitoring recommendations must be an array');
+        }
+
+        try {
+          monitoringRecommendations = recsData.map((rec) {
+            if (rec is! Map<String, dynamic>) {
+              throw Exception('Each recommendation must be an object');
+            }
+
+            // Validate required fields
+            _validateMonitoringRecommendation(rec);
+
+            return MonitoringRecommendation.fromJson(rec);
+          }).toList();
+        } catch (e) {
+          throw Exception('Failed to parse monitoring recommendations: $e');
+        }
+      }
     }
 
     return AnalysisResult(
@@ -218,5 +399,85 @@ REMEMBER: Every recommendation MUST include the exact filePath and lineNumber wh
       securityIssues: securityIssues,
       monitoringRecommendations: monitoringRecommendations,
     );
+  }
+
+  /// Validates a security issue object has required fields
+  void _validateSecurityIssue(Map<String, dynamic> issue) {
+    final requiredFields = ['id', 'title', 'category', 'severity', 'description', 'aiGenerationRisk', 'claudeCodePrompt'];
+
+    for (final field in requiredFields) {
+      if (!issue.containsKey(field) || issue[field] == null) {
+        throw Exception('Security issue missing required field: $field');
+      }
+      if (issue[field] is String && (issue[field] as String).isEmpty) {
+        throw Exception('Security issue field "$field" cannot be empty');
+      }
+    }
+
+    // Validate severity is a valid enum value
+    final severity = issue['severity'];
+    if (severity is! String || !['critical', 'high', 'medium', 'low'].contains(severity.toLowerCase())) {
+      throw Exception('Invalid severity value: $severity');
+    }
+
+    // Validate line number if present
+    final lineNumber = issue['lineNumber'];
+    if (lineNumber != null) {
+      if (lineNumber is! int || lineNumber < 1 || lineNumber > 999999) {
+        throw Exception('Invalid line number: $lineNumber (must be between 1 and 999999)');
+      }
+    }
+
+    // Validate file path if present
+    final filePath = issue['filePath'];
+    if (filePath != null && filePath is String) {
+      if (filePath.isEmpty || filePath.length > 1000) {
+        throw Exception('Invalid file path length');
+      }
+      // Check for suspicious path traversal patterns
+      if (filePath.contains('..') || filePath.startsWith('/')) {
+        throw Exception('Invalid file path format: $filePath');
+      }
+    }
+  }
+
+  /// Validates a monitoring recommendation object has required fields
+  void _validateMonitoringRecommendation(Map<String, dynamic> rec) {
+    final requiredFields = ['id', 'title', 'category', 'description', 'businessValue', 'claudeCodePrompt'];
+
+    for (final field in requiredFields) {
+      if (!rec.containsKey(field) || rec[field] == null) {
+        throw Exception('Monitoring recommendation missing required field: $field');
+      }
+      if (rec[field] is String && (rec[field] as String).isEmpty) {
+        throw Exception('Monitoring recommendation field "$field" cannot be empty');
+      }
+    }
+
+    // Validate category is a valid enum value
+    final category = rec['category'];
+    if (category is! String || !['analytics', 'error_tracking', 'business_metrics'].contains(category.toLowerCase())) {
+      throw Exception('Invalid monitoring category: $category');
+    }
+
+    // Validate line number if present
+    final lineNumber = rec['lineNumber'];
+    if (lineNumber != null) {
+      if (lineNumber is! int || lineNumber < 1 || lineNumber > 999999) {
+        throw Exception('Invalid line number: $lineNumber (must be between 1 and 999999)');
+      }
+    }
+
+    // Validate file path if present
+    final filePath = rec['filePath'];
+    if (filePath != null && filePath is String) {
+      if (filePath.isEmpty || filePath.length > 1000) {
+        throw Exception('Invalid file path length');
+      }
+      // Check for suspicious path traversal patterns
+      if (filePath.contains('..') || filePath.startsWith('/')) {
+        throw Exception('Invalid file path format: $filePath');
+      }
+    }
   }
 }

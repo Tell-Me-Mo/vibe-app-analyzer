@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:uuid/uuid.dart';
 import '../models/analysis_result.dart';
 import '../config/app_config.dart';
@@ -11,13 +14,94 @@ class StorageService {
   StorageService._internal();
 
   late SharedPreferences _prefs;
+  late FlutterSecureStorage _secureStorage;
+  encrypt.Encrypter? _encrypter;
+  encrypt.IV? _iv;
 
   Future<void> initialize() async {
     await Hive.initFlutter();
 
-    // For now, we'll use a simple box without type adapters
-    // and serialize/deserialize manually
     _prefs = await SharedPreferences.getInstance();
+    _secureStorage = const FlutterSecureStorage(
+      aOptions: AndroidOptions(
+        encryptedSharedPreferences: true,
+      ),
+      iOptions: IOSOptions(
+        accessibility: KeychainAccessibility.first_unlock,
+      ),
+    );
+
+    // Initialize encryption for sensitive data
+    await _initializeEncryption();
+  }
+
+  /// Initialize encryption key for analysis data
+  Future<void> _initializeEncryption() async {
+    try {
+      // Try to retrieve existing encryption key
+      String? keyString = await _secureStorage.read(key: 'encryption_key');
+      String? ivString = await _secureStorage.read(key: 'encryption_iv');
+
+      if (keyString == null || ivString == null) {
+        // Generate new encryption key and IV
+        final key = encrypt.Key.fromSecureRandom(32); // 256-bit key
+        final iv = encrypt.IV.fromSecureRandom(16); // 128-bit IV
+
+        // Store securely
+        await _secureStorage.write(key: 'encryption_key', value: base64Encode(key.bytes));
+        await _secureStorage.write(key: 'encryption_iv', value: base64Encode(iv.bytes));
+
+        _encrypter = encrypt.Encrypter(encrypt.AES(key));
+        _iv = iv;
+      } else {
+        // Use existing key
+        final keyBytes = base64Decode(keyString);
+        final ivBytes = base64Decode(ivString);
+
+        final key = encrypt.Key(Uint8List.fromList(keyBytes));
+        final iv = encrypt.IV(Uint8List.fromList(ivBytes));
+
+        _encrypter = encrypt.Encrypter(encrypt.AES(key));
+        _iv = iv;
+      }
+    } catch (e) {
+      // Fallback: encryption initialization failed, continue without encryption
+      // This can happen on web platform where secure storage might not be available
+      _encrypter = null;
+      _iv = null;
+    }
+  }
+
+  /// Encrypt sensitive data
+  String _encrypt(String plainText) {
+    if (_encrypter == null || _iv == null) {
+      // Encryption not available, return plaintext (web fallback)
+      return plainText;
+    }
+
+    try {
+      final encrypted = _encrypter!.encrypt(plainText, iv: _iv);
+      return encrypted.base64;
+    } catch (e) {
+      // Encryption failed, return plaintext
+      return plainText;
+    }
+  }
+
+  /// Decrypt sensitive data
+  String _decrypt(String encryptedText) {
+    if (_encrypter == null || _iv == null) {
+      // Encryption not available, assume plaintext
+      return encryptedText;
+    }
+
+    try {
+      final encrypted = encrypt.Encrypted.fromBase64(encryptedText);
+      return _encrypter!.decrypt(encrypted, iv: _iv);
+    } catch (e) {
+      // Decryption failed, try returning as-is (might be legacy plaintext)
+      return encryptedText;
+    }
   }
 
   // Session Management
@@ -30,7 +114,7 @@ class StorageService {
     return sessionId;
   }
 
-  // History Management using SharedPreferences (simplified for MVP)
+  // History Management with encryption for sensitive data
   Future<void> saveAnalysis(AnalysisResult result) async {
     final history = getHistory();
     history.insert(0, result);
@@ -40,18 +124,42 @@ class StorageService {
       history.removeRange(AppConfig.maxHistoryItems, history.length);
     }
 
-    // Save as JSON string list
-    final jsonList = history.map((r) => r.toJson()).toList();
-    final jsonString = jsonList.map((json) => jsonEncode(json)).toList();
-    await _prefs.setStringList('history', jsonString);
+    // Apply TTL: Remove analyses older than 30 days
+    final cutoffDate = DateTime.now().subtract(const Duration(days: 30));
+    history.removeWhere((r) => r.timestamp.isBefore(cutoffDate));
+
+    try {
+      // Serialize to JSON
+      final jsonList = history.map((r) => r.toJson()).toList();
+      final jsonStrings = jsonList.map((json) => jsonEncode(json)).toList();
+
+      // Encrypt each analysis result
+      final encryptedStrings = jsonStrings.map((str) => _encrypt(str)).toList();
+
+      // Save encrypted data
+      await _prefs.setStringList('history', encryptedStrings);
+    } catch (e) {
+      throw Exception('Failed to save analysis history: $e');
+    }
   }
 
   List<AnalysisResult> getHistory() {
-    final jsonStrings = _prefs.getStringList('history') ?? [];
-    return jsonStrings.map((str) {
-      final json = jsonDecode(str) as Map<String, dynamic>;
-      return AnalysisResult.fromJson(json);
-    }).toList();
+    try {
+      final encryptedStrings = _prefs.getStringList('history') ?? [];
+
+      return encryptedStrings.map((encryptedStr) {
+        // Decrypt the data
+        final decryptedStr = _decrypt(encryptedStr);
+
+        // Parse JSON
+        final json = jsonDecode(decryptedStr) as Map<String, dynamic>;
+        return AnalysisResult.fromJson(json);
+      }).toList();
+    } catch (e) {
+      // If decryption/parsing fails, return empty list
+      // This can happen after key rotation or migration
+      return [];
+    }
   }
 
   AnalysisResult? getAnalysisById(String id) {
