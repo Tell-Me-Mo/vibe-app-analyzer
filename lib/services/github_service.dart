@@ -26,8 +26,31 @@ class GitHubService {
 
     try {
       final response = await _dio.get('/repos/${parts['owner']}/${parts['repo']}');
+
+      // Check if repository is private
+      final repoData = response.data;
+      if (repoData is Map<String, dynamic> && repoData['private'] == true) {
+        throw Exception(
+          'Private repositories are not supported yet. Please use a public repository.',
+        );
+      }
+
       return response.data;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw Exception(
+          'Repository not found or is private. VibeCheck currently supports public repositories only.',
+        );
+      } else if (e.response?.statusCode == 403) {
+        throw Exception(
+          'Access forbidden. The repository may be private or your GitHub token lacks permissions.',
+        );
+      }
+      throw Exception('Failed to fetch repository: ${e.message}');
     } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
       throw Exception('Failed to fetch repository: $e');
     }
   }
@@ -57,11 +80,20 @@ class GitHubService {
 
           final tree = response.data['tree'] as List;
           return tree.map((e) => e as Map<String, dynamic>).toList();
-        } catch (e2) {
-          throw Exception('Failed to fetch repository tree: $e2');
+        } on DioException catch (e2) {
+          if (e2.response?.statusCode == 404) {
+            throw Exception(
+              'Repository not found or is private. VibeCheck currently supports public repositories only.',
+            );
+          }
+          throw Exception('Failed to fetch repository tree: ${e2.message}');
         }
+      } else if (e.response?.statusCode == 403) {
+        throw Exception(
+          'Access forbidden. The repository may be private or requires authentication.',
+        );
       }
-      throw Exception('Failed to fetch repository tree: $e');
+      throw Exception('Failed to fetch repository tree: ${e.message}');
     }
   }
 
