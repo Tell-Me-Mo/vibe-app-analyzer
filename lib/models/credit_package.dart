@@ -81,4 +81,47 @@ class CreditPackages {
     professional,
     enterprise,
   ];
+
+  /// Map RevenueCat product identifiers to credit amounts
+  /// This should match your RevenueCat product configuration
+  static const Map<String, int> productIdToCredits = {
+    'starter_pack': 20,
+    'popular_pack': 50,
+    'professional_pack': 120,
+    'enterprise_pack': 300,
+    // Alternative product ID formats (in case of platform prefixes)
+    'rc_starter_pack': 20,
+    'rc_popular_pack': 50,
+    'rc_professional_pack': 120,
+    'rc_enterprise_pack': 300,
+  };
+
+  /// Get credit amount for a given product identifier
+  /// Returns the credit amount, or 0 if product ID is not recognized
+  static int getCreditsForProductId(String productId) {
+    // Try exact match first
+    if (productIdToCredits.containsKey(productId)) {
+      return productIdToCredits[productId]!;
+    }
+
+    // Fallback: try to extract package ID from product identifier
+    // Handle cases where product ID might have platform-specific suffixes
+    // e.g., "starter_pack.monthly" or "com.vibecheck.starter_pack"
+    for (final entry in productIdToCredits.entries) {
+      if (productId.contains(entry.key)) {
+        return entry.value;
+      }
+    }
+
+    return 0;
+  }
+
+  /// Get CreditPackage by ID
+  static CreditPackage? getById(String id) {
+    try {
+      return all.firstWhere((package) => package.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
 }

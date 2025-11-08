@@ -52,6 +52,7 @@ dependencies:
   intl: ^0.19.0
   url_launcher: ^6.3.1
   flutter_dotenv: ^5.2.1
+  crypto: ^3.0.6
 
   # Routing
   go_router: ^14.6.2
@@ -60,10 +61,10 @@ dependencies:
   json_annotation: ^4.9.0
 
   # Authentication
-  supabase_flutter: ^2.9.3
+  supabase_flutter: ^2.10.3
 
   # Payments
-  purchases_flutter: ^8.4.1
+  purchases_flutter: ^9.9.4
 
   # Google Sign In
   google_sign_in: ^6.2.2

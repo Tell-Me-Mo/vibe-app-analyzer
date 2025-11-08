@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io' show Platform;
 import 'auth_service.dart';
 import 'credits_service.dart';
+import '../models/credit_package.dart';
 
 /// Payment service using RevenueCat
 class PaymentService {
@@ -74,10 +75,15 @@ class PaymentService {
   /// Purchase a credit package
   Future<bool> purchasePackage(Package package) async {
     try {
-      final customerInfo = await Purchases.purchasePackage(package);
+      // In RevenueCat SDK 9.x, purchase methods return PurchaseResult
+      // Note: purchasePackage is deprecated in favor of purchase(PurchaseParams),
+      // but we're using it for simplicity. The new API requires creating
+      // PurchaseParams with package: PurchaseParams.package(package)
+      // ignore: deprecated_member_use
+      await Purchases.purchasePackage(package);
 
-      // Sync credits after successful purchase
-      await _syncCreditsFromPurchases(customerInfo);
+      // Grant credits immediately for consumable purchases
+      await grantCreditsForPurchase(package.storeProduct.identifier);
 
       return true;
     } on PlatformException catch (e) {
@@ -95,6 +101,7 @@ class PaymentService {
   /// Restore purchases
   Future<void> restorePurchases() async {
     try {
+      // In RevenueCat SDK 9.x, restorePurchases still returns CustomerInfo
       final customerInfo = await Purchases.restorePurchases();
       await _syncCreditsFromPurchases(customerInfo);
     } catch (e) {
@@ -103,16 +110,21 @@ class PaymentService {
   }
 
   /// Sync credits from RevenueCat purchases
+  ///
+  /// This method adds credits based on active entitlements.
+  /// For consumable credits (non-subscription model), you should instead
+  /// listen to purchase events and grant credits immediately upon purchase.
   Future<void> _syncCreditsFromPurchases(CustomerInfo customerInfo) async {
-    // Calculate total credits from all purchases
+    // For non-consumable/entitlement-based credits:
+    // Calculate total credits from all active entitlements
     int totalCredits = 0;
 
-    // You would implement your own logic here to map purchases to credits
-    // For now, we'll check for active entitlements
     for (final entry in customerInfo.entitlements.active.entries) {
       final entitlement = entry.value;
-      // Parse credits from product identifier
-      final credits = _parseCreditsFromProductId(entitlement.productIdentifier);
+      // Use centralized product ID to credits mapping
+      final credits = CreditPackages.getCreditsForProductId(
+        entitlement.productIdentifier,
+      );
       totalCredits += credits;
     }
 
@@ -127,15 +139,23 @@ class PaymentService {
     }
   }
 
-  /// Parse credits from product identifier
-  int _parseCreditsFromProductId(String productId) {
-    // Map product IDs to credit amounts
-    // This should match your RevenueCat product configuration
-    if (productId.contains('starter')) return 20;
-    if (productId.contains('popular')) return 50;
-    if (productId.contains('professional')) return 120;
-    if (productId.contains('enterprise')) return 300;
-    return 0;
+  /// Grant credits immediately after purchase (for consumable model)
+  ///
+  /// Call this after a successful purchase to add credits to the user's account.
+  /// This is the preferred approach for consumable credit packages.
+  Future<void> grantCreditsForPurchase(String productId) async {
+    final credits = CreditPackages.getCreditsForProductId(productId);
+
+    if (credits > 0) {
+      await CreditsService().addCredits(credits);
+
+      // Sync to database for authenticated users
+      final authService = AuthService();
+      if (authService.isSignedIn) {
+        final currentCredits = await CreditsService().getCredits();
+        await authService.updateCredits(currentCredits);
+      }
+    }
   }
 
   /// Check if user has active subscription

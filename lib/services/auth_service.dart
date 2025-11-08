@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 import 'dart:io' show Platform;
+import 'dart:math';
 import '../models/user_profile.dart';
 import 'credits_service.dart';
 
@@ -127,11 +130,16 @@ class AuthService {
     try {
       // Check if Apple Sign In is available
       if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+        // Generate secure nonce for Apple Sign In (required for security)
+        final rawNonce = _generateNonce();
+        final hashedNonce = _hashNonce(rawNonce);
+
         final appleCredential = await SignInWithApple.getAppleIDCredential(
           scopes: [
             AppleIDAuthorizationScopes.email,
             AppleIDAuthorizationScopes.fullName,
           ],
+          nonce: hashedNonce, // Use hashed nonce for the request
         );
 
         final idToken = appleCredential.identityToken;
@@ -139,9 +147,11 @@ class AuthService {
           throw AuthException('Apple sign in failed: Missing token');
         }
 
+        // Use raw nonce (not hashed) for signInWithIdToken
         final response = await _supabase.auth.signInWithIdToken(
           provider: OAuthProvider.apple,
           idToken: idToken,
+          nonce: rawNonce, // Pass raw nonce to Supabase
         );
 
         if (response.user != null) {
@@ -175,6 +185,22 @@ class AuthService {
     } catch (e) {
       throw AuthException('Apple sign in failed: $e');
     }
+  }
+
+  /// Generate a cryptographically secure random nonce
+  String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
+        .join();
+  }
+
+  /// Hash the nonce using SHA-256
+  String _hashNonce(String nonce) {
+    final bytes = utf8.encode(nonce);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   /// Sign out

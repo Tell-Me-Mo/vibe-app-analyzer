@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vibecheck/widgets/common/credits_indicator.dart';
-import 'package:vibecheck/services/credits_service.dart';
 
 void main() {
   testWidgets('CreditsIndicator displays credits correctly', (tester) async {
