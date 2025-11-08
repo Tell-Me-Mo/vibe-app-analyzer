@@ -59,6 +59,18 @@ dependencies:
   # JSON
   json_annotation: ^4.9.0
 
+  # Authentication
+  supabase_flutter: ^2.9.3
+
+  # Payments
+  purchases_flutter: ^8.4.1
+
+  # Google Sign In
+  google_sign_in: ^6.2.2
+
+  # Apple Sign In
+  sign_in_with_apple: ^6.1.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

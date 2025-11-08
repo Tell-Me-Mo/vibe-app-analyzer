@@ -5,7 +5,11 @@ import '../models/analysis_type.dart';
 import '../providers/history_provider.dart';
 import '../data/demo_data.dart';
 import '../widgets/landing/history_card.dart';
+import '../widgets/common/welcome_popup.dart';
+import '../widgets/common/credits_indicator.dart';
+import '../widgets/common/auth_button.dart';
 import '../utils/validators.dart';
+import '../services/credits_service.dart';
 
 class LandingPage extends ConsumerStatefulWidget {
   const LandingPage({super.key});
@@ -19,12 +23,28 @@ class _LandingPageState extends ConsumerState<LandingPage> {
   String? _errorText;
 
   @override
+  void initState() {
+    super.initState();
+    // Show welcome popup on first launch
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final hasSeenWelcome = await CreditsService().hasSeenWelcome();
+      if (!hasSeenWelcome && mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const WelcomePopup(),
+        );
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _urlController.dispose();
     super.dispose();
   }
 
-  void _onAnalyze(AnalysisType analysisType) {
+  Future<void> _onAnalyze(AnalysisType analysisType) async {
     final url = _urlController.text.trim();
 
     if (!Validators.isValidGitHubUrl(url)) {
@@ -34,14 +54,56 @@ class _LandingPageState extends ConsumerState<LandingPage> {
       return;
     }
 
+    // Check if user has enough credits
+    final hasCredits = await CreditsService().hasEnoughCredits(5);
+    if (!hasCredits) {
+      if (mounted) {
+        final shouldBuy = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text('Insufficient Credits'),
+            content: const Text(
+              'You need 5 credits to run an analysis. Would you like to purchase more credits?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF60A5FA),
+                  foregroundColor: const Color(0xFF0F172A),
+                ),
+                child: const Text('Buy Credits'),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldBuy == true) {
+          if (mounted) {
+            context.go('/credits');
+          }
+        }
+      }
+      return;
+    }
+
     setState(() {
       _errorText = null;
     });
 
-    context.go('/analyze', extra: {
-      'url': url,
-      'type': analysisType,
-    });
+    if (mounted) {
+      context.go('/analyze', extra: {
+        'url': url,
+        'type': analysisType,
+      });
+    }
   }
 
   @override
@@ -58,6 +120,17 @@ class _LandingPageState extends ConsumerState<LandingPage> {
               constraints: const BoxConstraints(maxWidth: 800),
               child: Column(
                 children: [
+                  // Top bar with credits and auth button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const CreditsIndicator(),
+                      const SizedBox(width: 16),
+                      const AuthButton(),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+
                   // Hero Section
                   _buildHeroSection(context),
                   const SizedBox(height: 56),

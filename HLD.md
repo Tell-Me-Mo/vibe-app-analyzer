@@ -2,72 +2,107 @@
 
 ## 1. System Overview
 
-App Analyzer is a Flutter Web application that analyzes public GitHub repositories for security vulnerabilities and business monitoring opportunities in AI-generated codebases. The system uses OpenAI GPT-4o mini to perform intelligent code analysis and generate actionable Claude Code prompts.
+App Analyzer (VibeCheck) is a Flutter cross-platform application that analyzes public GitHub repositories for security vulnerabilities and business monitoring opportunities in AI-generated codebases. The system uses OpenAI GPT-4o mini to perform intelligent code analysis and generate actionable Claude Code prompts.
 
 ### 1.1 Key Features
-- Analyze public GitHub repositories (no authentication required)
-- Two analysis modes: Security & Monitoring
-- Synchronous analysis with real-time progress indication
-- Claude Code-compatible prompt generation
-- Cookie-based anonymous user session management
-- Responsive web UI (desktop & mobile)
-- Analysis history with demo examples
+- **Credits-based system:** 10 free credits on first launch, 5 credits per analysis
+- **Authentication:** Sign in with Email, Google, or Apple (Supabase)
+- **Payment integration:** Purchase credit packages via RevenueCat (iOS/Android/Web)
+- **User profiles:** Synced across devices with credit balance
+- **Two analysis modes:** Security & Monitoring
+- **Synchronous analysis** with real-time progress indication
+- **Claude Code-compatible** prompt generation
+- **Guest mode:** Use app without authentication (local storage)
+- **Responsive UI:** Desktop, tablet, and mobile support
+- **Analysis history** with demo examples
+- **Cross-platform:** Web, iOS, Android, macOS, Linux, Windows
 
 ---
 
-## 2. Architecture Diagram (Flutter-Only, No Backend)
+## 2. Architecture Diagram (Flutter Multi-Platform + Cloud Services)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Flutter Web Client                       │
-│  ┌────────────┐  ┌──────────────┐  ┌──────────────────┐    │
-│  │  Landing   │  │   Analysis   │  │     Results      │    │
-│  │    Page    │─>│   Loading    │─>│    Dashboard     │    │
-│  └────────────┘  └──────────────┘  └──────────────────┘    │
-│        │                  │                   │              │
-│        └──────────────────┴───────────────────┘              │
-│                           │                                  │
-│                    ┌──────▼───────┐                          │
-│                    │  State Mgmt  │                          │
-│                    │   (Riverpod) │                          │
-│                    └──────┬───────┘                          │
-│                           │                                  │
-│        ┌──────────────────┼──────────────────┐               │
-│        │                  │                  │               │
-│  ┌─────▼──────┐    ┌──────▼──────┐   ┌──────▼───────┐      │
-│  │  GitHub    │    │   OpenAI    │   │  Local       │      │
-│  │  Service   │    │   Service   │   │  Storage     │      │
-│  └─────┬──────┘    └──────┬──────┘   │  (IndexedDB) │      │
-│        │                  │           └──────────────┘      │
-└────────┼──────────────────┼─────────────────────────────────┘
-         │ HTTPS            │ HTTPS
-         │                  │
- ┌───────▼────┐     ┌───────▼────────┐
- │  GitHub    │     │     OpenAI     │
- │    API     │     │   GPT-4o mini  │
- └────────────┘     └────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Flutter Client (All Platforms)                    │
+│  ┌──────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌──────────┐   │
+│  │ Landing  │ │ Analysis│ │ Results │ │  Auth   │ │ Profile/ │   │
+│  │   Page   │─>│ Loading │─>│Dashboard│ │  Page   │ │ Credits  │   │
+│  └──────────┘ └─────────┘ └─────────┘ └─────────┘ └──────────┘   │
+│       │              │           │           │            │         │
+│       └──────────────┴───────────┴───────────┴────────────┘         │
+│                                  │                                  │
+│                         ┌────────▼────────┐                         │
+│                         │   State Mgmt    │                         │
+│                         │   (Riverpod)    │                         │
+│                         └────────┬────────┘                         │
+│                                  │                                  │
+│     ┌────────────────────────────┼───────────────────────────┐     │
+│     │            │               │               │           │     │
+│ ┌───▼────┐ ┌────▼────┐ ┌────────▼───────┐ ┌────▼────┐ ┌───▼────┐ │
+│ │ GitHub │ │ OpenAI  │ │ Auth Service   │ │ Credits │ │Payment │ │
+│ │Service │ │ Service │ │   (Supabase)   │ │ Service │ │Service │ │
+│ └───┬────┘ └────┬────┘ └────────┬───────┘ └────┬────┘ └───┬────┘ │
+│     │           │               │               │          │      │
+│     │           │          ┌────▼────┐          │          │      │
+│     │           │          │ Storage │          │          │      │
+│     │           │          │ Service │          │          │      │
+│     │           │          │(Encrypted)        │          │      │
+│     │           │          └─────────┘          │          │      │
+└─────┼───────────┼───────────────┼───────────────┼──────────┼──────┘
+      │           │               │               │          │
+      │ HTTPS     │ HTTPS         │ HTTPS         │ Local    │ HTTPS
+      │           │               │               │ Storage  │
+┌─────▼─────┐ ┌───▼──────┐ ┌──────▼──────┐ ┌─────▼─────┐ ┌─▼────────┐
+│  GitHub   │ │  OpenAI  │ │  Supabase   │ │ Hive/     │ │RevenueCat│
+│    API    │ │GPT-4o min│ │ (Auth+DB)   │ │SharedPrefs│ │(Payments)│
+└───────────┘ └──────────┘ └─────────────┘ └───────────┘ └──────────┘
+                                   │
+                           ┌───────▼────────┐
+                           │   PostgreSQL   │
+                           │  (User Profiles│
+                           │   & Credits)   │
+                           └────────────────┘
 ```
 
-**Note:** All logic runs in Flutter Web client. No separate backend server.
+**Note:** All logic runs in Flutter client. Cloud services handle auth, database, and payments.
 
 ---
 
 ## 3. Technology Stack
 
-### 3.1 Frontend (Flutter Web)
-- **Framework:** Flutter 3.x (Web renderer: CanvasKit for better UI)
-- **State Management:** Riverpod 2.x
-- **HTTP Client:** dio (for API calls)
-- **Local Storage:** shared_preferences (cookie-based session)
+### 3.1 Frontend (Flutter)
+- **Framework:** Flutter 3.9.2+ (Web, iOS, Android, Desktop)
+- **State Management:** Riverpod 2.6.1+
+- **HTTP Client:** dio 5.7.0 (for API calls)
+- **Local Storage:**
+  - shared_preferences 2.3.3 (credits, session)
+  - hive 2.2.3 + hive_flutter 1.1.0 (analysis history)
+  - flutter_secure_storage 9.2.2 (encryption keys)
+  - encrypt 5.0.3 (data encryption)
 - **UI Components:** Material 3 design system
 - **Animations:** Built-in Flutter animations
-- **Responsive:** flutter_responsive_framework or custom breakpoints
+- **Routing:** go_router 14.6.2
+- **Responsive:** Custom ConstrainedBox + LayoutBuilder patterns
 
-### 3.2 External Services
+### 3.2 Authentication & Payments
+- **Auth Provider:** Supabase Flutter 2.9.3
+  - Email/password authentication
+  - Google Sign In 6.2.2
+  - Apple Sign In 6.1.3
+- **Payment Provider:** RevenueCat (purchases_flutter 8.4.1)
+  - iOS/Android in-app purchases
+  - Web payments via Stripe integration
+- **Database:** Supabase PostgreSQL (user profiles, credits)
+
+### 3.3 External Services
 - **GitHub API:** Repository content retrieval
 - **OpenAI API:** GPT-4o mini for code analysis
-- **Hosting:** Firebase Hosting / Vercel / Netlify (for Flutter Web)
-- **Local Storage:** IndexedDB (via idb_shim or hive) for history persistence
+- **Supabase:** Authentication and user data
+- **RevenueCat:** Payment processing and subscription management
+- **Hosting:**
+  - Web: Firebase Hosting / Vercel / Netlify
+  - Mobile: App Store / Google Play
+  - Desktop: Direct distribution
 
 **Important:** OpenAI API key must be handled carefully in client-side apps. For MVP, it will be embedded, but should be moved to a proxy/backend in production.
 
@@ -80,12 +115,15 @@ App Analyzer is a Flutter Web application that analyzes public GitHub repositori
 #### 4.1.1 Pages/Screens
 ```
 lib/
-├── main.dart                    # App entry point
+├── main.dart                    # App entry point (with service initialization)
 ├── app.dart                     # Root app widget with routing
 ├── pages/
-│   ├── landing_page.dart        # Main landing screen
+│   ├── landing_page.dart        # Main landing screen (with credits/auth UI)
 │   ├── analysis_loading_page.dart # Analysis in progress
-│   └── results_page.dart        # Results dashboard
+│   ├── results_page.dart        # Results dashboard
+│   ├── auth_page.dart           # Sign in/sign up page
+│   ├── profile_page.dart        # User profile with credits
+│   └── credits_page.dart        # Credit packages purchase page
 ```
 
 #### 4.1.2 Widgets
@@ -95,13 +133,14 @@ lib/widgets/
 │   ├── app_button.dart          # Custom button component
 │   ├── app_text_field.dart      # Custom text input
 │   ├── loading_animation.dart   # Analysis loading animation
-│   └── severity_badge.dart      # Color-coded badges
+│   ├── severity_badge.dart      # Color-coded badges
+│   ├── category_badge.dart      # Category badges
+│   ├── welcome_popup.dart       # First-launch free credits popup
+│   ├── credits_indicator.dart   # Credit balance indicator
+│   └── auth_button.dart         # Login/profile button
 ├── landing/
-│   ├── hero_section.dart        # URL input + CTA buttons
-│   └── history_section.dart     # Recent analyses list
+│   └── history_card.dart        # Analysis history card
 ├── results/
-│   ├── results_header.dart      # Repo info, timestamp, actions
-│   ├── summary_card.dart        # Analysis summary stats
 │   ├── issue_card.dart          # Security issue display
 │   └── recommendation_card.dart # Monitoring recommendation
 ```
@@ -109,28 +148,33 @@ lib/widgets/
 #### 4.1.3 State Management (Riverpod)
 ```
 lib/providers/
-├── session_provider.dart        # User session (cookie-based ID)
-├── analysis_provider.dart       # Current analysis state
-├── history_provider.dart        # Analysis history
-└── repository_provider.dart     # Repo validation state
+├── analysis_provider.dart       # Current analysis state (with credit consumption)
+└── history_provider.dart        # Analysis history
+
+# Note: Auth and credits state managed via services with StreamProviders
 ```
 
 #### 4.1.4 Services
 ```
 lib/services/
-├── api_service.dart             # Backend API client
-├── storage_service.dart         # Local storage (cookies/prefs)
-└── clipboard_service.dart       # Copy-to-clipboard utility
+├── github_service.dart          # GitHub API integration
+├── openai_service.dart          # OpenAI GPT-4o mini integration
+├── storage_service.dart         # Encrypted local storage (Hive)
+├── auth_service.dart            # Supabase authentication
+├── credits_service.dart         # Credits management
+└── payment_service.dart         # RevenueCat payment integration
 ```
 
 #### 4.1.5 Models
 ```
 lib/models/
-├── analysis_request.dart        # Request payload
-├── analysis_result.dart         # Response data
+├── analysis_type.dart           # Enum for analysis types
+├── analysis_result.dart         # Response data (with JSON serialization)
 ├── security_issue.dart          # Security finding model
 ├── monitoring_recommendation.dart # Monitoring suggestion
-└── analysis_history_item.dart   # History entry
+├── severity.dart                # Severity enum
+├── user_profile.dart            # User profile with credits
+└── credit_package.dart          # Credit package definitions
 ```
 
 ### 4.2 Backend Components

@@ -4,6 +4,9 @@ import 'models/analysis_type.dart';
 import 'pages/landing_page.dart';
 import 'pages/analysis_loading_page.dart';
 import 'pages/results_page.dart';
+import 'pages/auth_page.dart';
+import 'pages/profile_page.dart';
+import 'pages/credits_page.dart';
 
 class App extends StatelessWidget {
   App({super.key});
@@ -31,6 +34,18 @@ class App extends StatelessWidget {
           final id = state.pathParameters['id']!;
           return ResultsPage(resultId: id);
         },
+      ),
+      GoRoute(
+        path: '/auth',
+        builder: (context, state) => const AuthPage(),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: '/credits',
+        builder: (context, state) => const CreditsPage(),
       ),
     ],
   );
