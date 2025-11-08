@@ -2,14 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/security_issue.dart';
+import '../../models/validation_status.dart';
 import '../common/severity_badge.dart';
 import '../common/category_badge.dart';
+import '../common/validation_status_badge.dart';
+import '../common/validation_result_display.dart';
 
 class IssueCard extends StatefulWidget {
   final SecurityIssue issue;
   final String? repositoryUrl;
+  final Function(SecurityIssue)? onValidate;
 
-  const IssueCard({super.key, required this.issue, this.repositoryUrl});
+  const IssueCard({
+    super.key,
+    required this.issue,
+    this.repositoryUrl,
+    this.onValidate,
+  });
 
   @override
   State<IssueCard> createState() => _IssueCardState();
@@ -55,6 +64,10 @@ class _IssueCardState extends State<IssueCard> {
                     SeverityBadge(severity: widget.issue.severity),
                     const SizedBox(width: 8),
                     CategoryBadge(category: widget.issue.category),
+                    if (widget.issue.validationStatus != ValidationStatus.notStarted) ...[
+                      const SizedBox(width: 8),
+                      ValidationStatusBadge(status: widget.issue.validationStatus),
+                    ],
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -200,6 +213,44 @@ class _IssueCardState extends State<IssueCard> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      // Validate Fix Button
+                      if (widget.onValidate != null) ...[
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: widget.issue.validationStatus == ValidationStatus.validating
+                                ? null
+                                : () => widget.onValidate!(widget.issue),
+                            icon: widget.issue.validationStatus == ValidationStatus.validating
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.check_circle_outline, size: 18),
+                            label: Text(
+                              widget.issue.validationStatus == ValidationStatus.validating
+                                  ? 'Validating Fix...'
+                                  : widget.issue.validationStatus == ValidationStatus.notStarted
+                                      ? 'Validate Fix (1 credit)'
+                                      : 'Re-validate Fix (1 credit)',
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                              foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                      // Validation Result Display
+                      if (widget.issue.validationResult != null) ...[
+                        const SizedBox(height: 12),
+                        ValidationResultDisplay(
+                          result: widget.issue.validationResult!,
+                        ),
+                      ],
                     ],
                   ),
                 ),

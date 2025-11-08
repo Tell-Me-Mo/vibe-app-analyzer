@@ -17,6 +17,14 @@ MonitoringRecommendation _$MonitoringRecommendationFromJson(
       claudeCodePrompt: json['claudeCodePrompt'] as String,
       filePath: json['filePath'] as String?,
       lineNumber: (json['lineNumber'] as num?)?.toInt(),
+      validationStatus: json['validationStatus'] == null
+          ? ValidationStatus.notStarted
+          : MonitoringRecommendation._validationStatusFromJson(
+              json['validationStatus'] as String?),
+      validationResult: json['validationResult'] == null
+          ? null
+          : ValidationResult.fromJson(
+              json['validationResult'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$MonitoringRecommendationToJson(
@@ -30,4 +38,7 @@ Map<String, dynamic> _$MonitoringRecommendationToJson(
       'claudeCodePrompt': instance.claudeCodePrompt,
       'filePath': instance.filePath,
       'lineNumber': instance.lineNumber,
+      'validationStatus': MonitoringRecommendation._validationStatusToJson(
+          instance.validationStatus),
+      'validationResult': instance.validationResult,
     };

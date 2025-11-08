@@ -7,6 +7,8 @@ import '../models/analysis_type.dart';
 import '../models/analysis_result.dart';
 import '../models/security_issue.dart';
 import '../models/monitoring_recommendation.dart';
+import '../models/validation_status.dart';
+import '../models/validation_result.dart';
 
 class OpenAIService {
   final Dio _dio;
@@ -478,6 +480,272 @@ REMEMBER: Every recommendation MUST include the exact filePath and lineNumber wh
       if (filePath.contains('..') || filePath.startsWith('/')) {
         throw Exception('Invalid file path format: $filePath');
       }
+    }
+  }
+
+  /// Validates a security issue fix by analyzing the updated code
+  Future<ValidationResult> validateSecurityFix({
+    required SecurityIssue issue,
+    required String updatedCode,
+    required String repositoryName,
+  }) async {
+    return _retryWithExponentialBackoff(
+      () => _performSecurityValidation(
+        issue: issue,
+        updatedCode: updatedCode,
+        repositoryName: repositoryName,
+      ),
+      maxRetries: 2,
+    );
+  }
+
+  /// Validates a monitoring recommendation implementation by analyzing the updated code
+  Future<ValidationResult> validateMonitoringImplementation({
+    required MonitoringRecommendation recommendation,
+    required String updatedCode,
+    required String repositoryName,
+  }) async {
+    return _retryWithExponentialBackoff(
+      () => _performMonitoringValidation(
+        recommendation: recommendation,
+        updatedCode: updatedCode,
+        repositoryName: repositoryName,
+      ),
+      maxRetries: 2,
+    );
+  }
+
+  /// Performs security fix validation
+  Future<ValidationResult> _performSecurityValidation({
+    required SecurityIssue issue,
+    required String updatedCode,
+    required String repositoryName,
+  }) async {
+    try {
+      final prompt = _buildSecurityValidationPrompt(issue, updatedCode, repositoryName);
+
+      final response = await _dio.post(
+        '/v1/chat/completions',
+        data: {
+          'model': AppConfig.openaiModel,
+          'messages': [
+            {'role': 'system', 'content': _getSecurityValidationSystemPrompt()},
+            {'role': 'user', 'content': prompt},
+          ],
+          'temperature': 0.3, // Lower temperature for more focused validation
+          'response_format': {'type': 'json_object'},
+        },
+      );
+
+      final responseData = response.data;
+      if (responseData == null || responseData is! Map<String, dynamic>) {
+        throw Exception('OpenAI API returned invalid response');
+      }
+
+      final content = responseData['choices']?[0]?['message']?['content'];
+      if (content == null || content is! String) {
+        throw Exception('Missing content in validation response');
+      }
+
+      final validationData = jsonDecode(content) as Map<String, dynamic>;
+      return _parseValidationResult(validationData);
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Validation error: $e');
+    }
+  }
+
+  /// Performs monitoring implementation validation
+  Future<ValidationResult> _performMonitoringValidation({
+    required MonitoringRecommendation recommendation,
+    required String updatedCode,
+    required String repositoryName,
+  }) async {
+    try {
+      final prompt = _buildMonitoringValidationPrompt(recommendation, updatedCode, repositoryName);
+
+      final response = await _dio.post(
+        '/v1/chat/completions',
+        data: {
+          'model': AppConfig.openaiModel,
+          'messages': [
+            {'role': 'system', 'content': _getMonitoringValidationSystemPrompt()},
+            {'role': 'user', 'content': prompt},
+          ],
+          'temperature': 0.3,
+          'response_format': {'type': 'json_object'},
+        },
+      );
+
+      final responseData = response.data;
+      if (responseData == null || responseData is! Map<String, dynamic>) {
+        throw Exception('OpenAI API returned invalid response');
+      }
+
+      final content = responseData['choices']?[0]?['message']?['content'];
+      if (content == null || content is! String) {
+        throw Exception('Missing content in validation response');
+      }
+
+      final validationData = jsonDecode(content) as Map<String, dynamic>;
+      return _parseValidationResult(validationData);
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Validation error: $e');
+    }
+  }
+
+  String _getSecurityValidationSystemPrompt() {
+    return '''You are a security expert validating whether a security vulnerability has been properly fixed.
+
+Your task is to analyze the updated code and determine if the security issue has been resolved.
+
+Return your validation as a JSON object with this exact structure:
+{
+  "status": "passed" | "failed",
+  "summary": "<brief summary of validation result>",
+  "details": "<detailed explanation of what was checked and the outcome>",
+  "remainingIssues": ["<issue 1>", "<issue 2>"] (only if status is "failed"),
+  "recommendation": "<what to do next>" (only if status is "failed")
+}
+
+IMPORTANT:
+- Set status to "passed" ONLY if the security vulnerability is completely resolved
+- Set status to "failed" if the issue persists or the fix is incomplete
+- Be specific in your analysis - reference actual code
+- If the fix is partial, explain what's missing in remainingIssues''';
+  }
+
+  String _getMonitoringValidationSystemPrompt() {
+    return '''You are an observability expert validating whether monitoring has been properly implemented.
+
+Your task is to analyze the updated code and determine if the monitoring recommendation has been correctly implemented.
+
+Return your validation as a JSON object with this exact structure:
+{
+  "status": "passed" | "failed",
+  "summary": "<brief summary of validation result>",
+  "details": "<detailed explanation of what was checked and the outcome>",
+  "remainingIssues": ["<issue 1>", "<issue 2>"] (only if status is "failed"),
+  "recommendation": "<what to do next>" (only if status is "failed")
+}
+
+IMPORTANT:
+- Set status to "passed" ONLY if monitoring is properly implemented
+- Set status to "failed" if monitoring is missing or incomplete
+- Verify that proper instrumentation, logging, or tracking code exists
+- Be specific about what monitoring was implemented or what's missing''';
+  }
+
+  String _buildSecurityValidationPrompt(
+    SecurityIssue issue,
+    String updatedCode,
+    String repositoryName,
+  ) {
+    return '''Repository: $repositoryName
+
+ORIGINAL SECURITY ISSUE:
+Title: ${issue.title}
+Category: ${issue.category}
+Severity: ${issue.severity.value}
+Description: ${issue.description}
+${issue.filePath != null ? 'File: ${issue.filePath}' : ''}
+${issue.lineNumber != null ? 'Line: ${issue.lineNumber}' : ''}
+
+TASK: Validate if this security issue has been fixed in the updated code below.
+
+UPDATED CODE:
+$updatedCode
+
+VALIDATION CHECKLIST:
+1. Check if the vulnerable code pattern has been removed or fixed
+2. Verify that the fix addresses the root cause, not just symptoms
+3. Ensure no new security issues were introduced
+4. Confirm the fix follows security best practices
+
+Provide your validation result as JSON.''';
+  }
+
+  String _buildMonitoringValidationPrompt(
+    MonitoringRecommendation recommendation,
+    String updatedCode,
+    String repositoryName,
+  ) {
+    return '''Repository: $repositoryName
+
+ORIGINAL MONITORING RECOMMENDATION:
+Title: ${recommendation.title}
+Category: ${recommendation.category}
+Description: ${recommendation.description}
+Business Value: ${recommendation.businessValue}
+${recommendation.filePath != null ? 'File: ${recommendation.filePath}' : ''}
+${recommendation.lineNumber != null ? 'Line: ${recommendation.lineNumber}' : ''}
+
+TASK: Validate if this monitoring recommendation has been implemented in the updated code below.
+
+UPDATED CODE:
+$updatedCode
+
+VALIDATION CHECKLIST:
+1. Check if monitoring/tracking code has been added
+2. Verify it captures the recommended metrics or events
+3. Ensure proper instrumentation for the business value described
+4. Confirm the monitoring follows best practices
+
+Provide your validation result as JSON.''';
+  }
+
+  ValidationResult _parseValidationResult(Map<String, dynamic> data) {
+    final statusStr = data['status'] as String?;
+    if (statusStr == null) {
+      throw Exception('Validation response missing status');
+    }
+
+    ValidationStatus status;
+    if (statusStr.toLowerCase() == 'passed') {
+      status = ValidationStatus.passed;
+    } else if (statusStr.toLowerCase() == 'failed') {
+      status = ValidationStatus.failed;
+    } else {
+      throw Exception('Invalid validation status: $statusStr');
+    }
+
+    final summary = data['summary'] as String?;
+    final details = data['details'] as String?;
+    final remainingIssues = (data['remainingIssues'] as List?)
+        ?.map((e) => e.toString())
+        .toList();
+    final recommendation = data['recommendation'] as String?;
+
+    return ValidationResult(
+      id: const Uuid().v4(),
+      status: status,
+      timestamp: DateTime.now(),
+      summary: summary,
+      details: details,
+      remainingIssues: remainingIssues,
+      recommendation: recommendation,
+    );
+  }
+
+  Exception _handleDioException(DioException e) {
+    if (e.response?.statusCode == 429) {
+      return Exception(
+        'OpenAI rate limit exceeded. Please wait a few minutes and try again.',
+      );
+    } else if (e.response?.statusCode == 401) {
+      return Exception(
+        'OpenAI API key is invalid or expired.',
+      );
+    } else if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      return Exception('Connection timeout. Please try again.');
+    } else {
+      return Exception('Network error: ${e.message}');
     }
   }
 }

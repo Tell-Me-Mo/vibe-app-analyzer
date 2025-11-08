@@ -1,7 +1,11 @@
 # User Journey - VibeCheck
 
 ## Overview
-VibeCheck is a cross-platform application that helps developers analyze their AI-generated codebases for security vulnerabilities and business monitoring opportunities. The app uses a **credits-based system** where each analysis costs 5 credits. Users get **10 free credits** on first launch and can purchase more through various payment methods.
+VibeCheck is a cross-platform application that helps developers analyze their AI-generated codebases for security vulnerabilities and business monitoring opportunities. The app uses a **credits-based system** where:
+- **Each analysis costs 5 credits** (security or monitoring)
+- **Each validation costs 1 credit** (validate fixes or implementations)
+- Users get **10 free credits** on first launch
+- Credits can be purchased through various payment methods
 
 ---
 
@@ -424,6 +428,221 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 
 ---
 
+## Flow 6: Fix Validation Journey
+
+### 6.1 After Analysis - Reviewing Results
+
+**User completes security or monitoring analysis**
+
+**Results Page shows:**
+- Security issues OR monitoring recommendations
+- Each finding has:
+  - Title, description, severity/category
+  - Claude Code prompt (with Copy button)
+  - **"Validate Fix (1 credit)" button** (new!)
+  - Validation status badge (if previously validated)
+
+### 6.2 Fixing Issues in User's Environment
+
+**User workflow:**
+1. Reviews a security issue or monitoring recommendation
+2. Clicks "Copy Prompt" to copy Claude Code prompt
+3. Goes to their development environment (VSCode, terminal, etc.)
+4. Uses Claude Code with the copied prompt to fix the issue
+5. Reviews the changes, commits, and pushes to GitHub
+6. Returns to VibeCheck to validate the fix
+
+### 6.3 Initiating Validation
+
+**User clicks "Validate Fix (1 credit)" button**
+
+**Pre-validation checks:**
+
+**Case 1: Sufficient Credits (≥1 credit)**
+- Button changes to loading state: "Validating Fix..."
+- 1 credit consumed immediately
+- Validation begins
+
+**Case 2: Insufficient Credits (<1 credit)**
+- Dialog appears:
+  - ⚠️ Icon + "Insufficient Credits" title
+  - Message: "You need 1 credit to validate a fix. Would you like to purchase more credits?"
+  - Buttons:
+    - "Cancel" (secondary, grey)
+    - "Buy Credits" (primary, blue)
+- If "Buy Credits" clicked:
+  - Navigate to `/credits` page
+  - User can purchase credits
+  - Return to results and retry validation
+
+### 6.4 Validation in Progress
+
+**What happens behind the scenes:**
+1. Fetch latest code from GitHub repository
+2. Send to OpenAI GPT-4o mini with validation prompt
+3. AI analyzes if the fix is properly implemented
+4. Returns validation result (passed/failed/error)
+
+**User sees:**
+- Circular progress spinner on button
+- Button text: "Validating Fix..."
+- Button disabled (can't click again)
+- Duration: ~10-60 seconds depending on repository size
+
+**Credits indicator updates:**
+- Shows -1 credit during validation
+
+### 6.5 Validation Complete - Success (Passed)
+
+**Validation completes with status: PASSED ✅**
+
+**UI updates:**
+- Button text changes to "Re-validate Fix (1 credit)"
+- **Green validation status badge appears** next to finding title:
+  - ✅ "Fix Validated"
+- **Validation result card appears** below the finding:
+  - Green border and background
+  - ✅ Icon + "Validation Passed" title
+  - Timestamp: "Validated 2m ago"
+  - Summary: Brief explanation of what was validated
+  - Details: Specific checks performed and confirmed
+
+**Snackbar notification:**
+- "Fix Validated" with success icon
+- Auto-dismisses after 3 seconds
+
+**What this means:**
+- User's fix is working correctly
+- Security issue is resolved OR monitoring is implemented
+- Can deploy to production with confidence
+
+### 6.6 Validation Complete - Failed (Issues Remain)
+
+**Validation completes with status: FAILED ❌**
+
+**UI updates:**
+- Button text: "Re-validate Fix (1 credit)"
+- **Red validation status badge**:
+  - ❌ "Fix Failed"
+- **Validation result card** (red theme):
+  - ❌ Icon + "Validation Failed" title
+  - Timestamp
+  - Summary: Why validation failed
+  - Details: What was checked
+  - **Red "Remaining Issues" section:**
+    - List of issues still present
+    - Bullet points with specific problems
+  - **Blue "Recommendation" section:**
+    - 💡 Icon + suggested next steps
+    - What to do to pass validation
+
+**Example Failed Validation:**
+```
+❌ Validation Failed
+Validated 1m ago
+
+Summary: SQL injection vulnerability still present
+
+Details: While the prepared statement was added,
+user input is still being concatenated in the WHERE clause.
+
+Remaining Issues:
+• Line 45: String concatenation in query builder
+• Line 52: Unsanitized user input in ORDER BY clause
+
+Recommendation: Use parameterized queries for all
+dynamic values. Replace string concatenation with
+placeholder binding.
+```
+
+**User actions:**
+- Reviews remaining issues
+- Makes additional fixes
+- Clicks "Re-validate Fix (1 credit)" to try again
+
+### 6.7 Validation Error
+
+**Validation fails due to system error**
+
+**UI updates:**
+- **Orange validation status badge**:
+  - ⚠️ "Validation Error"
+- **Validation result card** (orange theme):
+  - ⚠️ Icon + "Validation Error" title
+  - Error details
+
+**Behind the scenes:**
+- **1 credit automatically refunded** ✅
+- User can retry without losing credits
+
+**Error snackbar:**
+- "Validation failed: [error message]"
+- Red background
+- Auto-dismisses after 5 seconds
+
+### 6.8 Re-validation After Additional Fixes
+
+**User makes more changes and wants to validate again**
+
+**Process:**
+1. User updates code in their repository
+2. Commits and pushes changes
+3. Returns to VibeCheck results page
+4. Clicks "Re-validate Fix (1 credit)"
+5. Same validation flow runs
+6. Previous validation result is replaced with new one
+
+**Credit cost:**
+- Each validation costs 1 credit (including re-validations)
+- No limit on number of re-validations
+
+### 6.9 Validation Persistence
+
+**User closes app and returns later**
+
+**What's preserved:**
+- Validation status badge remains visible
+- Validation result still displayed
+- All data encrypted and stored locally
+- For authenticated users: synced across devices
+
+**Example:**
+1. User validates fix on desktop → ✅ Passed
+2. User opens app on mobile (same account)
+3. Results page shows same ✅ "Fix Validated" badge
+4. Full validation result visible on mobile
+
+### 6.10 Validation for Monitoring Recommendations
+
+**Same flow as security, different context:**
+
+**Button text:**
+- "Validate Implementation (1 credit)"
+- While validating: "Validating Implementation..."
+
+**Validation focuses on:**
+- Whether monitoring code was added
+- If it captures the right metrics/events
+- Proper instrumentation
+- Follows best practices
+
+**Example Passed Validation:**
+```
+✅ Validation Passed
+Validated 5m ago
+
+Summary: User signup tracking properly implemented
+
+Details: Analytics event is correctly fired on
+successful registration. Event includes required
+properties: user_id, signup_method, timestamp.
+
+Implementation follows analytics best practices with
+proper error handling and non-blocking execution.
+```
+
+---
+
 ## Navigation Map
 
 ```
@@ -463,10 +682,15 @@ Analysis Flow (from Landing):
 
 ## Edge Cases & Error Handling
 
-### Insufficient Credits
+### Insufficient Credits (Analysis)
 - **Trigger:** User tries to analyze with < 5 credits
 - **Response:** Dialog with "Buy Credits" option
 - **Recovery:** Purchase credits or cancel
+
+### Insufficient Credits (Validation)
+- **Trigger:** User tries to validate with < 1 credit
+- **Response:** Dialog: "You need 1 credit to validate a fix..."
+- **Recovery:** Purchase credits or cancel validation
 
 ### Purchase Cancelled
 - **Trigger:** User cancels payment dialog
@@ -498,20 +722,39 @@ Analysis Flow (from Landing):
 - **Response:** Error dialog shown
 - **Recovery:** **Credits refunded** (5 added back automatically)
 
+### Validation Fails After Credit Consumed
+- **Trigger:** OpenAI API error, network timeout during validation
+- **Response:** Error status badge, error snackbar
+- **Recovery:** **1 credit refunded automatically**, user can retry
+
+### Validation on Unchanged Code
+- **Trigger:** User validates without making changes to repository
+- **Response:** Validation runs normally (1 credit consumed)
+- **Result:** Likely to fail with same issues as original analysis
+- **Note:** No special detection, user can validate anytime
+
+### Multiple Validations on Same Issue
+- **Trigger:** User validates multiple times after incremental fixes
+- **Response:** Each validation costs 1 credit
+- **Result:** Previous validation result replaced with new one
+- **Note:** Unlimited re-validations supported
+
 ---
 
 ## Key User Experience Principles
 
-1. **Generous Free Tier:** 10 free credits = 2 analyses, no credit card required
-2. **Transparent Pricing:** Clear credit cost (5 per analysis), visible packages
+1. **Generous Free Tier:** 10 free credits = 2 analyses or mix of analysis + validations, no credit card required
+2. **Transparent Pricing:** Clear credit costs (5 per analysis, 1 per validation), visible packages
 3. **Seamless Authentication:** Optional but beneficial (sync across devices)
 4. **Multiple Payment Options:** iOS/Android IAP, Stripe for web
 5. **Credits Never Expire:** No pressure to use quickly
 6. **Cross-Platform Sync:** Buy on one device, use on all
-7. **Clear Visual Feedback:** Color-coded credit indicator (green→yellow→red)
-8. **Forgiving Errors:** Credits refunded if analysis fails
+7. **Clear Visual Feedback:** Color-coded indicators (credits: green→yellow→red, validation: green/red/orange)
+8. **Forgiving Errors:** Credits refunded if analysis or validation fails
 9. **No Hidden Costs:** Upfront pricing, no subscriptions
 10. **Privacy-Focused:** Guest mode for privacy-conscious users
+11. **Validation Confidence:** AI-powered verification that fixes actually work
+12. **Iterative Improvement:** Unlimited re-validations for continuous improvement
 
 ---
 
@@ -525,10 +768,19 @@ Analysis Flow (from Landing):
 ### Engagement
 - Average credits used per user
 - Analysis completion rate
+- **Validation usage rate (% of users who validate fixes)**
+- **Average validations per analysis**
 - Return user rate (7-day, 30-day)
+
+### Validation Effectiveness
+- **Validation success rate (passed vs failed)**
+- **Average re-validations per issue**
+- **Time between analysis and first validation**
+- **Most validated issue types**
 
 ### Monetization
 - Purchase conversion rate (insufficient credits → purchase)
+- **Validation-driven purchases (bought credits specifically for validation)**
 - Average revenue per user (ARPU)
 - Most popular credit package
 - Platform split (iOS vs Android vs Web purchases)
@@ -537,6 +789,7 @@ Analysis Flow (from Landing):
 - Credits remaining at churn
 - Time to first purchase
 - Second purchase rate
+- **Validation feature retention boost**
 
 ---
 

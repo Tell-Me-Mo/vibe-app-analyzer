@@ -5,16 +5,17 @@
 App Analyzer (VibeCheck) is a Flutter cross-platform application that analyzes public GitHub repositories for security vulnerabilities and business monitoring opportunities in AI-generated codebases. The system uses OpenAI GPT-4o mini to perform intelligent code analysis and generate actionable Claude Code prompts.
 
 ### 1.1 Key Features
-- **Credits-based system:** 10 free credits on first launch, 5 credits per analysis
+- **Credits-based system:** 10 free credits on first launch, 5 credits per analysis, 1 credit per validation
 - **Authentication:** Sign in with Email, Google, or Apple (Supabase)
 - **Payment integration:** Purchase credit packages via RevenueCat (iOS/Android/Web)
 - **User profiles:** Synced across devices with credit balance
 - **Two analysis modes:** Security & Monitoring
 - **Synchronous analysis** with real-time progress indication
 - **Claude Code-compatible** prompt generation
+- **Fix validation:** AI-powered validation of security fixes and monitoring implementations (1 credit each)
 - **Guest mode:** Use app without authentication (local storage)
 - **Responsive UI:** Desktop, tablet, and mobile support
-- **Analysis history** with demo examples
+- **Analysis history** with demo examples and validation results
 - **Cross-platform:** Web, iOS, Android, macOS, Linux, Windows
 
 ---
@@ -36,12 +37,13 @@ App Analyzer (VibeCheck) is a Flutter cross-platform application that analyzes p
 │                         │   (Riverpod)    │                         │
 │                         └────────┬────────┘                         │
 │                                  │                                  │
-│     ┌────────────────────────────┼───────────────────────────┐     │
-│     │            │               │               │           │     │
-│ ┌───▼────┐ ┌────▼────┐ ┌────────▼───────┐ ┌────▼────┐ ┌───▼────┐ │
-│ │ GitHub │ │ OpenAI  │ │ Auth Service   │ │ Credits │ │Payment │ │
-│ │Service │ │ Service │ │   (Supabase)   │ │ Service │ │Service │ │
-│ └───┬────┘ └────┬────┘ └────────┬───────┘ └────┬────┘ └───┬────┘ │
+│     ┌────────────────────────────┼───────────────────────────────┐ │
+│     │            │               │               │       │       │ │
+│ ┌───▼────┐ ┌────▼────┐ ┌────────▼───────┐ ┌────▼────┐ ┌──▼───┐ │ │
+│ │ GitHub │ │ OpenAI  │ │ Auth Service   │ │ Credits │ │Valida│ │ │
+│ │Service │ │ Service │ │   (Supabase)   │ │ Service │ │-tion │ │ │
+│ └───┬────┘ └────┬────┘ └────────┬───────┘ └────┬────┘ └──┬───┘ │ │
+│     │           │               │               │         │     │ │
 │     │           │               │               │          │      │
 │     │           │          ┌────▼────┐          │          │      │
 │     │           │          │ Storage │          │          │      │
@@ -135,21 +137,24 @@ lib/widgets/
 │   ├── loading_animation.dart   # Analysis loading animation
 │   ├── severity_badge.dart      # Color-coded badges
 │   ├── category_badge.dart      # Category badges
+│   ├── validation_status_badge.dart # Validation status indicators
+│   ├── validation_result_display.dart # Validation result card
 │   ├── welcome_popup.dart       # First-launch free credits popup
 │   ├── credits_indicator.dart   # Credit balance indicator
 │   └── auth_button.dart         # Login/profile button
 ├── landing/
 │   └── history_card.dart        # Analysis history card
 ├── results/
-│   ├── issue_card.dart          # Security issue display
-│   └── recommendation_card.dart # Monitoring recommendation
+│   ├── issue_card.dart          # Security issue display (with validation button)
+│   └── recommendation_card.dart # Monitoring recommendation (with validation button)
 ```
 
 #### 4.1.3 State Management (Riverpod)
 ```
 lib/providers/
 ├── analysis_provider.dart       # Current analysis state (with credit consumption)
-└── history_provider.dart        # Analysis history
+├── history_provider.dart        # Analysis history (with update support)
+└── validation_provider.dart     # Validation state management
 
 # Note: Auth and credits state managed via services with StreamProviders
 ```
@@ -158,11 +163,12 @@ lib/providers/
 ```
 lib/services/
 ├── github_service.dart          # GitHub API integration
-├── openai_service.dart          # OpenAI GPT-4o mini integration
-├── storage_service.dart         # Encrypted local storage (Hive)
+├── openai_service.dart          # OpenAI GPT-4o mini integration (analysis + validation)
+├── storage_service.dart         # Encrypted local storage (Hive) with update support
 ├── auth_service.dart            # Supabase authentication
 ├── credits_service.dart         # Credits management
-└── payment_service.dart         # RevenueCat payment integration
+├── payment_service.dart         # RevenueCat payment integration
+└── validation_service.dart      # Fix/implementation validation (1 credit each)
 ```
 
 #### 4.1.5 Models
@@ -170,9 +176,11 @@ lib/services/
 lib/models/
 ├── analysis_type.dart           # Enum for analysis types
 ├── analysis_result.dart         # Response data (with JSON serialization)
-├── security_issue.dart          # Security finding model
-├── monitoring_recommendation.dart # Monitoring suggestion
+├── security_issue.dart          # Security finding model (with validation fields)
+├── monitoring_recommendation.dart # Monitoring suggestion (with validation fields)
 ├── severity.dart                # Severity enum
+├── validation_status.dart       # Enum for validation states
+├── validation_result.dart       # Validation response data
 ├── user_profile.dart            # User profile with credits
 └── credit_package.dart          # Credit package definitions
 ```
@@ -265,6 +273,10 @@ class SecurityIssue implements Finding {
   final String description;
   final String aiGenerationRisk;
   final String claudeCodePrompt;
+  final String? filePath;
+  final int? lineNumber;
+  final ValidationStatus validationStatus; // notStarted | validating | passed | failed | error
+  final ValidationResult? validationResult;
 }
 ```
 
@@ -277,10 +289,38 @@ class MonitoringRecommendation implements Finding {
   final String description;
   final String businessValue;
   final String claudeCodePrompt;
+  final String? filePath;
+  final int? lineNumber;
+  final ValidationStatus validationStatus; // notStarted | validating | passed | failed | error
+  final ValidationResult? validationResult;
 }
 ```
 
-### 5.5 Database Schema
+### 5.5 Validation Status
+```dart
+enum ValidationStatus {
+  notStarted,  // Default state, not yet validated
+  validating,  // Currently validating fix/implementation
+  passed,      // Validation successful, fix works
+  failed,      // Validation failed, issues remain
+  error,       // Validation error occurred
+}
+```
+
+### 5.6 Validation Result
+```dart
+class ValidationResult {
+  final String id;
+  final ValidationStatus status;
+  final DateTime timestamp;
+  final String? summary;           // Brief validation summary
+  final String? details;           // Detailed explanation
+  final List<String>? remainingIssues;  // Issues found if failed
+  final String? recommendation;    // Next steps if failed
+}
+```
+
+### 5.7 Database Schema
 ```sql
 -- analyses table
 CREATE TABLE analyses (
@@ -398,6 +438,94 @@ CREATE TABLE demo_examples (
 
 5. Storage & Return
    └─> Save to SQLite, return to frontend
+```
+
+### 6.3 Fix Validation Pipeline
+```
+1. Credit Check
+   └─> Verify user has ≥1 credit for validation
+
+2. Credit Consumption
+   └─> Consume 1 credit before validation starts
+
+3. Update Status
+   └─> Set finding validationStatus to "validating"
+
+4. Repository Code Fetch
+   └─> Fetch updated code from GitHub repository
+   └─> Same logic as analysis (filter relevant files, max 100KB)
+
+5. AI Validation (OpenAI GPT-4o mini)
+   For Security Issues:
+   Input Prompt:
+   """
+   You are a security expert validating a fix.
+
+   Original Issue:
+   - Title: {issue.title}
+   - Severity: {issue.severity}
+   - Description: {issue.description}
+   - File: {issue.filePath}:{issue.lineNumber}
+
+   Updated Code: [fetched code]
+
+   Validation Checklist:
+   1. Vulnerable code pattern removed/fixed
+   2. Fix addresses root cause
+   3. No new security issues introduced
+   4. Follows security best practices
+
+   Return JSON:
+   {
+     "status": "passed" | "failed",
+     "summary": "Brief summary",
+     "details": "Detailed explanation",
+     "remainingIssues": ["..."] (if failed),
+     "recommendation": "..." (if failed)
+   }
+   """
+
+   For Monitoring Recommendations:
+   Input Prompt:
+   """
+   You are an observability expert validating implementation.
+
+   Original Recommendation:
+   - Title: {rec.title}
+   - Category: {rec.category}
+   - Business Value: {rec.businessValue}
+   - File: {rec.filePath}:{rec.lineNumber}
+
+   Updated Code: [fetched code]
+
+   Validation Checklist:
+   1. Monitoring/tracking code added
+   2. Captures recommended metrics/events
+   3. Proper instrumentation
+   4. Follows best practices
+
+   Return JSON: (same format as security)
+   """
+
+6. Result Parsing
+   └─> Parse JSON, create ValidationResult
+
+7. Update Finding
+   └─> Update SecurityIssue/MonitoringRecommendation with validation result
+   └─> Set validationStatus to "passed", "failed", or "error"
+
+8. Persist Update
+   └─> Update AnalysisResult in storage
+   └─> Encrypted storage preserves validation history
+
+9. UI Update
+   └─> ValidationProvider triggers state update
+   └─> Results page rebuilds with validation badge and result
+
+Error Handling:
+   └─> On any error: Refund 1 credit
+   └─> Set validationStatus to "error"
+   └─> Show error message to user
 ```
 
 ---

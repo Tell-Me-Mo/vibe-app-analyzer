@@ -5,7 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../models/analysis_result.dart';
 import '../models/analysis_type.dart';
+import '../models/security_issue.dart';
+import '../models/monitoring_recommendation.dart';
 import '../providers/history_provider.dart';
+import '../providers/validation_provider.dart';
 import '../data/demo_data.dart';
 import '../widgets/results/issue_card.dart';
 import '../widgets/results/recommendation_card.dart';
@@ -18,6 +21,10 @@ class ResultsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Watch history and validation state to rebuild when validation completes
+    ref.watch(historyProvider);
+    ref.watch(validationProvider);
+
     // Try to find result in history or demo data
     final result = _getResult(ref);
 
@@ -217,6 +224,14 @@ class ResultsPage extends ConsumerWidget {
                     ...result.securityIssues!.map((issue) => IssueCard(
                           issue: issue,
                           repositoryUrl: result.repositoryUrl,
+                          onValidate: (SecurityIssue issueToValidate) {
+                            _handleSecurityValidation(
+                              context,
+                              ref,
+                              issueToValidate,
+                              result,
+                            );
+                          },
                         )),
                     const SizedBox(height: 24),
                   ],
@@ -233,6 +248,14 @@ class ResultsPage extends ConsumerWidget {
                         .map((rec) => RecommendationCard(
                               recommendation: rec,
                               repositoryUrl: result.repositoryUrl,
+                              onValidate: (MonitoringRecommendation recToValidate) {
+                                _handleMonitoringValidation(
+                                  context,
+                                  ref,
+                                  recToValidate,
+                                  result,
+                                );
+                              },
                             )),
                     const SizedBox(height: 24),
                   ],
@@ -445,6 +468,73 @@ class ResultsPage extends ConsumerWidget {
         ],
       );
     }
+  }
+
+  void _handleSecurityValidation(
+    BuildContext context,
+    WidgetRef ref,
+    SecurityIssue issue,
+    AnalysisResult result,
+  ) {
+    ref.read(validationProvider.notifier).validateSecurityFix(
+          context: context,
+          resultId: result.id,
+          issue: issue,
+          repositoryUrl: result.repositoryUrl,
+          repositoryName: result.repositoryName,
+          onInsufficientCredits: () {
+            _showInsufficientCreditsDialog(context);
+          },
+        );
+  }
+
+  void _handleMonitoringValidation(
+    BuildContext context,
+    WidgetRef ref,
+    MonitoringRecommendation recommendation,
+    AnalysisResult result,
+  ) {
+    ref.read(validationProvider.notifier).validateMonitoringImplementation(
+          context: context,
+          resultId: result.id,
+          recommendation: recommendation,
+          repositoryUrl: result.repositoryUrl,
+          repositoryName: result.repositoryName,
+          onInsufficientCredits: () {
+            _showInsufficientCreditsDialog(context);
+          },
+        );
+  }
+
+  void _showInsufficientCreditsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Insufficient Credits'),
+          ],
+        ),
+        content: const Text(
+          'You need 1 credit to validate a fix or implementation. Would you like to purchase more credits?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              context.go('/credits');
+            },
+            child: const Text('Buy Credits'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

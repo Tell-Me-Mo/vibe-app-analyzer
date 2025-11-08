@@ -2,13 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/monitoring_recommendation.dart';
+import '../../models/validation_status.dart';
 import '../common/category_badge.dart';
+import '../common/validation_status_badge.dart';
+import '../common/validation_result_display.dart';
 
 class RecommendationCard extends StatefulWidget {
   final MonitoringRecommendation recommendation;
   final String? repositoryUrl;
+  final Function(MonitoringRecommendation)? onValidate;
 
-  const RecommendationCard({super.key, required this.recommendation, this.repositoryUrl});
+  const RecommendationCard({
+    super.key,
+    required this.recommendation,
+    this.repositoryUrl,
+    this.onValidate,
+  });
 
   @override
   State<RecommendationCard> createState() => _RecommendationCardState();
@@ -55,6 +64,10 @@ class _RecommendationCardState extends State<RecommendationCard> {
                       category: widget.recommendation.category,
                       color: _getCategoryColor(widget.recommendation.category),
                     ),
+                    if (widget.recommendation.validationStatus != ValidationStatus.notStarted) ...[
+                      const SizedBox(width: 8),
+                      ValidationStatusBadge(status: widget.recommendation.validationStatus),
+                    ],
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -200,6 +213,44 @@ class _RecommendationCardState extends State<RecommendationCard> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      // Validate Implementation Button
+                      if (widget.onValidate != null) ...[
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: widget.recommendation.validationStatus == ValidationStatus.validating
+                                ? null
+                                : () => widget.onValidate!(widget.recommendation),
+                            icon: widget.recommendation.validationStatus == ValidationStatus.validating
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.check_circle_outline, size: 18),
+                            label: Text(
+                              widget.recommendation.validationStatus == ValidationStatus.validating
+                                  ? 'Validating Implementation...'
+                                  : widget.recommendation.validationStatus == ValidationStatus.notStarted
+                                      ? 'Validate Implementation (1 credit)'
+                                      : 'Re-validate Implementation (1 credit)',
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                              foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                      // Validation Result Display
+                      if (widget.recommendation.validationResult != null) ...[
+                        const SizedBox(height: 12),
+                        ValidationResultDisplay(
+                          result: widget.recommendation.validationResult!,
+                        ),
+                      ],
                     ],
                   ),
                 ),

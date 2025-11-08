@@ -22,6 +22,11 @@ class HistoryNotifier extends StateNotifier<List<AnalysisResult>> {
     return _storageService.getAnalysisById(id);
   }
 
+  Future<void> updateResult(AnalysisResult result) async {
+    await _storageService.updateAnalysis(result);
+    loadHistory();
+  }
+
   Future<void> clearHistory() async {
     await _storageService.clearHistory();
     state = [];

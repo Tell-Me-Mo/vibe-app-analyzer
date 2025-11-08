@@ -167,6 +167,29 @@ class StorageService {
     return history.where((r) => r.id == id).firstOrNull;
   }
 
+  Future<void> updateAnalysis(AnalysisResult updatedResult) async {
+    final history = getHistory();
+    final index = history.indexWhere((r) => r.id == updatedResult.id);
+
+    if (index != -1) {
+      history[index] = updatedResult;
+
+      try {
+        // Serialize to JSON
+        final jsonList = history.map((r) => r.toJson()).toList();
+        final jsonStrings = jsonList.map((json) => jsonEncode(json)).toList();
+
+        // Encrypt each analysis result
+        final encryptedStrings = jsonStrings.map((str) => _encrypt(str)).toList();
+
+        // Save encrypted data
+        await _prefs.setStringList('history', encryptedStrings);
+      } catch (e) {
+        throw Exception('Failed to update analysis: $e');
+      }
+    }
+  }
+
   Future<void> clearHistory() async {
     await _prefs.remove('history');
   }
