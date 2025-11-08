@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../models/analysis_result.dart';
 import '../models/analysis_type.dart';
+import '../models/analysis_mode.dart';
 import '../models/security_issue.dart';
 import '../models/monitoring_recommendation.dart';
 import '../providers/history_provider.dart';
@@ -148,8 +149,11 @@ class ResultsPage extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
+                      // Analysis Type Badge
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
@@ -176,7 +180,44 @@ class ResultsPage extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      // Analysis Mode Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: (result.analysisMode == AnalysisMode.staticCode
+                                  ? const Color(0xFFA78BFA)
+                                  : const Color(0xFF4ADE80))
+                              .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: (result.analysisMode == AnalysisMode.staticCode
+                                    ? const Color(0xFFA78BFA)
+                                    : const Color(0xFF4ADE80))
+                                .withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              result.analysisMode.icon,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              result.analysisMode.displayName,
+                              style: TextStyle(
+                                color: result.analysisMode == AnalysisMode.staticCode
+                                    ? const Color(0xFFA78BFA)
+                                    : const Color(0xFF4ADE80),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Timestamp
                       Text(
                         dateFormat.format(result.timestamp),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -224,14 +265,17 @@ class ResultsPage extends ConsumerWidget {
                     ...result.securityIssues!.map((issue) => IssueCard(
                           issue: issue,
                           repositoryUrl: result.repositoryUrl,
-                          onValidate: (SecurityIssue issueToValidate) {
-                            _handleSecurityValidation(
-                              context,
-                              ref,
-                              issueToValidate,
-                              result,
-                            );
-                          },
+                          // Only allow validation for static code analysis
+                          onValidate: result.analysisMode == AnalysisMode.staticCode
+                              ? (SecurityIssue issueToValidate) {
+                                  _handleSecurityValidation(
+                                    context,
+                                    ref,
+                                    issueToValidate,
+                                    result,
+                                  );
+                                }
+                              : null,
                         )),
                     const SizedBox(height: 24),
                   ],
@@ -248,14 +292,17 @@ class ResultsPage extends ConsumerWidget {
                         .map((rec) => RecommendationCard(
                               recommendation: rec,
                               repositoryUrl: result.repositoryUrl,
-                              onValidate: (MonitoringRecommendation recToValidate) {
-                                _handleMonitoringValidation(
-                                  context,
-                                  ref,
-                                  recToValidate,
-                                  result,
-                                );
-                              },
+                              // Only allow validation for static code analysis
+                              onValidate: result.analysisMode == AnalysisMode.staticCode
+                                  ? (MonitoringRecommendation recToValidate) {
+                                      _handleMonitoringValidation(
+                                        context,
+                                        ref,
+                                        recToValidate,
+                                        result,
+                                      );
+                                    }
+                                  : null,
                             )),
                     const SizedBox(height: 24),
                   ],

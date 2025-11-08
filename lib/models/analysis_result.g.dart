@@ -13,6 +13,10 @@ AnalysisResult _$AnalysisResultFromJson(Map<String, dynamic> json) =>
       repositoryName: json['repositoryName'] as String,
       analysisType:
           AnalysisResult._analysisTypeFromJson(json['analysisType'] as String),
+      analysisMode: json['analysisMode'] == null
+          ? AnalysisMode.staticCode
+          : AnalysisResult._analysisModeFromJson(
+              json['analysisMode'] as String?),
       timestamp: DateTime.parse(json['timestamp'] as String),
       summary:
           AnalysisSummary.fromJson(json['summary'] as Map<String, dynamic>),
@@ -33,6 +37,7 @@ Map<String, dynamic> _$AnalysisResultToJson(AnalysisResult instance) =>
       'repositoryUrl': instance.repositoryUrl,
       'repositoryName': instance.repositoryName,
       'analysisType': AnalysisResult._analysisTypeToJson(instance.analysisType),
+      'analysisMode': AnalysisResult._analysisModeToJson(instance.analysisMode),
       'timestamp': instance.timestamp.toIso8601String(),
       'summary': instance.summary,
       'securityIssues': instance.securityIssues,

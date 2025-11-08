@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../models/analysis_result.dart';
 import '../models/analysis_type.dart';
+import '../models/analysis_mode.dart';
 import '../models/security_issue.dart';
 import '../models/monitoring_recommendation.dart';
 import '../models/severity.dart';
@@ -16,6 +17,7 @@ class DemoData {
     repositoryUrl: 'https://github.com/demo/ecommerce-app',
     repositoryName: 'ecommerce-app',
     analysisType: AnalysisType.security,
+    analysisMode: AnalysisMode.staticCode,
     timestamp: DateTime.now().subtract(const Duration(days: 2)),
     summary: AnalysisSummary(
       total: 5,
@@ -96,6 +98,7 @@ class DemoData {
     repositoryUrl: 'https://github.com/demo/todo-flutter-app',
     repositoryName: 'todo-flutter-app',
     analysisType: AnalysisType.monitoring,
+    analysisMode: AnalysisMode.staticCode,
     timestamp: DateTime.now().subtract(const Duration(days: 1)),
     summary: AnalysisSummary(
       total: 4,

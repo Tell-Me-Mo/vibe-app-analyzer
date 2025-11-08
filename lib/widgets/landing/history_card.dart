@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/analysis_result.dart';
+import '../../models/analysis_mode.dart';
 
 class HistoryCard extends StatelessWidget {
   final AnalysisResult result;
@@ -104,6 +105,7 @@ class HistoryCard extends StatelessWidget {
                       const SizedBox(height: 6),
                       Row(
                         children: [
+                          // Analysis Type Badge
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -124,6 +126,41 @@ class HistoryCard extends StatelessWidget {
                                     ? const Color(0xFF60A5FA)
                                     : const Color(0xFF34D399),
                               ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          // Analysis Mode Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: (result.analysisMode == AnalysisMode.staticCode
+                                      ? const Color(0xFFA78BFA)
+                                      : const Color(0xFF4ADE80))
+                                  .withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  result.analysisMode.icon,
+                                  style: const TextStyle(fontSize: 10),
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  result.analysisMode.shortLabel,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: result.analysisMode == AnalysisMode.staticCode
+                                        ? const Color(0xFFA78BFA)
+                                        : const Color(0xFF4ADE80),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 8),

@@ -45,6 +45,11 @@ class CreditsService {
     return false;
   }
 
+  /// Refund credits (e.g., when analysis fails)
+  Future<void> refundCredits(int amount) async {
+    await addCredits(amount);
+  }
+
   /// Check if user has enough credits
   Future<bool> hasEnoughCredits(int amount) async {
     final current = await getCredits();

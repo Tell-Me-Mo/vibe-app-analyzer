@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'models/analysis_type.dart';
+import 'models/analysis_mode.dart';
 import 'pages/landing_page.dart';
 import 'pages/analysis_loading_page.dart';
 import 'pages/results_page.dart';
@@ -23,8 +24,9 @@ class App extends StatelessWidget {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
           return AnalysisLoadingPage(
-            repositoryUrl: extra['url'] as String,
+            url: extra['url'] as String,
             analysisType: extra['type'] as AnalysisType,
+            analysisMode: extra['mode'] as AnalysisMode,
           );
         },
       ),

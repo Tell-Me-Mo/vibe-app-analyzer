@@ -1,9 +1,13 @@
 # User Journey - VibeCheck
 
 ## Overview
-VibeCheck is a cross-platform application that helps developers analyze their AI-generated codebases for security vulnerabilities and business monitoring opportunities. The app uses a **credits-based system** where:
-- **Each analysis costs 5 credits** (security or monitoring)
-- **Each validation costs 1 credit** (validate fixes or implementations)
+VibeCheck is a cross-platform application that helps developers analyze their AI-generated codebases and deployed applications for security vulnerabilities and business monitoring opportunities. The app supports **dual-mode analysis**:
+- **Static Code Analysis**: Analyze GitHub repositories (source code)
+- **Runtime Analysis**: Analyze live deployed applications (running apps)
+
+The app uses a **credits-based system** where:
+- **Each analysis costs 5 credits** (security or monitoring, static or runtime)
+- **Each validation costs 1 credit** (validate fixes - only for static code)
 - Users get **10 free credits** on first launch
 - Credits can be purchased through various payment methods
 
@@ -71,7 +75,8 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
     - "VibeCheck" title
     - Tagline: "Check the vibe of your AI-generated code for security & monitoring gaps"
   - Input section:
-    - URL input field: "https://github.com/username/repository"
+    - URL input field: "https://github.com/user/repo or https://yourapp.com"
+    - Helper text: "Enter a GitHub repository URL or live app URL"
     - Two action buttons:
       - "Analyze Security" (blue gradient)
       - "Analyze Monitoring" (green gradient)
@@ -85,22 +90,39 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 
 ### 1.3 First Analysis
 
-**User enters GitHub URL and clicks "Analyze Security"**
+**User enters URL and clicks "Analyze Security"**
 
 **Pre-analysis validation:**
-1. URL validation (must be valid GitHub repo URL)
+1. **URL type detection:**
+   - GitHub URL (e.g., `https://github.com/user/repo`) → **Static Code Analysis**
+   - App URL (e.g., `https://yourapp.com`) → **Runtime Analysis**
+   - Invalid URL → Error: "Please enter a valid GitHub repository or live app URL"
 2. **Credit check** (needs 5 credits)
    - ✅ Has 10 credits → Proceed
    - ❌ Insufficient → Show dialog (shouldn't happen on first use)
 
-**Analysis screen:**
+**Analysis screen (varies by mode):**
+
+**Static Code Analysis (GitHub URL):**
 - Loading animation with progress (0-100%)
 - Repository name displayed
-- Analysis type badge
+- Analysis type badge (Security/Monitoring) + Mode badge (📝 Code)
 - Progress messages:
   - "Validating repository..." (10%)
   - "Cloning repository..." (30%)
   - "Running AI analysis..." (50%)
+  - "Generating recommendations..." (90%)
+  - "Analysis complete!" (100%)
+
+**Runtime Analysis (App URL):**
+- Loading animation with progress (0-100%)
+- App URL displayed
+- Analysis type badge (Security/Monitoring) + Mode badge (🚀 Live)
+- Progress messages:
+  - "Fetching application..." (10%)
+  - "Analyzing security configuration..." (30%)
+  - "Detecting monitoring tools..." (50%)
+  - "Running AI analysis..." (70%)
   - "Generating recommendations..." (90%)
   - "Analysis complete!" (100%)
 
@@ -109,7 +131,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 - Credits saved to local storage
 - New balance: 10 - 5 = 5 credits
 
-**Duration:** ~30-90 seconds
+**Duration:** ~30-90 seconds for static code, ~10-30 seconds for runtime
 
 ### 1.4 Results Dashboard
 
@@ -118,15 +140,18 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 **What they see:**
 - Credits indicator now shows: "⭐ 5 credits" (yellow, warning state)
 - Results page with:
-  - Repository info and timestamp
-  - Analysis type badge
+  - Repository/App URL info and timestamp
+  - **Analysis mode badge** (purple "📝 Code" for static, green "🚀 Live" for runtime)
+  - Analysis type badge (Security/Monitoring)
   - Summary section (total issues/recommendations)
   - Detailed findings cards
   - Each card has "Copy Prompt" button
+  - **"Validate Fix" button** (only for Static Code Analysis, not Runtime)
 
 **User actions:**
 - Reviews results
 - Copies prompts
+- (Static Code only) Validates fixes
 - Returns to landing page
 
 ### 1.5 Second Analysis (Last Free One)
@@ -192,9 +217,127 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 
 ---
 
-## Flow 2: Authentication Journey
+## Flow 2: Runtime Analysis Journey
 
-### 2.1 Sign In/Sign Up Page
+### 2.1 Analyzing a Live Deployed Application
+
+**User wants to analyze their production app**
+
+**User navigates to landing page and enters:**
+- App URL: `https://myapp.example.com`
+- Clicks "Analyze Security" or "Analyze Monitoring"
+
+**URL Detection:**
+- System detects this is NOT a GitHub URL
+- Validates as a live app URL
+- Routes to **Runtime Analysis** mode
+
+### 2.2 Runtime Security Analysis
+
+**What happens during analysis:**
+1. App fetches the live application HTML
+2. Analyzes HTTP security headers:
+   - HSTS (HTTP Strict Transport Security)
+   - Content Security Policy (CSP)
+   - X-Frame-Options
+   - X-Content-Type-Options
+   - Referrer-Policy
+   - Permissions-Policy
+3. Checks HTTPS configuration
+4. Analyzes cookies (Secure, HttpOnly, SameSite attributes)
+5. Measures performance (TTFB, page load time)
+6. Sends security data to OpenAI for analysis
+
+**Results show:**
+- **Security issues found:**
+  - Missing security headers
+  - Insecure cookie configurations
+  - HTTP instead of HTTPS
+  - Weak CSP policies
+- **Security score** (0-100)
+- **Recommendations** for production hardening
+- **Copy Prompt** buttons for each issue
+
+**Example Security Finding:**
+```
+⚠️ Missing HSTS Header
+
+Severity: High
+Category: Transport Security
+
+Description: Your application is not sending the HTTP Strict-Transport-Security
+header, which means browsers won't enforce HTTPS-only connections.
+
+Recommendation: Add HSTS header to force HTTPS connections for at least 1 year.
+
+Claude Code Prompt: "Add HSTS header to my [framework] application with
+max-age=31536000 and includeSubDomains directive"
+```
+
+**No Validation Available:**
+- Runtime analysis results do NOT have "Validate Fix" buttons
+- Security headers must be verified manually or by re-running analysis
+
+### 2.3 Runtime Monitoring Analysis
+
+**What happens during analysis:**
+1. App fetches the live application HTML and scripts
+2. Detects monitoring/analytics tools:
+   - **Analytics**: Google Analytics, Mixpanel, Amplitude, PostHog, Plausible, Matomo
+   - **Error Tracking**: Sentry, Rollbar, Bugsnag, Airbrake
+   - **APM**: New Relic, Datadog, AppDynamics
+   - **Session Replay**: LogRocket, FullStory, Hotjar
+   - **Performance**: Google PageSpeed, Lighthouse
+3. Analyzes which tools are detected vs missing
+4. Sends monitoring data to OpenAI for analysis
+
+**Results show:**
+- **Detected tools** (✅ green badges)
+- **Missing critical tools** (recommendations)
+- **Implementation quality** for detected tools
+- **Recommendations** for comprehensive monitoring
+
+**Example Monitoring Finding:**
+```
+💡 Add Error Tracking
+
+Category: Error Monitoring
+Priority: High
+
+Description: No error tracking service detected. You're flying blind on
+production errors - users may be experiencing crashes without your knowledge.
+
+Recommendation: Implement Sentry or Rollbar to capture errors, stack traces,
+and user context in production.
+
+Detected Tools: Google Analytics ✅
+Missing Tools: Error tracking, Session replay, APM
+
+Claude Code Prompt: "Integrate Sentry error tracking into my [framework]
+application with sourcemap upload and user context tracking"
+```
+
+### 2.4 Runtime Analysis Benefits
+
+**Why use Runtime Analysis:**
+- No source code access needed
+- Analyze competitor apps
+- Verify production security posture
+- Audit deployed third-party apps
+- Quick analysis (10-30 seconds vs 30-90 for static)
+- Detect what's actually running in production
+
+**Limitations:**
+- Cannot validate fixes (re-run analysis instead)
+- Cannot analyze private/authenticated pages
+- Limited to publicly accessible pages
+- Cannot detect backend monitoring
+
+---
+
+## Flow 3: Authentication Journey
+
+### 3.1 Sign In/Sign Up Page
 
 **User navigates to /auth**
 
@@ -218,7 +361,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 - Error banner at top (authentication failures)
 - Network errors shown clearly
 
-### 2.2 Email/Password Sign Up Flow
+### 3.2 Email/Password Sign Up Flow
 
 **User fills form and clicks "Sign Up"**
 
@@ -243,7 +386,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 - Credits indicator: "⭐ 10 credits" (back to blue/green)
 - **Profile button** instead of "Sign In" (shows avatar or initials)
 
-### 2.3 Google/Apple Sign In Flow
+### 3.3 Google/Apple Sign In Flow
 
 **User clicks "Continue with Google"**
 
@@ -260,9 +403,9 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 
 ---
 
-## Flow 3: Authenticated User Experience
+## Flow 4: Authenticated User Experience
 
-### 3.1 Authenticated Landing Page
+### 4.1 Authenticated Landing Page
 
 **What they see (differences from guest):**
 - **Top-right corner:**
@@ -274,7 +417,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 
 **All other features same as guest**
 
-### 3.2 Profile Page
+### 4.2 Profile Page
 
 **User clicks profile chip → Navigate to /profile**
 
@@ -298,7 +441,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 - Click "Buy More Credits" → Navigate to /credits
 - Sign out → Clears session, returns to landing as guest
 
-### 3.3 Purchasing Credits (Authenticated)
+### 4.3 Purchasing Credits (Authenticated)
 
 **User clicks credits indicator or "Buy More Credits"**
 
@@ -329,7 +472,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 - Payment failed: Error dialog with support link
 - Network error: Retry mechanism
 
-### 3.4 Analysis with Credits
+### 4.4 Analysis with Credits
 
 **User performs analysis while authenticated**
 
@@ -348,9 +491,9 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 
 ---
 
-## Flow 4: Returning User
+## Flow 5: Returning User
 
-### 4.1 Guest User Returns (Same Device)
+### 5.1 Guest User Returns (Same Device)
 
 **What happens:**
 - Credits loaded from local storage
@@ -358,7 +501,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 - Analysis history loaded from local storage
 - Can continue using remaining credits
 
-### 4.2 Authenticated User Returns (Any Device)
+### 5.2 Authenticated User Returns (Any Device)
 
 **What happens:**
 - Auto-login via JWT token (if valid)
@@ -374,9 +517,9 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 
 ---
 
-## Flow 5: Advanced Scenarios
+## Flow 6: Advanced Scenarios
 
-### 5.1 Guest → Authenticated Migration
+### 6.1 Guest → Authenticated Migration
 
 **Scenario:** Guest user with local credits signs up
 
@@ -389,7 +532,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 
 **Note:** This is a known limitation. Future improvement could merge credits.
 
-### 5.2 Multiple Devices (Authenticated)
+### 6.2 Multiple Devices (Authenticated)
 
 **Scenario:** User signs in on Phone, then on Web
 
@@ -410,7 +553,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 
 **Sync frequency:** Real-time with StreamProvider
 
-### 5.3 Purchase on iOS, Use on Web
+### 6.3 Purchase on iOS, Use on Web
 
 **iOS:**
 - User purchases Professional Pack (120 credits)
@@ -428,21 +571,24 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 
 ---
 
-## Flow 6: Fix Validation Journey
+## Flow 7: Fix Validation Journey (Static Code Only)
 
-### 6.1 After Analysis - Reviewing Results
+**Note:** Validation is **only available for Static Code Analysis** (GitHub repositories). Runtime Analysis results do not have validation buttons.
 
-**User completes security or monitoring analysis**
+### 7.1 After Analysis - Reviewing Results
+
+**User completes security or monitoring analysis on a GitHub repository**
 
 **Results Page shows:**
+- Analysis mode badge: **📝 Code** (purple)
 - Security issues OR monitoring recommendations
 - Each finding has:
   - Title, description, severity/category
   - Claude Code prompt (with Copy button)
-  - **"Validate Fix (1 credit)" button** (new!)
+  - **"Validate Fix (1 credit)" button** (only for static code!)
   - Validation status badge (if previously validated)
 
-### 6.2 Fixing Issues in User's Environment
+### 7.2 Fixing Issues in User's Environment
 
 **User workflow:**
 1. Reviews a security issue or monitoring recommendation
@@ -452,7 +598,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 5. Reviews the changes, commits, and pushes to GitHub
 6. Returns to VibeCheck to validate the fix
 
-### 6.3 Initiating Validation
+### 7.3 Initiating Validation
 
 **User clicks "Validate Fix (1 credit)" button**
 
@@ -475,7 +621,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
   - User can purchase credits
   - Return to results and retry validation
 
-### 6.4 Validation in Progress
+### 7.4 Validation in Progress
 
 **What happens behind the scenes:**
 1. Fetch latest code from GitHub repository
@@ -492,7 +638,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 **Credits indicator updates:**
 - Shows -1 credit during validation
 
-### 6.5 Validation Complete - Success (Passed)
+### 7.5 Validation Complete - Success (Passed)
 
 **Validation completes with status: PASSED ✅**
 
@@ -516,7 +662,7 @@ VibeCheck is a cross-platform application that helps developers analyze their AI
 - Security issue is resolved OR monitoring is implemented
 - Can deploy to production with confidence
 
-### 6.6 Validation Complete - Failed (Issues Remain)
+### 7.6 Validation Complete - Failed (Issues Remain)
 
 **Validation completes with status: FAILED ❌**
 
@@ -560,7 +706,7 @@ placeholder binding.
 - Makes additional fixes
 - Clicks "Re-validate Fix (1 credit)" to try again
 
-### 6.7 Validation Error
+### 7.7 Validation Error
 
 **Validation fails due to system error**
 
@@ -580,7 +726,7 @@ placeholder binding.
 - Red background
 - Auto-dismisses after 5 seconds
 
-### 6.8 Re-validation After Additional Fixes
+### 7.8 Re-validation After Additional Fixes
 
 **User makes more changes and wants to validate again**
 
@@ -596,7 +742,7 @@ placeholder binding.
 - Each validation costs 1 credit (including re-validations)
 - No limit on number of re-validations
 
-### 6.9 Validation Persistence
+### 7.9 Validation Persistence
 
 **User closes app and returns later**
 
@@ -612,7 +758,7 @@ placeholder binding.
 3. Results page shows same ✅ "Fix Validated" badge
 4. Full validation result visible on mobile
 
-### 6.10 Validation for Monitoring Recommendations
+### 7.10 Validation for Monitoring Recommendations
 
 **Same flow as security, different context:**
 

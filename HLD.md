@@ -2,20 +2,24 @@
 
 ## 1. System Overview
 
-App Analyzer (VibeCheck) is a Flutter cross-platform application that analyzes public GitHub repositories for security vulnerabilities and business monitoring opportunities in AI-generated codebases. The system uses OpenAI GPT-4o mini to perform intelligent code analysis and generate actionable Claude Code prompts.
+App Analyzer (VibeCheck) is a Flutter cross-platform application that analyzes both **GitHub repositories** (static code) and **live deployed applications** (runtime) for security vulnerabilities and business monitoring opportunities. The system uses OpenAI GPT-4o mini to perform intelligent analysis and generate actionable Claude Code prompts.
 
 ### 1.1 Key Features
+- **Dual-mode analysis:**
+  - **📝 Static Code:** Analyze GitHub repositories for code-level vulnerabilities and monitoring gaps
+  - **🚀 Runtime:** Analyze live deployed applications for production security headers, cookies, monitoring tools, and performance
+- **Automatic URL detection:** Intelligently routes to static or runtime analysis based on URL type
 - **Credits-based system:** 10 free credits on first launch, 5 credits per analysis, 1 credit per validation
 - **Authentication:** Sign in with Email, Google, or Apple (Supabase)
 - **Payment integration:** Purchase credit packages via RevenueCat (iOS/Android/Web)
 - **User profiles:** Synced across devices with credit balance
-- **Two analysis modes:** Security & Monitoring
+- **Two analysis types:** Security & Monitoring (available for both static and runtime modes)
 - **Synchronous analysis** with real-time progress indication
 - **Claude Code-compatible** prompt generation
-- **Fix validation:** AI-powered validation of security fixes and monitoring implementations (1 credit each)
+- **Fix validation:** AI-powered validation of security fixes and monitoring implementations (1 credit each, static code only)
 - **Guest mode:** Use app without authentication (local storage)
 - **Responsive UI:** Desktop, tablet, and mobile support
-- **Analysis history** with demo examples and validation results
+- **Analysis history** with demo examples, validation results, and mode badges
 - **Cross-platform:** Web, iOS, Android, macOS, Linux, Windows
 
 ---
@@ -162,11 +166,14 @@ lib/providers/
 #### 4.1.4 Services
 ```
 lib/services/
-├── github_service.dart          # GitHub API integration
+├── github_service.dart          # GitHub API integration (static code analysis)
+├── app_runtime_service.dart     # Live app fetching and analysis (NEW!)
 ├── openai_service.dart          # OpenAI GPT-4o mini integration (analysis + validation)
+│                                # - Static code prompts
+│                                # - Runtime analysis prompts
 ├── storage_service.dart         # Encrypted local storage (Hive) with update support
 ├── auth_service.dart            # Supabase authentication
-├── credits_service.dart         # Credits management
+├── credits_service.dart         # Credits management (with refund support)
 ├── payment_service.dart         # RevenueCat payment integration
 └── validation_service.dart      # Fix/implementation validation (1 credit each)
 ```
@@ -174,8 +181,13 @@ lib/services/
 #### 4.1.5 Models
 ```
 lib/models/
-├── analysis_type.dart           # Enum for analysis types
-├── analysis_result.dart         # Response data (with JSON serialization)
+├── analysis_type.dart           # Enum for analysis types (Security, Monitoring)
+├── analysis_mode.dart           # Enum for analysis modes (Static Code, Runtime) - NEW!
+├── analysis_result.dart         # Response data (with JSON serialization + analysisMode)
+├── runtime_analysis_data.dart   # Runtime app data model - NEW!
+│   ├── DetectedTools            # 17+ monitoring tools detection
+│   ├── PerformanceMetrics       # Page load, TTFB, ratings
+│   └── SecurityConfig           # HTTPS, headers, cookies, security score
 ├── security_issue.dart          # Security finding model (with validation fields)
 ├── monitoring_recommendation.dart # Monitoring suggestion (with validation fields)
 ├── severity.dart                # Severity enum
@@ -350,7 +362,21 @@ CREATE TABLE demo_examples (
 
 ## 6. Analysis Flow (Detailed)
 
-### 6.1 Security Analysis Pipeline
+### 6.1 URL Detection & Routing
+```
+User Input URL
+    │
+    ▼
+Validators.detectUrlType()
+    │
+    ├─> GitHub URL (github.com/owner/repo)
+    │   └─> AnalysisMode.staticCode
+    │
+    └─> App URL (https://yourapp.com)
+        └─> AnalysisMode.runtime
+```
+
+### 6.2 Static Code - Security Analysis Pipeline
 ```
 1. Repository Retrieval
    └─> GitHub API: Fetch file tree & code files
@@ -396,7 +422,7 @@ CREATE TABLE demo_examples (
    └─> Save to SQLite, return to frontend
 ```
 
-### 6.2 Monitoring Analysis Pipeline
+### 6.3 Static Code - Monitoring Analysis Pipeline
 ```
 1. Repository Retrieval
    └─> Same as security analysis
@@ -440,7 +466,139 @@ CREATE TABLE demo_examples (
    └─> Save to SQLite, return to frontend
 ```
 
-### 6.3 Fix Validation Pipeline
+### 6.4 Runtime - Security Analysis Pipeline
+```
+1. App URL Validation
+   └─> Validate URL format and accessibility
+
+2. Live App Fetching (AppRuntimeService)
+   └─> HTTP GET request with proper headers
+   └─> Measure TTFB and page load time
+   └─> Extract HTML content
+
+3. Runtime Data Collection
+   ├─> HTTP Security Headers Analysis
+   │   ├─> HTTPS, HSTS, CSP, X-Frame-Options
+   │   ├─> X-Content-Type-Options, Referrer-Policy
+   │   └─> Permissions-Policy, CORS
+   │
+   ├─> Cookie Security Analysis
+   │   ├─> Secure flag
+   │   ├─> HttpOnly flag
+   │   └─> SameSite attribute
+   │
+   ├─> Performance Metrics
+   │   ├─> Page load time
+   │   └─> Time to First Byte (TTFB)
+   │
+   └─> Monitoring Tools Detection (17+ tools)
+       ├─> Analytics: GA, Mixpanel, Segment, etc.
+       ├─> Error Tracking: Sentry, Bugsnag, etc.
+       ├─> APM: New Relic, Datadog, etc.
+       └─> Session Replay: Hotjar, FullStory, etc.
+
+4. AI Analysis (OpenAI GPT-4o mini)
+   Input Prompt:
+   """
+   You are a security expert analyzing DEPLOYED applications.
+
+   Focus on RUNTIME security issues:
+   - Missing or misconfigured security headers
+   - Insecure cookie configurations
+   - CORS misconfigurations
+   - Exposed sensitive data in HTML/JS
+   - Missing HTTPS or weak TLS
+
+   Detected Configuration:
+   - Security Score: X/10
+   - Headers: [detected headers]
+   - Cookies: [cookie analysis]
+   - Performance: [metrics]
+
+   Return JSON:
+   {
+     "summary": { "total": int, "bySeverity": {...} },
+     "issues": [
+       {
+         "title": "...",
+         "severity": "critical|high|medium|low",
+         "description": "Runtime security issue",
+         "runtimeRisk": "Why this matters in production",
+         "claudeCodePrompt": "How to fix in deployment",
+         "filePath": null,
+         "lineNumber": null
+       }
+     ]
+   }
+   """
+
+5. Result Parsing & Validation
+   └─> Parse JSON, validate structure
+
+6. Storage & Return
+   └─> Save to local storage with analysisMode: runtime
+```
+
+### 6.5 Runtime - Monitoring Analysis Pipeline
+```
+1. App URL Validation
+   └─> Same as runtime security
+
+2. Live App Fetching
+   └─> Same as runtime security
+
+3. Runtime Data Collection
+   ├─> Monitoring Tools Detection
+   │   ├─> Google Analytics, Mixpanel, Amplitude, etc.
+   │   ├─> Sentry, Bugsnag, Rollbar, etc.
+   │   ├─> New Relic, Datadog, AppDynamics
+   │   └─> Meta Pixel, LinkedIn Tag
+   │
+   └─> Performance Metrics
+       ├─> Page load time analysis
+       └─> Performance rating
+
+4. AI Analysis (OpenAI GPT-4o mini)
+   Input Prompt:
+   """
+   You are an observability expert analyzing DEPLOYED apps.
+
+   Focus on what monitoring is MISSING or INCOMPLETE:
+   - No analytics (or missing conversion tracking)
+   - No error tracking (or incomplete setup)
+   - Missing performance monitoring
+   - Business metrics gaps
+
+   Detected Tools:
+   ✓ Google Analytics detected
+   ✗ No error tracking
+   ✗ No session replay
+
+   Return JSON:
+   {
+     "summary": { "total": int, "byCategory": {...} },
+     "recommendations": [
+       {
+         "title": "...",
+         "category": "analytics|error_tracking|business_metrics",
+         "description": "What's missing",
+         "businessValue": "Impact on business",
+         "claudeCodePrompt": "How to implement",
+         "filePath": null,
+         "lineNumber": null
+       }
+     ]
+   }
+   """
+
+5. Result Parsing & Validation
+   └─> Parse JSON, validate structure
+
+6. Storage & Return
+   └─> Save to local storage with analysisMode: runtime
+```
+
+### 6.6 Fix Validation Pipeline (Static Code Only)
 ```
 1. Credit Check
    └─> Verify user has ≥1 credit for validation

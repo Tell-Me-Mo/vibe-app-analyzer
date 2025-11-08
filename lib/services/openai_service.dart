@@ -4,11 +4,13 @@ import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import '../config/app_config.dart';
 import '../models/analysis_type.dart';
+import '../models/analysis_mode.dart';
 import '../models/analysis_result.dart';
 import '../models/security_issue.dart';
 import '../models/monitoring_recommendation.dart';
 import '../models/validation_status.dart';
 import '../models/validation_result.dart';
+import '../models/runtime_analysis_data.dart';
 
 class OpenAIService {
   final Dio _dio;
@@ -36,6 +38,24 @@ class OpenAIService {
         repositoryUrl: repositoryUrl,
         repositoryName: repositoryName,
         code: code,
+        analysisType: analysisType,
+      ),
+      maxRetries: 3,
+    );
+  }
+
+  /// Analyzes runtime data from a live application
+  Future<AnalysisResult> analyzeRuntimeApp({
+    required String appUrl,
+    required String appName,
+    required RuntimeAnalysisData runtimeData,
+    required AnalysisType analysisType,
+  }) async {
+    return _retryWithExponentialBackoff(
+      () => _performRuntimeAnalysis(
+        appUrl: appUrl,
+        appName: appName,
+        runtimeData: runtimeData,
         analysisType: analysisType,
       ),
       maxRetries: 3,
@@ -151,6 +171,124 @@ class OpenAIService {
         rethrow;
       }
       throw Exception('Unexpected error during analysis: $e');
+    }
+  }
+
+  /// Performs runtime analysis on live application data
+  Future<AnalysisResult> _performRuntimeAnalysis({
+    required String appUrl,
+    required String appName,
+    required RuntimeAnalysisData runtimeData,
+    required AnalysisType analysisType,
+  }) async {
+    try {
+      final prompt = _buildRuntimePrompt(runtimeData, analysisType);
+
+      final response = await _dio.post(
+        '/v1/chat/completions',
+        data: {
+          'model': AppConfig.openaiModel,
+          'messages': [
+            {
+              'role': 'system',
+              'content': _getRuntimeSystemPrompt(analysisType)
+            },
+            {'role': 'user', 'content': prompt},
+          ],
+          'temperature': 0.7,
+          'response_format': {'type': 'json_object'},
+        },
+      );
+
+      // Comprehensive null-safety checks (same as static analysis)
+      final responseData = response.data;
+      if (responseData == null) {
+        throw Exception('OpenAI API returned null response');
+      }
+
+      if (responseData is! Map<String, dynamic>) {
+        throw Exception('OpenAI API returned invalid response format');
+      }
+
+      final choices = responseData['choices'];
+      if (choices == null || choices is! List || choices.isEmpty) {
+        throw Exception('OpenAI API response missing choices array');
+      }
+
+      final firstChoice = choices[0];
+      if (firstChoice == null || firstChoice is! Map<String, dynamic>) {
+        throw Exception('Invalid choice format in OpenAI response');
+      }
+
+      final message = firstChoice['message'];
+      if (message == null || message is! Map<String, dynamic>) {
+        throw Exception('Missing message in OpenAI response');
+      }
+
+      final content = message['content'];
+      if (content == null || content is! String || content.isEmpty) {
+        throw Exception('Missing or invalid content in OpenAI response');
+      }
+
+      // Parse JSON with error handling
+      Map<String, dynamic> analysisData;
+      try {
+        final decoded = jsonDecode(content);
+        if (decoded is! Map<String, dynamic>) {
+          throw Exception('OpenAI returned non-object JSON');
+        }
+        analysisData = decoded;
+      } on FormatException catch (e) {
+        throw Exception('Failed to parse OpenAI JSON response: ${e.message}');
+      }
+
+      return _parseAnalysisResult(
+        repositoryUrl: appUrl,
+        repositoryName: appName,
+        analysisType: analysisType,
+        data: analysisData,
+        analysisMode: AnalysisMode.runtime,
+      );
+    } on DioException catch (e) {
+      // Use same error handling as static analysis
+      if (e.response?.statusCode == 429) {
+        throw Exception(
+          'OpenAI rate limit exceeded. Please wait a few minutes and try again.',
+        );
+      } else if (e.response?.statusCode == 401) {
+        throw Exception(
+          'OpenAI API key is invalid or expired. Please check your configuration.',
+        );
+      } else if (e.response?.statusCode == 400) {
+        final errorMsg = e.response?.data?['error']?['message'] ?? 'Bad request';
+        throw Exception('OpenAI API error: $errorMsg');
+      } else if (e.response?.statusCode == 500 ||
+          e.response?.statusCode == 502 ||
+          e.response?.statusCode == 503) {
+        throw Exception(
+          'OpenAI service is temporarily unavailable. Please try again later.',
+        );
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        throw Exception(
+          'Connection to OpenAI timed out. Please check your internet connection.',
+        );
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        throw Exception(
+          'OpenAI is taking too long to respond. The application data may be too large.',
+        );
+      } else if (e.type == DioExceptionType.sendTimeout) {
+        throw Exception(
+          'Failed to send request to OpenAI. The application data may be too large.',
+        );
+      } else {
+        throw Exception('Network error: ${e.message}');
+      }
+    } catch (e) {
+      // Re-throw if already formatted
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Unexpected error during runtime analysis: $e');
     }
   }
 
@@ -321,11 +459,151 @@ REMEMBER: Every recommendation MUST include the exact filePath and lineNumber wh
     }
   }
 
+  /// Gets the system prompt for runtime analysis
+  String _getRuntimeSystemPrompt(AnalysisType analysisType) {
+    if (analysisType == AnalysisType.security) {
+      return '''You are a senior security expert analyzing DEPLOYED applications for runtime security vulnerabilities.
+
+CRITICAL REQUIREMENTS:
+1. Focus on RUNTIME security issues visible in deployed applications
+2. Analyze HTTP headers, cookies, security configuration, and live page content
+3. Provide actionable recommendations that can be immediately deployed
+4. Prioritize based on actual risk exposure
+
+SEVERITY GUIDELINES:
+- CRITICAL: Missing HTTPS, no HSTS, cookies without Secure/HttpOnly on sensitive data
+- HIGH: Missing CSP, weak CORS configuration, exposed sensitive data
+- MEDIUM: Missing security headers (X-Frame-Options, etc.), suboptimal cookie settings
+- LOW: Security best practices, additional hardening opportunities
+
+Return your analysis as a JSON object with this exact structure:
+{
+  "summary": {
+    "total": <number>,
+    "bySeverity": {
+      "critical": <number>,
+      "high": <number>,
+      "medium": <number>,
+      "low": <number>
+    }
+  },
+  "issues": [
+    {
+      "id": "<unique-id>",
+      "title": "<specific issue title>",
+      "category": "<category>",
+      "severity": "critical|high|medium|low",
+      "description": "<detailed description of the runtime security issue>",
+      "runtimeRisk": "<why this matters in production>",
+      "claudeCodePrompt": "<specific, actionable prompt to fix this issue>",
+      "filePath": null,
+      "lineNumber": null
+    }
+  ]
+}
+
+IMPORTANT: For runtime analysis, filePath and lineNumber should be null since we're analyzing deployed applications, not source code.''';
+    } else {
+      return '''You are an observability expert analyzing DEPLOYED applications for monitoring gaps.
+
+CRITICAL REQUIREMENTS:
+1. Identify what monitoring tools are currently deployed (or missing)
+2. Focus on production-ready, actionable recommendations
+3. Recommend specific tools and configurations
+4. Prioritize based on business impact
+
+CATEGORY GUIDELINES:
+- analytics: User behavior tracking, conversion metrics (detected/missing tools)
+- error_tracking: Production error monitoring (Sentry, Bugsnag, etc.)
+- business_metrics: Revenue tracking, KPIs, performance monitoring
+- performance_monitoring: APM tools, Core Web Vitals, page load metrics
+
+Return your analysis as a JSON object with this exact structure:
+{
+  "summary": {
+    "total": <number>,
+    "byCategory": {
+      "analytics": <number>,
+      "error_tracking": <number>,
+      "business_metrics": <number>,
+      "performance_monitoring": <number>
+    }
+  },
+  "recommendations": [
+    {
+      "id": "<unique-id>",
+      "title": "<specific recommendation title>",
+      "category": "analytics|error_tracking|business_metrics|performance_monitoring",
+      "description": "<what's missing or incomplete>",
+      "businessValue": "<concrete business impact>",
+      "claudeCodePrompt": "<specific implementation prompt>",
+      "filePath": null,
+      "lineNumber": null
+    }
+  ]
+}
+
+IMPORTANT: Mention detected tools in descriptions (e.g., "Google Analytics detected but missing conversion tracking"). For runtime analysis, filePath and lineNumber should be null.''';
+    }
+  }
+
+  /// Builds the prompt for runtime analysis
+  String _buildRuntimePrompt(
+      RuntimeAnalysisData runtimeData, AnalysisType analysisType) {
+    if (analysisType == AnalysisType.security) {
+      return '''Analyze this LIVE deployed application for runtime security vulnerabilities.
+
+${runtimeData.toAnalysisPrompt()}
+
+ANALYSIS INSTRUCTIONS:
+1. Examine HTTP security headers - identify missing or misconfigured headers
+2. Analyze cookie security - check for Secure, HttpOnly, SameSite attributes
+3. Review HTTPS configuration and HSTS
+4. Check for exposed sensitive data in HTML/JavaScript
+5. Identify security misconfigurations
+
+Focus on HIGH-CONFIDENCE findings that pose real security risks:
+- Missing or misconfigured security headers (CSP, HSTS, X-Frame-Options)
+- Insecure cookie configurations
+- CORS misconfigurations
+- Exposed API keys or sensitive data in page source
+- Missing HTTPS or weak TLS configuration
+
+Provide specific, actionable remediation steps for each issue found.''';
+    } else {
+      return '''Analyze this LIVE deployed application for monitoring and observability gaps.
+
+${runtimeData.toAnalysisPrompt()}
+
+ANALYSIS INSTRUCTIONS:
+1. Review detected monitoring tools - what's present vs. what's missing
+2. Identify gaps in analytics, error tracking, and performance monitoring
+3. Recommend specific tools and configurations
+4. Focus on high-value, business-critical monitoring
+
+Look for monitoring opportunities:
+- Missing analytics: If no Google Analytics/Mixpanel detected, recommend installation
+- Incomplete analytics: If present, identify missing events (conversions, funnels)
+- No error tracking: Recommend Sentry, Bugsnag, or similar
+- Missing performance monitoring: Recommend Web Vitals tracking, APM tools
+- Business metrics gaps: Conversion tracking, revenue analytics
+
+For each recommendation:
+- Explain what's missing and why it matters
+- Provide concrete business value (revenue impact, user retention, etc.)
+- Give specific, copy-paste ready implementation code
+- Prioritize based on potential impact
+
+Remember to acknowledge tools that ARE detected and suggest how to enhance them.''';
+    }
+  }
+
   AnalysisResult _parseAnalysisResult({
     required String repositoryUrl,
     required String repositoryName,
     required AnalysisType analysisType,
     required Map<String, dynamic> data,
+    AnalysisMode analysisMode = AnalysisMode.staticCode,
   }) {
     // Validate summary exists and is valid
     final summaryData = data['summary'];
@@ -396,6 +674,7 @@ REMEMBER: Every recommendation MUST include the exact filePath and lineNumber wh
       repositoryUrl: repositoryUrl,
       repositoryName: repositoryName,
       analysisType: analysisType,
+      analysisMode: analysisMode,
       timestamp: DateTime.now(),
       summary: summary,
       securityIssues: securityIssues,

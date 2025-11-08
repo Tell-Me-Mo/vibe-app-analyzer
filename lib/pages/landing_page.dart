@@ -47,9 +47,12 @@ class _LandingPageState extends ConsumerState<LandingPage> {
   Future<void> _onAnalyze(AnalysisType analysisType) async {
     final url = _urlController.text.trim();
 
-    if (!Validators.isValidGitHubUrl(url)) {
+    // Detect URL type
+    final urlMode = Validators.detectUrlType(url);
+
+    if (urlMode == null) {
       setState(() {
-        _errorText = 'Please enter a valid GitHub repository URL';
+        _errorText = 'Please enter a valid GitHub repository or live app URL';
       });
       return;
     }
@@ -102,6 +105,7 @@ class _LandingPageState extends ConsumerState<LandingPage> {
       context.go('/analyze', extra: {
         'url': url,
         'type': analysisType,
+        'mode': urlMode,
       });
     }
   }
@@ -211,7 +215,12 @@ class _LandingPageState extends ConsumerState<LandingPage> {
           controller: _urlController,
           style: const TextStyle(fontSize: 15),
           decoration: InputDecoration(
-            hintText: 'https://github.com/username/repository',
+            hintText: 'https://github.com/user/repo or https://yourapp.com',
+            helperText: 'Enter a GitHub repository URL or live app URL',
+            helperStyle: const TextStyle(
+              color: Color(0xFF94A3B8),
+              fontSize: 12,
+            ),
             errorText: _errorText,
             prefixIcon: const Icon(Icons.link, size: 20),
             suffixIcon: _urlController.text.isNotEmpty
