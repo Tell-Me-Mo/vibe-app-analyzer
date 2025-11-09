@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>VibeCheck Blog - Security & Code Analysis Insights</title>
+    <meta name="title" content="VibeCheck Blog - Security & Code Analysis Insights">
+    <meta name="description" content="Learn about security vulnerabilities, code analysis, monitoring best practices, and AI-powered development tools. Expert insights for developers.">
+    <meta name="keywords" content="security blog, code analysis, web security, monitoring, AI development, vulnerability detection">
+    <meta name="author" content="VibeCheck">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://yourdomain.github.io/vibe-app-analyzer/blog/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourdomain.github.io/vibe-app-analyzer/blog/">
+    <meta property="og:title" content="VibeCheck Blog - Security & Code Analysis Insights">
+    <meta property="og:description" content="Expert insights on security vulnerabilities, code analysis, and AI-powered development.">
+    <meta property="og:image" content="https://yourdomain.github.io/vibe-app-analyzer/og-image.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://yourdomain.github.io/vibe-app-analyzer/blog/">
+    <meta property="twitter:title" content="VibeCheck Blog - Security & Code Analysis">
+    <meta property="twitter:description" content="Expert insights on security vulnerabilities, code analysis, and AI-powered development.">
+    <meta property="twitter:image" content="https://yourdomain.github.io/vibe-app-analyzer/og-image.png">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #13141f;
+            --bg-tertiary: #1a1b2e;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            padding: 20px 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Hero */
+        .blog-hero {
+            padding: 80px 24px 60px;
+            text-align: center;
+        }
+
+        .blog-hero h1 {
+            font-size: clamp(36px, 6vw, 56px);
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .blog-hero p {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Blog Grid */
+        .blog-grid {
+            padding: 60px 24px 120px;
+        }
+
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 32px;
+        }
+
+        .post-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+        }
+
+        .post-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .post-meta {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .post-category {
+            padding: 4px 12px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .post-card h2 {
+            font-size: 24px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .post-card p {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .read-more {
+            color: var(--accent-primary);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .read-more::after {
+            content: '→';
+            transition: transform 0.3s ease;
+        }
+
+        .post-card:hover .read-more::after {
+            transform: translateX(4px);
+        }
+
+        /* Footer */
+        footer {
+            padding: 60px 24px 30px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .blog-hero {
+                padding: 60px 24px 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="../" class="logo">VibeCheck</a>
+                <ul class="nav-links">
+                    <li><a href="../#features">Features</a></li>
+                    <li><a href="../#pricing">Pricing</a></li>
+                    <li><a href="./">Blog</a></li>
+                    <li><a href="../#cta">Get Started</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="blog-hero">
+        <div class="container">
+            <h1>Security & Development Insights</h1>
+            <p>Learn about code security, monitoring best practices, and AI-powered development tools</p>
+        </div>
+    </section>
+
+    <section class="blog-grid">
+        <div class="container">
+            <div class="posts-grid">
+                <!-- Post 1 -->
+                <a href="preventing-sql-injection-vulnerabilities.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">Security</span>
+                        <span>5 min read</span>
+                    </div>
+                    <h2>How to Prevent SQL Injection Vulnerabilities in 2025</h2>
+                    <p>SQL injection remains one of the most critical security threats. Learn how to protect your application with modern techniques and AI-powered detection.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+
+                <!-- Post 2 -->
+                <a href="web-application-security-checklist.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">Security</span>
+                        <span>8 min read</span>
+                    </div>
+                    <h2>Complete Web Application Security Checklist for Developers</h2>
+                    <p>A comprehensive guide covering CSRF protection, XSS prevention, secure headers, authentication, and more. Essential reading for every developer.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+
+                <!-- Post 3 -->
+                <a href="ai-powered-code-analysis.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">AI & Tools</span>
+                        <span>6 min read</span>
+                    </div>
+                    <h2>Why AI-Powered Code Analysis is Essential in Modern Development</h2>
+                    <p>Discover how AI tools like GPT-4 can detect security vulnerabilities and monitoring gaps that traditional static analysis tools miss.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+
+                <!-- Post 4 -->
+                <a href="monitoring-observability-guide.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">Monitoring</span>
+                        <span>7 min read</span>
+                    </div>
+                    <h2>Application Monitoring & Observability: The Complete Guide</h2>
+                    <p>Learn how to implement comprehensive monitoring with error tracking, APM, analytics, and business metrics. Avoid being blind in production.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 VibeCheck. All rights reserved. | <a href="../">Home</a> | <a href="../#features">Features</a> | <a href="../#pricing">Pricing</a></p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Complete Web Application Security Checklist 2025 | VibeCheck</title>
+    <meta name="description" content="Comprehensive web security checklist covering CSRF, XSS, authentication, headers, HTTPS, and 20+ critical security measures. Essential guide for developers.">
+    <meta name="keywords" content="web security checklist, application security, CSRF protection, XSS prevention, secure headers, OWASP top 10, security best practices">
+    <meta name="author" content="VibeCheck">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://yourdomain.github.io/vibe-app-analyzer/blog/web-application-security-checklist.html">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E">
+
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Complete Web Application Security Checklist 2025">
+    <meta property="og:description" content="Essential security checklist covering CSRF, XSS, authentication, headers, and more for developers.">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Complete Web Application Security Checklist for Developers",
+      "description": "Comprehensive security checklist covering authentication, authorization, data validation, secure headers, HTTPS, and modern security best practices.",
+      "author": {
+        "@type": "Organization",
+        "name": "VibeCheck"
+      },
+      "datePublished": "2025-01-15"
+    }
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #13141f;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --success: #10b981;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.8;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+        header {
+            padding: 20px 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover { color: var(--text-primary); }
+        article { padding: 80px 24px; }
+        .article-meta {
+            margin-bottom: 32px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        .category {
+            display: inline-block;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-right: 16px;
+        }
+        h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            margin-bottom: 24px;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 28px;
+            margin: 48px 0 16px;
+            color: var(--text-primary);
+        }
+        h3 {
+            font-size: 22px;
+            margin: 32px 0 12px;
+            color: var(--text-primary);
+        }
+        p {
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            font-size: 17px;
+        }
+        ul, ol {
+            margin: 20px 0;
+            padding-left: 24px;
+            color: var(--text-secondary);
+        }
+        li { margin-bottom: 12px; }
+        code {
+            background: var(--bg-secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #a5b4fc;
+        }
+        .checklist-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            border-left: 4px solid var(--accent-primary);
+        }
+        .checklist-item h4 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        .checklist-item p {
+            margin: 0;
+            font-size: 15px;
+        }
+        .highlight {
+            background: var(--glass-bg);
+            border-left: 4px solid var(--success);
+            padding: 20px;
+            margin: 24px 0;
+            border-radius: 8px;
+        }
+        .cta-box {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 60px 0;
+        }
+        .cta-box h3 { margin: 0 0 16px; color: white; }
+        .cta-box p { color: rgba(255, 255, 255, 0.9); margin-bottom: 24px; }
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: white;
+            color: var(--accent-primary);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        footer {
+            padding: 40px 24px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        footer a { color: var(--accent-primary); text-decoration: none; }
+        @media (max-width: 768px) {
+            article { padding: 60px 24px; }
+            h1 { font-size: 32px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="../../" class="logo">VibeCheck</a>
+                <a href="./" class="back-link">← Back to Blog</a>
+            </nav>
+        </div>
+    </header>
+
+    <article>
+        <div class="container">
+            <div class="article-meta">
+                <span class="category">Security</span>
+                <span>January 15, 2025 • 8 min read</span>
+            </div>
+
+            <h1>Complete Web Application Security Checklist for Developers</h1>
+
+            <p>Web application security is critical in 2025. With cyber attacks becoming more sophisticated and data breaches costing millions, developers must implement comprehensive security measures. This checklist covers essential security practices every developer should follow.</p>
+
+            <h2>1. Authentication & Authorization</h2>
+
+            <div class="checklist-item">
+                <h4>✅ Implement Strong Password Policies</h4>
+                <p>Require minimum 12 characters, complexity rules, and check against compromised password databases (Have I Been Pwned API).</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Use Multi-Factor Authentication (MFA)</h4>
+                <p>Implement TOTP-based 2FA or hardware keys (WebAuthn). Never rely on SMS alone for 2FA.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Secure Session Management</h4>
+                <p>Use secure, httpOnly, SameSite cookies. Implement session timeout and regenerate session IDs after login.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Implement Rate Limiting</h4>
+                <p>Prevent brute force attacks with rate limiting on login endpoints (e.g., 5 attempts per 15 minutes).</p>
+            </div>
+
+            <h2>2. Input Validation & Sanitization</h2>
+
+            <div class="checklist-item">
+                <h4>✅ Validate All User Input</h4>
+                <p>Never trust client-side validation alone. Implement server-side validation for all inputs using allowlists.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Prevent SQL Injection</h4>
+                <p>Use parameterized queries or ORMs. Never concatenate user input into SQL queries.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Prevent Cross-Site Scripting (XSS)</h4>
+                <p>Sanitize output, use Content Security Policy headers, and escape HTML entities in user-generated content.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Prevent Command Injection</h4>
+                <p>Avoid executing shell commands with user input. If necessary, use strict allowlists and escape properly.</p>
+            </div>
+
+            <h2>3. CSRF Protection</h2>
+
+            <div class="checklist-item">
+                <h4>✅ Implement CSRF Tokens</h4>
+                <p>Add unique, unpredictable tokens to all state-changing requests (POST, PUT, DELETE).</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Use SameSite Cookie Attribute</h4>
+                <p>Set cookies with <code>SameSite=Strict</code> or <code>SameSite=Lax</code> to prevent CSRF attacks.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Verify Origin/Referer Headers</h4>
+                <p>Check request origin headers for sensitive operations as an additional layer of defense.</p>
+            </div>
+
+            <h2>4. Security Headers</h2>
+
+            <p>Implement these HTTP security headers on all responses:</p>
+
+            <div class="checklist-item">
+                <h4>✅ Content-Security-Policy (CSP)</h4>
+                <p><code>Content-Security-Policy: default-src 'self'; script-src 'self'</code> - Prevents XSS attacks.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ X-Frame-Options</h4>
+                <p><code>X-Frame-Options: DENY</code> - Prevents clickjacking attacks.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Strict-Transport-Security (HSTS)</h4>
+                <p><code>Strict-Transport-Security: max-age=31536000; includeSubDomains</code> - Forces HTTPS.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ X-Content-Type-Options</h4>
+                <p><code>X-Content-Type-Options: nosniff</code> - Prevents MIME type sniffing.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Referrer-Policy</h4>
+                <p><code>Referrer-Policy: strict-origin-when-cross-origin</code> - Controls referrer information.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Permissions-Policy</h4>
+                <p><code>Permissions-Policy: geolocation=(), microphone=(), camera=()</code> - Restricts browser features.</p>
+            </div>
+
+            <h2>5. HTTPS & Transport Security</h2>
+
+            <div class="checklist-item">
+                <h4>✅ Use HTTPS Everywhere</h4>
+                <p>Enforce HTTPS on all pages. Redirect HTTP to HTTPS automatically.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Use TLS 1.3</h4>
+                <p>Disable older protocols (TLS 1.0, 1.1). Configure strong cipher suites.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Implement Certificate Pinning</h4>
+                <p>For high-security applications, pin SSL certificates to prevent MITM attacks.</p>
+            </div>
+
+            <h2>6. Data Protection</h2>
+
+            <div class="checklist-item">
+                <h4>✅ Encrypt Sensitive Data at Rest</h4>
+                <p>Use AES-256 encryption for sensitive data in databases. Never store passwords in plaintext.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Hash Passwords Properly</h4>
+                <p>Use bcrypt, scrypt, or Argon2 with proper salt. Never use MD5 or SHA1 for passwords.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Secure API Keys and Secrets</h4>
+                <p>Never commit secrets to Git. Use environment variables or secret management services (AWS Secrets Manager, HashiCorp Vault).</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Implement Data Sanitization</h4>
+                <p>Remove sensitive data before logging. Implement proper data disposal procedures.</p>
+            </div>
+
+            <h2>7. API Security</h2>
+
+            <div class="checklist-item">
+                <h4>✅ Use API Authentication</h4>
+                <p>Implement OAuth 2.0, JWT tokens, or API keys. Never expose APIs without authentication.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Implement API Rate Limiting</h4>
+                <p>Prevent abuse with rate limiting (e.g., 100 requests per minute per user).</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Validate Content-Type</h4>
+                <p>Accept only expected content types. Reject unexpected formats.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Use CORS Properly</h4>
+                <p>Configure CORS with specific origins. Avoid using <code>Access-Control-Allow-Origin: *</code> in production.</p>
+            </div>
+
+            <h2>8. File Upload Security</h2>
+
+            <div class="checklist-item">
+                <h4>✅ Validate File Types</h4>
+                <p>Check file content, not just extensions. Use allowlists for permitted file types.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Scan for Malware</h4>
+                <p>Integrate antivirus scanning for uploaded files (ClamAV, cloud-based scanners).</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Limit File Size</h4>
+                <p>Prevent DoS attacks by enforcing maximum file sizes.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Store Files Securely</h4>
+                <p>Store uploads outside web root or use cloud storage with proper access controls.</p>
+            </div>
+
+            <h2>9. Logging & Monitoring</h2>
+
+            <div class="checklist-item">
+                <h4>✅ Implement Security Logging</h4>
+                <p>Log authentication attempts, authorization failures, and security events.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Monitor for Anomalies</h4>
+                <p>Set up alerts for suspicious activities (multiple failed logins, unusual API usage).</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Protect Log Files</h4>
+                <p>Ensure logs don't contain sensitive data (passwords, credit cards). Restrict log access.</p>
+            </div>
+
+            <div class="cta-box">
+                <h3>Automate Your Security Checks</h3>
+                <p>VibeCheck scans your application for 20+ security vulnerabilities including those in this checklist. Get instant AI-powered fix recommendations.</p>
+                <a href="../../#cta" class="btn">Try Free Security Scan</a>
+            </div>
+
+            <h2>10. Dependency Management</h2>
+
+            <div class="checklist-item">
+                <h4>✅ Keep Dependencies Updated</h4>
+                <p>Regularly update npm packages, frameworks, and libraries. Use tools like Dependabot.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Scan for Vulnerabilities</h4>
+                <p>Run <code>npm audit</code> or <code>yarn audit</code> regularly. Fix high/critical vulnerabilities immediately.</p>
+            </div>
+
+            <div class="checklist-item">
+                <h4>✅ Use Software Composition Analysis (SCA)</h4>
+                <p>Tools like Snyk or Sonatype help identify vulnerable dependencies.</p>
+            </div>
+
+            <h2>Quick Reference Checklist</h2>
+
+            <div class="highlight">
+                <strong>Essential Security Measures:</strong>
+                <ul>
+                    <li>✅ Strong authentication (MFA, password policies)</li>
+                    <li>✅ Input validation (SQL injection, XSS prevention)</li>
+                    <li>✅ CSRF protection (tokens, SameSite cookies)</li>
+                    <li>✅ Security headers (CSP, HSTS, X-Frame-Options)</li>
+                    <li>✅ HTTPS/TLS 1.3</li>
+                    <li>✅ Encrypted data at rest and in transit</li>
+                    <li>✅ Secure password hashing (bcrypt/Argon2)</li>
+                    <li>✅ API security (authentication, rate limiting)</li>
+                    <li>✅ File upload validation</li>
+                    <li>✅ Security logging and monitoring</li>
+                    <li>✅ Dependency scanning and updates</li>
+                    <li>✅ Regular security audits</li>
+                </ul>
+            </div>
+
+            <h2>Conclusion</h2>
+
+            <p>Web application security requires constant vigilance and multiple layers of defense. Use this checklist as a starting point, but remember that security is an ongoing process. Regular code reviews, penetration testing, and staying updated with the latest security threats are essential.</p>
+
+            <p>Implement these measures progressively, prioritizing based on your application's risk profile. High-risk applications handling sensitive data should implement all measures, while lower-risk applications can focus on the most critical items first.</p>
+
+            <div class="cta-box">
+                <h3>Get Automated Security Analysis</h3>
+                <p>VibeCheck analyzes your code for security vulnerabilities and provides instant Claude Code prompts to fix them. Start with 10 free credits.</p>
+                <a href="../../#cta" class="btn">Start Free Analysis</a>
+            </div>
+        </div>
+    </article>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 VibeCheck. <a href="../../">Home</a> | <a href="../">Blog</a> | <a href="../../#features">Features</a></p>
+        </div>
+    </footer>
+</body>
+</html>
