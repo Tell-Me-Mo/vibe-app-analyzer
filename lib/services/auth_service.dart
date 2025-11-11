@@ -1,12 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:crypto/crypto.dart';
-import 'dart:convert';
-import 'dart:io' show Platform;
-import 'dart:math';
 import '../models/user_profile.dart';
 import 'credits_service.dart';
 
@@ -17,7 +10,6 @@ class AuthService {
   AuthService._internal();
 
   final SupabaseClient _supabase = Supabase.instance.client;
-  GoogleSignIn get _googleSignIn => GoogleSignIn.instance;
 
   /// Get current user
   User? get currentUser => _supabase.auth.currentUser;
@@ -78,146 +70,9 @@ class AuthService {
     }
   }
 
-  /// Sign in with Google
-  Future<UserProfile?> signInWithGoogle() async {
-    try {
-      // Check platform support
-      if (kIsWeb || Platform.isIOS || Platform.isAndroid) {
-        // Initialize Google Sign In (required in v7.0.0+)
-        await _googleSignIn.initialize();
-
-        // Authenticate user interactively
-        final googleUser = await _googleSignIn.authenticate();
-
-        // Get authentication tokens
-        final googleAuth = googleUser.authentication;
-        final idToken = googleAuth.idToken;
-
-        if (idToken == null) {
-          throw AuthException('Google sign in failed: Missing ID token');
-        }
-
-        // Get access token via authorization (required for Supabase)
-        final scopes = <String>[];
-        final authorization = await googleUser.authorizationClient.authorizationForScopes(scopes);
-        final accessToken = authorization?.accessToken;
-
-        if (accessToken == null) {
-          throw AuthException('Google sign in failed: Missing access token');
-        }
-
-        final response = await _supabase.auth.signInWithIdToken(
-          provider: OAuthProvider.google,
-          idToken: idToken,
-          accessToken: accessToken,
-        );
-
-        if (response.user != null) {
-          // Check if profile exists, create if not
-          var profile = await _getUserProfile(response.user!.id);
-          profile ??= await _createUserProfile(
-            user: response.user!,
-            displayName: googleUser.displayName,
-            photoUrl: googleUser.photoUrl,
-          );
-          return profile;
-        }
-      } else {
-        // Desktop flow using OAuth
-        await _supabase.auth.signInWithOAuth(
-          OAuthProvider.google,
-          redirectTo: kIsWeb ? null : 'vibecheck://callback',
-        );
-      }
-
-      return null;
-    } catch (e) {
-      throw AuthException('Google sign in failed: $e');
-    }
-  }
-
-  /// Sign in with Apple
-  Future<UserProfile?> signInWithApple() async {
-    try {
-      // Check if Apple Sign In is available
-      if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
-        // Generate secure nonce for Apple Sign In (required for security)
-        final rawNonce = _generateNonce();
-        final hashedNonce = _hashNonce(rawNonce);
-
-        final appleCredential = await SignInWithApple.getAppleIDCredential(
-          scopes: [
-            AppleIDAuthorizationScopes.email,
-            AppleIDAuthorizationScopes.fullName,
-          ],
-          nonce: hashedNonce, // Use hashed nonce for the request
-        );
-
-        final idToken = appleCredential.identityToken;
-        if (idToken == null) {
-          throw AuthException('Apple sign in failed: Missing token');
-        }
-
-        // Use raw nonce (not hashed) for signInWithIdToken
-        final response = await _supabase.auth.signInWithIdToken(
-          provider: OAuthProvider.apple,
-          idToken: idToken,
-          nonce: rawNonce, // Pass raw nonce to Supabase
-        );
-
-        if (response.user != null) {
-          // Check if profile exists, create if not
-          var profile = await _getUserProfile(response.user!.id);
-          if (profile == null) {
-            String? displayName;
-            if (appleCredential.givenName != null ||
-                appleCredential.familyName != null) {
-              displayName =
-                  '${appleCredential.givenName ?? ''} ${appleCredential.familyName ?? ''}'
-                      .trim();
-            }
-
-            profile = await _createUserProfile(
-              user: response.user!,
-              displayName: displayName,
-            );
-          }
-          return profile;
-        }
-      } else {
-        // Web or other platforms: use OAuth flow
-        await _supabase.auth.signInWithOAuth(
-          OAuthProvider.apple,
-          redirectTo: kIsWeb ? null : 'vibecheck://callback',
-        );
-      }
-
-      return null;
-    } catch (e) {
-      throw AuthException('Apple sign in failed: $e');
-    }
-  }
-
-  /// Generate a cryptographically secure random nonce
-  String _generateNonce([int length = 32]) {
-    const charset =
-        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
-    final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
-        .join();
-  }
-
-  /// Hash the nonce using SHA-256
-  String _hashNonce(String nonce) {
-    final bytes = utf8.encode(nonce);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
-
   /// Sign out
   Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut();
       await _supabase.auth.signOut();
       // Clear local credits
       await CreditsService().resetCredits();

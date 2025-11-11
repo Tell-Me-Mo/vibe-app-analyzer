@@ -1,14 +1,12 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConfig {
-  // OpenAI Configuration
-  static String get openaiApiKey => dotenv.env['OPENAI_API_KEY'] ?? '';
-  static const String openaiModel = 'gpt-4o-mini';
-  static const String openaiApiUrl = 'https://api.openai.com/v1/chat/completions';
+  // Supabase Configuration
+  static String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
+  static String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
-  // GitHub Configuration
-  static const String githubApiUrl = 'https://api.github.com';
-  static String get githubToken => dotenv.env['GITHUB_TOKEN'] ?? '';
+  // OpenAI Model (used in validation methods)
+  static const String openaiModel = 'gpt-4o-mini';
 
   // App Configuration
   static const int maxTokensForAnalysis = 50000;
