@@ -61,8 +61,11 @@ class ValidationService {
         validationStatus: ValidationStatus.validating,
       );
 
-      // Fetch updated code from repository
-      final updatedCode = await _fetchRepositoryCode(repositoryUrl);
+      // Fetch updated code from repository (only the specific file if available)
+      final updatedCode = await _fetchRepositoryCode(
+        repositoryUrl,
+        filePath: issue.filePath,
+      );
 
       // Perform validation
       final validationResult = await _openaiService.validateSecurityFix(
@@ -124,8 +127,11 @@ class ValidationService {
         validationStatus: ValidationStatus.validating,
       );
 
-      // Fetch updated code from repository
-      final updatedCode = await _fetchRepositoryCode(repositoryUrl);
+      // Fetch updated code from repository (only the specific file if available)
+      final updatedCode = await _fetchRepositoryCode(
+        repositoryUrl,
+        filePath: recommendation.filePath,
+      );
 
       // Perform validation
       final validationResult =
@@ -160,103 +166,139 @@ class ValidationService {
     }
   }
 
-  /// Fetches repository code for validation
-  Future<String> _fetchRepositoryCode(String repositoryUrl) async {
+  /// Fetches specific file for validation (not entire repository)
+  Future<String> _fetchRepositoryCode(String repositoryUrl, {String? filePath}) async {
     try {
-      // Get repository tree
-      final tree = await _githubService.getRepositoryTree(repositoryUrl);
-
-      // Filter relevant files (same logic as analysis)
-      final relevantFiles = tree.where((file) {
-        final path = file['path'] as String?;
-        if (path == null) return false;
-
-        // Skip non-code files
-        final excludedPatterns = [
-          '.git/',
-          'node_modules/',
-          'vendor/',
-          'dist/',
-          'build/',
-          '.png',
-          '.jpg',
-          '.jpeg',
-          '.gif',
-          '.svg',
-          '.ico',
-          '.woff',
-          '.ttf',
-          '.lock',
-          'package-lock.json',
-          'yarn.lock',
-        ];
-
-        for (final pattern in excludedPatterns) {
-          if (path.contains(pattern)) return false;
-        }
-
-        // Include code files
-        final includedExtensions = [
-          '.dart',
-          '.js',
-          '.ts',
-          '.jsx',
-          '.tsx',
-          '.py',
-          '.java',
-          '.go',
-          '.rs',
-          '.cpp',
-          '.c',
-          '.h',
-          '.swift',
-          '.kt',
-          '.rb',
-          '.php',
-          '.cs',
-          '.json',
-          '.yaml',
-          '.yml',
-        ];
-
-        return includedExtensions.any((ext) => path.endsWith(ext));
-      }).toList();
-
-      // Fetch file contents with size limit
       final codeBuffer = StringBuffer();
-      int totalSize = 0;
-      const maxSize = 100000; // ~100KB limit for validation context
 
-      for (final file in relevantFiles) {
-        if (totalSize >= maxSize) break;
-
-        final path = file['path'] as String;
+      // If a specific file is provided, only fetch that file
+      if (filePath != null && filePath.isNotEmpty) {
         try {
           final content = await _githubService.getFileContent(
             repositoryUrl,
-            path,
+            filePath,
           );
 
-          codeBuffer.writeln('--- $path ---');
+          codeBuffer.writeln('--- $filePath ---');
           codeBuffer.writeln(content);
           codeBuffer.writeln();
 
-          totalSize += content.length;
+          return codeBuffer.toString();
         } catch (e) {
-          // Skip files that fail to fetch
-          continue;
+          // If specific file fetch fails, fall back to directory fetch
+          // Extract directory from filePath
+          final directory = filePath.contains('/')
+              ? filePath.substring(0, filePath.lastIndexOf('/'))
+              : '';
+
+          if (directory.isNotEmpty) {
+            return _fetchDirectoryCode(repositoryUrl, directory);
+          }
+
+          throw Exception('Failed to fetch file $filePath: $e');
         }
       }
 
-      if (codeBuffer.isEmpty) {
-        throw Exception('No code files found in repository');
-      }
-
-      return codeBuffer.toString();
+      // Fallback: fetch small subset of relevant files
+      return _fetchDirectoryCode(repositoryUrl, '');
     } catch (e) {
       if (e is Exception) rethrow;
       throw Exception('Failed to fetch repository code: $e');
     }
+  }
+
+  /// Fetches code from a specific directory or root
+  Future<String> _fetchDirectoryCode(String repositoryUrl, String directory) async {
+    // Get repository tree
+    final tree = await _githubService.getRepositoryTree(repositoryUrl);
+
+    // Filter files in the specified directory
+    final relevantFiles = tree.where((file) {
+      final path = file['path'] as String?;
+      if (path == null) return false;
+
+      // If directory specified, only include files from that directory
+      if (directory.isNotEmpty && !path.startsWith(directory)) {
+        return false;
+      }
+
+      // Skip non-code files
+      final excludedPatterns = [
+        '.git/',
+        'node_modules/',
+        'vendor/',
+        'dist/',
+        'build/',
+        'test/',
+        'tests/',
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.gif',
+        '.svg',
+        '.ico',
+        '.woff',
+        '.ttf',
+        '.lock',
+        'package-lock.json',
+        'yarn.lock',
+      ];
+
+      for (final pattern in excludedPatterns) {
+        if (path.contains(pattern)) return false;
+      }
+
+      // Include code files
+      final includedExtensions = [
+        '.dart',
+        '.js',
+        '.ts',
+        '.jsx',
+        '.tsx',
+        '.py',
+        '.java',
+        '.go',
+        '.rs',
+        '.cpp',
+        '.c',
+        '.h',
+        '.swift',
+        '.kt',
+        '.rb',
+        '.php',
+        '.cs',
+      ];
+
+      return includedExtensions.any((ext) => path.endsWith(ext));
+    }).toList();
+
+    // Limit to first 10 files
+    final limitedFiles = relevantFiles.take(10).toList();
+
+    // Fetch file contents
+    final codeBuffer = StringBuffer();
+    for (final file in limitedFiles) {
+      final path = file['path'] as String;
+      try {
+        final content = await _githubService.getFileContent(
+          repositoryUrl,
+          path,
+        );
+
+        codeBuffer.writeln('--- $path ---');
+        codeBuffer.writeln(content);
+        codeBuffer.writeln();
+      } catch (e) {
+        // Skip files that fail to fetch
+        continue;
+      }
+    }
+
+    if (codeBuffer.isEmpty) {
+      throw Exception('No code files found in repository');
+    }
+
+    return codeBuffer.toString();
   }
 }
 

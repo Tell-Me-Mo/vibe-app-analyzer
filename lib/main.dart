@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'services/storage_service.dart';
 import 'services/credits_service.dart';
+import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,14 @@ void main() async {
 
   // Initialize credits service
   await CreditsService().initialize();
+
+  // Ensure user is authenticated (anonymously if not signed in)
+  try {
+    await AuthService().ensureAuthenticated();
+  } catch (e) {
+    // If anonymous auth fails, continue anyway - user can still sign up/in manually
+    debugPrint('Failed to initialize anonymous auth: $e');
+  }
 
   runApp(
     const ProviderScope(

@@ -22,7 +22,14 @@ class App extends StatelessWidget {
       GoRoute(
         path: '/analyze',
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
+          final extra = state.extra as Map<String, dynamic>?;
+          if (extra == null) {
+            // Redirect to home if accessed without proper data
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/');
+            });
+            return const LandingPage();
+          }
           return AnalysisLoadingPage(
             url: extra['url'] as String,
             analysisType: extra['type'] as AnalysisType,

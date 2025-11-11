@@ -10,11 +10,17 @@ class AuthButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authStateAsync = ref.watch(authStateProvider);
     final userProfileAsync = ref.watch(currentUserProfileProvider);
+    final authService = ref.watch(authServiceProvider);
 
     return authStateAsync.when(
       data: (isAuthenticated) {
         if (isAuthenticated) {
-          // Show profile button
+          // Check if user is anonymous (guest)
+          if (authService.isAnonymous) {
+            return _buildGuestButton(context);
+          }
+
+          // Show profile button for authenticated users
           return userProfileAsync.when(
             data: (profile) {
               if (profile == null) return _buildLoginButton(context);
@@ -45,8 +51,7 @@ class AuthButton extends ConsumerWidget {
                             : null,
                         child: profile.photoUrl == null
                             ? Text(
-                                profile.displayName?.substring(0, 1).toUpperCase() ??
-                                    profile.email.substring(0, 1).toUpperCase(),
+                                _getInitials(profile),
                                 style: const TextStyle(
                                   color: Color(0xFF0F172A),
                                   fontWeight: FontWeight.bold,
@@ -57,7 +62,7 @@ class AuthButton extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        profile.displayName ?? profile.email.split('@')[0],
+                        _getDisplayName(profile),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -76,6 +81,37 @@ class AuthButton extends ConsumerWidget {
       },
       loading: () => _buildLoginButton(context),
       error: (error, stackTrace) => _buildLoginButton(context),
+    );
+  }
+
+  Widget _buildGuestButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () => context.go('/auth'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF1E293B),
+        foregroundColor: const Color(0xFF94A3B8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: const Color(0xFF60A5FA).withValues(alpha: 0.3),
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.person_outline, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            'Guest',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF94A3B8),
+                ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -105,5 +141,35 @@ class AuthButton extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _getInitials(dynamic profile) {
+    // Try display name first
+    if (profile.displayName != null && profile.displayName!.isNotEmpty) {
+      return profile.displayName!.substring(0, 1).toUpperCase();
+    }
+
+    // Try email if not empty
+    if (profile.email.isNotEmpty) {
+      return profile.email.substring(0, 1).toUpperCase();
+    }
+
+    // Fallback to 'G' for Guest
+    return 'G';
+  }
+
+  String _getDisplayName(dynamic profile) {
+    // Try display name first
+    if (profile.displayName != null && profile.displayName!.isNotEmpty) {
+      return profile.displayName!;
+    }
+
+    // Try email username if email is not empty
+    if (profile.email.isNotEmpty) {
+      return profile.email.split('@')[0];
+    }
+
+    // Fallback to 'Guest'
+    return 'Guest';
   }
 }

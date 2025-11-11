@@ -7,24 +7,24 @@ part of 'user_profile.dart';
 // **************************************************************************
 
 UserProfile _$UserProfileFromJson(Map<String, dynamic> json) => UserProfile(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      displayName: json['displayName'] as String?,
-      photoUrl: json['photoUrl'] as String?,
-      credits: (json['credits'] as num).toInt(),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      hasSeenWelcome: json['hasSeenWelcome'] as bool? ?? false,
-    );
+  id: json['id'] as String,
+  email: json['email'] as String,
+  displayName: json['display_name'] as String?,
+  photoUrl: json['photo_url'] as String?,
+  credits: (json['credits'] as num).toInt(),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  hasSeenWelcome: json['has_seen_welcome'] as bool? ?? false,
+);
 
 Map<String, dynamic> _$UserProfileToJson(UserProfile instance) =>
     <String, dynamic>{
       'id': instance.id,
       'email': instance.email,
-      'displayName': instance.displayName,
-      'photoUrl': instance.photoUrl,
+      'display_name': instance.displayName,
+      'photo_url': instance.photoUrl,
       'credits': instance.credits,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'hasSeenWelcome': instance.hasSeenWelcome,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'has_seen_welcome': instance.hasSeenWelcome,
     };

@@ -20,11 +20,13 @@ SecurityIssue _$SecurityIssueFromJson(Map<String, dynamic> json) =>
       validationStatus: json['validationStatus'] == null
           ? ValidationStatus.notStarted
           : SecurityIssue._validationStatusFromJson(
-              json['validationStatus'] as String?),
+              json['validationStatus'] as String?,
+            ),
       validationResult: json['validationResult'] == null
           ? null
           : ValidationResult.fromJson(
-              json['validationResult'] as Map<String, dynamic>),
+              json['validationResult'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$SecurityIssueToJson(SecurityIssue instance) =>
@@ -38,7 +40,8 @@ Map<String, dynamic> _$SecurityIssueToJson(SecurityIssue instance) =>
       'claudeCodePrompt': instance.claudeCodePrompt,
       'filePath': instance.filePath,
       'lineNumber': instance.lineNumber,
-      'validationStatus':
-          SecurityIssue._validationStatusToJson(instance.validationStatus),
+      'validationStatus': SecurityIssue._validationStatusToJson(
+        instance.validationStatus,
+      ),
       'validationResult': instance.validationResult,
     };

@@ -6,11 +6,22 @@ part 'user_profile.g.dart';
 class UserProfile {
   final String id;
   final String email;
+
+  @JsonKey(name: 'display_name')
   final String? displayName;
+
+  @JsonKey(name: 'photo_url')
   final String? photoUrl;
+
   final int credits;
+
+  @JsonKey(name: 'created_at')
   final DateTime createdAt;
+
+  @JsonKey(name: 'updated_at')
   final DateTime updatedAt;
+
+  @JsonKey(name: 'has_seen_welcome')
   final bool hasSeenWelcome;
 
   const UserProfile({

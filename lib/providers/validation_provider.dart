@@ -35,6 +35,12 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
         return;
       }
 
+      // Set status to validating immediately for UI feedback
+      final validatingIssue = issue.copyWith(
+        validationStatus: ValidationStatus.validating,
+      );
+      await _updateIssueInResult(resultId, validatingIssue);
+
       // Perform validation
       final updatedIssue = await _validationService.validateSecurityFix(
         issue: issue,
@@ -95,6 +101,12 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
         onInsufficientCredits();
         return;
       }
+
+      // Set status to validating immediately for UI feedback
+      final validatingRecommendation = recommendation.copyWith(
+        validationStatus: ValidationStatus.validating,
+      );
+      await _updateRecommendationInResult(resultId, validatingRecommendation);
 
       // Perform validation
       final updatedRecommendation =

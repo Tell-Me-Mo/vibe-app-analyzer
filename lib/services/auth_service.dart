@@ -20,13 +20,50 @@ class AuthService {
   /// Get auth state stream
   Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
 
+  /// Check if current user is anonymous
+  bool get isAnonymous => currentUser?.isAnonymous ?? false;
+
+  /// Sign in anonymously for guest users
+  Future<UserProfile?> signInAnonymously() async {
+    try {
+      final response = await _supabase.auth.signInAnonymously();
+
+      if (response.user != null) {
+        // Create anonymous user profile with initial credits
+        return await _createUserProfile(
+          user: response.user!,
+          displayName: 'Guest',
+        );
+      }
+
+      return null;
+    } catch (e) {
+      throw AuthException('Anonymous sign in failed: $e');
+    }
+  }
+
+  /// Ensure user is authenticated (either with account or anonymously)
+  Future<void> ensureAuthenticated() async {
+    if (currentUser == null) {
+      await signInAnonymously();
+    }
+  }
+
   /// Sign up with email and password
+  /// If user is currently anonymous, this will link the email to the anonymous account
   Future<UserProfile?> signUpWithEmail({
     required String email,
     required String password,
     String? displayName,
   }) async {
     try {
+      UserProfile? existingProfile;
+
+      // If user is anonymous, get their existing profile to preserve credits
+      if (isAnonymous && currentUser != null) {
+        existingProfile = await _getUserProfile(currentUser!.id);
+      }
+
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
@@ -36,7 +73,23 @@ class AuthService {
       );
 
       if (response.user != null) {
-        // Create user profile with initial credits
+        // If we had an anonymous profile, update it with new user info
+        if (existingProfile != null) {
+          final updatedProfile = existingProfile.copyWith(
+            email: email,
+            displayName: displayName ?? existingProfile.displayName,
+            updatedAt: DateTime.now(),
+          );
+
+          await _supabase.from('profiles').update(updatedProfile.toJson()).eq(
+                'id',
+                response.user!.id,
+              );
+
+          return updatedProfile;
+        }
+
+        // Otherwise create new profile with initial credits
         return await _createUserProfile(
           user: response.user!,
           displayName: displayName,

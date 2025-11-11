@@ -354,6 +354,11 @@ class OpenAIService {
             // Validate required fields
             _validateSecurityIssue(issue);
 
+            // Add generated ID if not present
+            if (!issue.containsKey('id') || issue['id'] == null) {
+              issue['id'] = const Uuid().v4();
+            }
+
             return SecurityIssue.fromJson(issue);
           }).toList();
         } catch (e) {
@@ -376,6 +381,11 @@ class OpenAIService {
 
             // Validate required fields
             _validateMonitoringRecommendation(rec);
+
+            // Add generated ID if not present
+            if (!rec.containsKey('id') || rec['id'] == null) {
+              rec['id'] = const Uuid().v4();
+            }
 
             return MonitoringRecommendation.fromJson(rec);
           }).toList();
@@ -400,7 +410,7 @@ class OpenAIService {
 
   /// Validates a security issue object has required fields
   void _validateSecurityIssue(Map<String, dynamic> issue) {
-    final requiredFields = ['id', 'title', 'category', 'severity', 'description', 'aiGenerationRisk', 'claudeCodePrompt'];
+    final requiredFields = ['title', 'category', 'severity', 'description', 'aiGenerationRisk', 'claudeCodePrompt'];
 
     for (final field in requiredFields) {
       if (!issue.containsKey(field) || issue[field] == null) {
@@ -440,7 +450,7 @@ class OpenAIService {
 
   /// Validates a monitoring recommendation object has required fields
   void _validateMonitoringRecommendation(Map<String, dynamic> rec) {
-    final requiredFields = ['id', 'title', 'category', 'description', 'businessValue', 'claudeCodePrompt'];
+    final requiredFields = ['title', 'category', 'description', 'businessValue', 'claudeCodePrompt'];
 
     for (final field in requiredFields) {
       if (!rec.containsKey(field) || rec[field] == null) {

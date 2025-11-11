@@ -117,38 +117,45 @@ class _LandingPageState extends ConsumerState<LandingPage> {
 
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: Column(
-                children: [
-                  // Top bar with credits and auth button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+        child: Stack(
+          children: [
+            // Main content
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
+                  child: Column(
                     children: [
-                      const CreditsIndicator(),
-                      const SizedBox(width: 16),
-                      const AuthButton(),
+                      // Hero Section
+                      _buildHeroSection(context),
+                      const SizedBox(height: 56),
+
+                      // Input Section
+                      _buildInputSection(context),
+                      const SizedBox(height: 80),
+
+                      // History Section
+                      if (allResults.isNotEmpty) _buildHistorySection(context, allResults),
                     ],
                   ),
-                  const SizedBox(height: 40),
+                ),
+              ),
+            ),
 
-                  // Hero Section
-                  _buildHeroSection(context),
-                  const SizedBox(height: 56),
-
-                  // Input Section
-                  _buildInputSection(context),
-                  const SizedBox(height: 80),
-
-                  // History Section
-                  if (allResults.isNotEmpty) _buildHistorySection(context, allResults),
+            // Top-right corner: credits and auth button
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Row(
+                children: [
+                  const CreditsIndicator(),
+                  const SizedBox(width: 12),
+                  const AuthButton(),
                 ],
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

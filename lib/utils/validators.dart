@@ -55,8 +55,9 @@ class Validators {
         return false;
       }
 
-      // Check for path traversal patterns
-      if (trimmedUrl.contains('..') || trimmedUrl.contains('//')) {
+      // Check for path traversal patterns (but not in scheme)
+      final pathPart = uri.path;
+      if (pathPart.contains('..')) {
         return false;
       }
 
@@ -71,11 +72,6 @@ class Validators {
 
       // Repo validation: 1-100 chars
       if (repo.isEmpty || repo.length > 100) {
-        return false;
-      }
-
-      // Check for multiple consecutive hyphens or underscores (usually invalid)
-      if (owner.contains('--') || repo.contains('__')) {
         return false;
       }
 
