@@ -10,9 +10,46 @@ import '../services/credits_service.dart';
 import '../services/auth_service.dart';
 import '../utils/validators.dart';
 
-final githubServiceProvider = Provider((ref) => GitHubService());
-final openaiServiceProvider = Provider((ref) => OpenAIService());
-final appRuntimeServiceProvider = Provider((ref) => AppRuntimeService());
+// Service providers with retry configuration for network failures
+final githubServiceProvider = Provider(
+  (ref) => GitHubService(),
+  retry: (retryCount, error) {
+    // Retry GitHub API failures up to 2 times with exponential backoff
+    if (retryCount > 2) return null;
+    // Don't retry on 404, 403, or validation errors
+    if (error.toString().contains('not found') ||
+        error.toString().contains('forbidden') ||
+        error.toString().contains('Invalid')) {
+      return null;
+    }
+    return Duration(seconds: retryCount * 2); // 2s, 4s
+  },
+);
+
+final openaiServiceProvider = Provider(
+  (ref) => OpenAIService(),
+  retry: (retryCount, error) {
+    // Retry OpenAI API failures up to 3 times (it already has internal retry)
+    if (retryCount > 3) return null;
+    // Don't retry on rate limits or auth errors
+    if (error.toString().contains('rate limit') ||
+        error.toString().contains('unauthorized') ||
+        error.toString().contains('API key')) {
+      return null;
+    }
+    return Duration(seconds: retryCount * 3); // 3s, 6s, 9s
+  },
+);
+
+final appRuntimeServiceProvider = Provider(
+  (ref) => AppRuntimeService(),
+  retry: (retryCount, error) {
+    // Retry runtime analysis failures up to 2 times
+    if (retryCount > 2) return null;
+    return Duration(seconds: retryCount * 2);
+  },
+);
+
 final storageServiceProvider = Provider((ref) => StorageService());
 final creditsServiceProviderForAnalysis = Provider((ref) => CreditsService());
 final authServiceProviderForAnalysis = Provider((ref) => AuthService());
@@ -49,22 +86,25 @@ class AnalysisState {
   }
 }
 
-class AnalysisNotifier extends StateNotifier<AnalysisState> {
-  final GitHubService _githubService;
-  final OpenAIService _openaiService;
-  final AppRuntimeService _appRuntimeService;
-  final StorageService _storageService;
-  final CreditsService _creditsService;
-  final AuthService _authService;
+class AnalysisNotifier extends Notifier<AnalysisState> {
+  late final GitHubService _githubService;
+  late final OpenAIService _openaiService;
+  late final AppRuntimeService _appRuntimeService;
+  late final StorageService _storageService;
+  late final CreditsService _creditsService;
+  late final AuthService _authService;
 
-  AnalysisNotifier(
-    this._githubService,
-    this._openaiService,
-    this._appRuntimeService,
-    this._storageService,
-    this._creditsService,
-    this._authService,
-  ) : super(AnalysisState());
+  @override
+  AnalysisState build() {
+    _githubService = ref.watch(githubServiceProvider);
+    _openaiService = ref.watch(openaiServiceProvider);
+    _appRuntimeService = ref.watch(appRuntimeServiceProvider);
+    _storageService = ref.watch(storageServiceProvider);
+    _creditsService = ref.watch(creditsServiceProviderForAnalysis);
+    _authService = ref.watch(authServiceProviderForAnalysis);
+
+    return AnalysisState();
+  }
 
   /// Main analysis method that routes to static code or runtime analysis
   Future<void> analyze({
@@ -123,6 +163,8 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
 
       // Get repository info
       final repoInfo = await _githubService.getRepository(repositoryUrl);
+      if (!ref.mounted) return;
+
       final repositoryName = repoInfo['name'];
 
       state = state.copyWith(
@@ -132,6 +174,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
 
       // Aggregate code
       final code = await _githubService.aggregateCode(repositoryUrl);
+      if (!ref.mounted) return;
 
       state = state.copyWith(
         progress: 0.5,
@@ -145,6 +188,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         code: code,
         analysisType: analysisType,
       );
+      if (!ref.mounted) return;
 
       state = state.copyWith(
         progress: 0.9,
@@ -153,6 +197,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
 
       // Save to history
       await _storageService.saveAnalysis(result);
+      if (!ref.mounted) return;
 
       state = state.copyWith(
         isLoading: false,
@@ -169,6 +214,8 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         final currentCredits = await _creditsService.getCredits();
         await _authService.updateCredits(currentCredits);
       }
+
+      if (!ref.mounted) return;
 
       state = state.copyWith(
         isLoading: false,
@@ -216,6 +263,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
 
       // Fetch and analyze runtime data
       final runtimeData = await _appRuntimeService.analyzeApp(appUrl);
+      if (!ref.mounted) return;
 
       // Extract app name from URL
       final uri = Uri.parse(appUrl);
@@ -227,6 +275,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
       );
 
       await Future.delayed(const Duration(milliseconds: 500));
+      if (!ref.mounted) return;
 
       state = state.copyWith(
         progress: 0.6,
@@ -240,6 +289,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         runtimeData: runtimeData,
         analysisType: analysisType,
       );
+      if (!ref.mounted) return;
 
       state = state.copyWith(
         progress: 0.9,
@@ -248,6 +298,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
 
       // Save to history
       await _storageService.saveAnalysis(result);
+      if (!ref.mounted) return;
 
       state = state.copyWith(
         isLoading: false,
@@ -264,6 +315,8 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         final currentCredits = await _creditsService.getCredits();
         await _authService.updateCredits(currentCredits);
       }
+
+      if (!ref.mounted) return;
 
       state = state.copyWith(
         isLoading: false,
@@ -283,14 +336,6 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
   }
 }
 
-final analysisProvider =
-    StateNotifierProvider<AnalysisNotifier, AnalysisState>((ref) {
-  return AnalysisNotifier(
-    ref.watch(githubServiceProvider),
-    ref.watch(openaiServiceProvider),
-    ref.watch(appRuntimeServiceProvider),
-    ref.watch(storageServiceProvider),
-    ref.watch(creditsServiceProviderForAnalysis),
-    ref.watch(authServiceProviderForAnalysis),
-  );
+final analysisProvider = NotifierProvider<AnalysisNotifier, AnalysisState>(() {
+  return AnalysisNotifier();
 });

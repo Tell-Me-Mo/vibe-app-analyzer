@@ -3,15 +3,17 @@ import '../models/analysis_result.dart';
 import '../services/storage_service.dart';
 import 'analysis_provider.dart';
 
-final historyProvider = StateNotifierProvider<HistoryNotifier, List<AnalysisResult>>((ref) {
-  return HistoryNotifier(ref.watch(storageServiceProvider));
+final historyProvider = NotifierProvider<HistoryNotifier, List<AnalysisResult>>(() {
+  return HistoryNotifier();
 });
 
-class HistoryNotifier extends StateNotifier<List<AnalysisResult>> {
-  final StorageService _storageService;
+class HistoryNotifier extends Notifier<List<AnalysisResult>> {
+  late final StorageService _storageService;
 
-  HistoryNotifier(this._storageService) : super([]) {
-    loadHistory();
+  @override
+  List<AnalysisResult> build() {
+    _storageService = ref.watch(storageServiceProvider);
+    return _storageService.getHistory();
   }
 
   void loadHistory() {

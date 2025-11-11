@@ -8,14 +8,16 @@ import '../services/validation_service.dart';
 import 'history_provider.dart';
 
 /// Provider for managing validation state and operations
-class ValidationNotifier extends StateNotifier<Map<String, dynamic>> {
-  final ValidationService _validationService;
-  final HistoryNotifier _historyNotifier;
+class ValidationNotifier extends Notifier<Map<String, dynamic>> {
+  late final ValidationService _validationService;
+  late final HistoryNotifier _historyNotifier;
 
-  ValidationNotifier(
-    this._validationService,
-    this._historyNotifier,
-  ) : super({});
+  @override
+  Map<String, dynamic> build() {
+    _validationService = ref.watch(validationServiceProvider);
+    _historyNotifier = ref.watch(historyProvider.notifier);
+    return {};
+  }
 
   /// Validates a security issue fix
   Future<void> validateSecurityFix({
@@ -198,9 +200,6 @@ class ValidationNotifier extends StateNotifier<Map<String, dynamic>> {
 
 /// Provider for validation notifier
 final validationProvider =
-    StateNotifierProvider<ValidationNotifier, Map<String, dynamic>>((ref) {
-  return ValidationNotifier(
-    ref.watch(validationServiceProvider),
-    ref.watch(historyProvider.notifier),
-  );
+    NotifierProvider<ValidationNotifier, Map<String, dynamic>>(() {
+  return ValidationNotifier();
 });
