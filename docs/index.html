@@ -16,6 +16,11 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E">
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://yourdomain.github.io/vibe-app-analyzer/">
@@ -61,39 +66,6 @@
     }
     </script>
 
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "What is VibeCheck?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "VibeCheck is an AI-powered security and monitoring analyzer for developers. It analyzes both GitHub repositories (static code) and live deployed applications (runtime) to identify security vulnerabilities and monitoring gaps, then provides actionable Claude Code prompts to fix them."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "How does VibeCheck work?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "VibeCheck uses OpenAI GPT-4o mini to analyze your code or live application. For static analysis, it examines your GitHub repository. For runtime analysis, it fetches your deployed app and analyzes security headers, cookies, and monitoring tools. Each analysis costs 5 credits and provides detailed findings with copy-paste prompts for fixes."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Is VibeCheck free?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes, VibeCheck offers 10 free credits on first launch (enough for 2 analyses). Each security or monitoring analysis costs 5 credits. Additional credits can be purchased starting at $4.99 for 20 credits."
-          }
-        }
-      ]
-    }
-    </script>
-
     <style>
         /* CSS Reset & Base */
         * {
@@ -103,16 +75,47 @@
         }
 
         :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #13141f;
-            --bg-tertiary: #1a1b2e;
-            --accent-primary: #6366f1;
-            --accent-secondary: #8b5cf6;
-            --accent-success: #10b981;
-            --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            /* Colors matching Flutter app */
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #151623;
+            --bg-tertiary: #1c1d2e;
+            --surface-glass: rgba(255, 255, 255, 0.05);
+            --border-default: rgba(255, 255, 255, 0.1);
+
+            /* Brand Colors */
+            --primary-blue: #6366F1;
+            --primary-purple: #8B5CF6;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+
+            /* Text Colors */
+            --text-primary: #F9FAFB;
+            --text-secondary: #D1D5DB;
+            --text-tertiary: #9CA3AF;
+            --text-muted: #6B7280;
+
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            --gradient-security: linear-gradient(135deg, #EF4444 0%, #F59E0B 100%);
+            --gradient-monitoring: linear-gradient(135deg, #10B981 0%, #14B8A6 100%);
+
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+            --spacing-xl: 24px;
+            --spacing-xxl: 32px;
+            --spacing-huge: 48px;
+            --spacing-giant: 64px;
+
+            /* Border Radius */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
         }
 
         html {
@@ -120,27 +123,36 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Glassmorphism utility class */
-        .glass {
-            background: var(--glass-bg);
+        /* Glass Card Effect */
+        .glass-card {
+            background: var(--surface-glass);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xxl);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
         /* Container */
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 var(--spacing-xl);
         }
 
         /* Header/Navigation */
@@ -149,13 +161,13 @@
             top: 0;
             width: 100%;
             z-index: 1000;
-            padding: 20px 0;
+            padding: var(--spacing-lg) 0;
             transition: all 0.3s ease;
         }
 
         header.scrolled {
-            background: rgba(10, 10, 15, 0.95);
-            backdrop-filter: blur(10px);
+            background: rgba(15, 15, 26, 0.95);
+            backdrop-filter: blur(20px);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
 
@@ -166,29 +178,77 @@
         }
 
         .logo {
-            font-size: 24px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            font-size: 28px;
+            font-weight: 900;
+            background: var(--gradient-primary);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            letter-spacing: -1px;
         }
 
         .nav-links {
             display: flex;
-            gap: 32px;
+            gap: var(--spacing-xxl);
             list-style: none;
+            align-items: center;
         }
 
         .nav-links a {
-            color: var(--text-secondary);
+            color: var(--text-tertiary);
             text-decoration: none;
             font-weight: 500;
+            font-size: 15px;
             transition: color 0.3s ease;
         }
 
         .nav-links a:hover {
             color: var(--text-primary);
+        }
+
+        /* Gradient Button */
+        .gradient-btn {
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.4);
+        }
+
+        .glass-btn {
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            background: var(--surface-glass);
+            color: var(--text-primary);
+            border: 1.5px solid var(--border-default);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            backdrop-filter: blur(10px);
+        }
+
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
 
         /* Hero Section */
@@ -198,7 +258,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 120px 24px 80px;
+            padding: 140px var(--spacing-xl) 80px;
             position: relative;
             overflow: hidden;
         }
@@ -207,139 +267,123 @@
         .hero::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+            pointer-events: none;
         }
 
         .hero-content {
             position: relative;
             z-index: 1;
-            max-width: 800px;
+            max-width: 900px;
         }
 
-        .hero-badge {
-            display: inline-flex;
+        .hero-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--spacing-xxl);
+            background: var(--gradient-primary);
+            border-radius: var(--radius-lg);
+            display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 20px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 50px;
-            font-size: 14px;
-            color: var(--accent-primary);
-            margin-bottom: 32px;
-            animation: fadeInUp 0.6s ease;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.4);
+            animation: float 3s ease-in-out infinite;
         }
 
-        .hero-badge::before {
-            content: '⭐';
-            font-size: 16px;
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
         }
 
         h1 {
-            font-size: clamp(40px, 8vw, 72px);
-            font-weight: 800;
+            font-size: clamp(48px, 8vw, 72px);
+            font-weight: 900;
             line-height: 1.1;
-            margin-bottom: 24px;
-            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            margin-bottom: var(--spacing-xl);
+            background: var(--gradient-primary);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: fadeInUp 0.6s ease 0.2s both;
+            letter-spacing: -2px;
+            animation: fadeInUp 0.8s ease;
         }
 
-        .hero p {
-            font-size: clamp(18px, 3vw, 22px);
+        .hero-subtitle {
+            font-size: clamp(20px, 3vw, 24px);
             color: var(--text-secondary);
-            margin-bottom: 40px;
-            animation: fadeInUp 0.6s ease 0.4s both;
+            margin-bottom: var(--spacing-md);
+            font-weight: 500;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .hero-description {
+            font-size: 18px;
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-huge);
+            animation: fadeInUp 0.8s ease 0.4s both;
         }
 
         .cta-buttons {
             display: flex;
-            gap: 16px;
+            gap: var(--spacing-lg);
             justify-content: center;
             flex-wrap: wrap;
-            animation: fadeInUp 0.6s ease 0.6s both;
+            animation: fadeInUp 0.8s ease 0.6s both;
         }
 
-        .btn {
-            padding: 16px 32px;
-            font-size: 16px;
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            color: var(--primary-blue);
             font-weight: 600;
-            border-radius: 12px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: inline-block;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: white;
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-secondary {
-            background: var(--glass-bg);
-            color: var(--text-primary);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
+            margin-bottom: var(--spacing-xxl);
         }
 
         /* Features Section */
         .features {
-            padding: 120px 24px;
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            padding: var(--spacing-giant) var(--spacing-xl);
+            background: var(--bg-primary);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--spacing-giant);
         }
 
         .section-title {
-            text-align: center;
-            font-size: clamp(32px, 5vw, 48px);
-            font-weight: 700;
-            margin-bottom: 16px;
+            font-size: clamp(36px, 5vw, 48px);
+            font-weight: 800;
+            margin-bottom: var(--spacing-lg);
+            letter-spacing: -1px;
         }
 
-        .section-subtitle {
-            text-align: center;
-            color: var(--text-secondary);
+        .section-description {
             font-size: 18px;
-            margin-bottom: 64px;
+            color: var(--text-tertiary);
             max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 0 auto;
         }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 32px;
-            margin-top: 64px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--spacing-xl);
         }
 
         .feature-card {
-            padding: 40px 32px;
-            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
@@ -350,14 +394,10 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            height: 3px;
+            background: var(--gradient-primary);
             transform: scaleX(0);
             transition: transform 0.3s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-8px);
         }
 
         .feature-card:hover::before {
@@ -365,111 +405,94 @@
         }
 
         .feature-icon {
-            font-size: 48px;
-            margin-bottom: 24px;
-            display: inline-block;
-        }
-
-        .feature-card h3 {
-            font-size: 22px;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-        }
-
-        .feature-card p {
-            color: var(--text-secondary);
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        /* App Preview Section */
-        .app-preview {
-            padding: 120px 24px;
-            background: var(--bg-primary);
-            overflow: hidden;
-        }
-
-        .app-mockup-container {
-            max-width: 1400px;
-            margin: 64px auto 0;
-            position: relative;
-        }
-
-        .app-mockup-container img {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-
-        /* How It Works */
-        .how-it-works {
-            padding: 120px 24px;
-            background: var(--bg-secondary);
-        }
-
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 48px;
-            margin-top: 64px;
-        }
-
-        .step {
-            text-align: center;
-            position: relative;
-        }
-
-        .step-number {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: white;
+            width: 56px;
+            height: 56px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 28px;
+            margin-bottom: var(--spacing-xl);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            margin-bottom: var(--spacing-md);
             font-weight: 700;
-            margin: 0 auto 24px;
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .feature-card p {
+            color: var(--text-tertiary);
+            line-height: 1.7;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: var(--spacing-giant) var(--spacing-xl);
+            background: var(--bg-secondary);
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-huge);
+            margin-top: var(--spacing-giant);
+        }
+
+        .step {
+            text-align: center;
+        }
+
+        .step-number {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0 auto var(--spacing-xl);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.4);
         }
 
         .step h3 {
             font-size: 20px;
-            margin-bottom: 12px;
+            margin-bottom: var(--spacing-md);
+            font-weight: 700;
         }
 
         .step p {
-            color: var(--text-secondary);
+            color: var(--text-tertiary);
+            line-height: 1.7;
         }
 
         /* Pricing Section */
         .pricing {
-            padding: 120px 24px;
-            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            padding: var(--spacing-giant) var(--spacing-xl);
+            background: var(--bg-primary);
         }
 
         .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 32px;
-            margin-top: 64px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-xl);
             max-width: 1000px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: var(--spacing-giant) auto 0;
         }
 
         .pricing-card {
-            padding: 40px 32px;
             text-align: center;
             position: relative;
             transition: all 0.3s ease;
         }
 
         .pricing-card.popular {
-            border: 2px solid var(--accent-primary);
+            border: 2px solid var(--primary-blue);
             transform: scale(1.05);
         }
 
@@ -477,86 +500,120 @@
             transform: translateY(-8px) scale(1.02);
         }
 
+        .pricing-card.popular:hover {
+            transform: translateY(-8px) scale(1.07);
+        }
+
         .popular-badge {
             position: absolute;
             top: -12px;
-            right: 24px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gradient-primary);
             color: white;
-            padding: 4px 16px;
-            border-radius: 50px;
+            padding: 6px 20px;
+            border-radius: var(--radius-full);
             font-size: 12px;
             font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
         .pricing-card h3 {
             font-size: 24px;
-            margin-bottom: 16px;
+            margin-bottom: var(--spacing-lg);
+            font-weight: 700;
         }
 
         .price {
-            font-size: 48px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            font-size: 56px;
+            font-weight: 800;
+            background: var(--gradient-primary);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 8px;
+            margin-bottom: var(--spacing-sm);
+            letter-spacing: -2px;
         }
 
         .price-period {
-            color: var(--text-secondary);
+            color: var(--text-muted);
             font-size: 14px;
-            margin-bottom: 24px;
+            margin-bottom: var(--spacing-xl);
         }
 
-        .credits {
-            color: var(--text-primary);
-            font-size: 18px;
-            margin-bottom: 24px;
-            font-weight: 600;
+        .credits-amount {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .pricing-note {
+            text-align: center;
+            margin-top: var(--spacing-huge);
+            color: var(--text-tertiary);
+            font-size: 16px;
         }
 
         /* CTA Section */
         .cta-section {
-            padding: 120px 24px;
+            padding: var(--spacing-giant) var(--spacing-xl);
             text-align: center;
-            background: var(--bg-primary);
+            background: var(--bg-secondary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+            pointer-events: none;
         }
 
         .cta-content {
             max-width: 700px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         .cta-section h2 {
-            font-size: clamp(32px, 5vw, 48px);
-            margin-bottom: 24px;
+            font-size: clamp(36px, 5vw, 48px);
+            margin-bottom: var(--spacing-xl);
+            font-weight: 800;
+            letter-spacing: -1px;
         }
 
         .cta-section p {
-            font-size: 20px;
-            color: var(--text-secondary);
-            margin-bottom: 40px;
+            font-size: 18px;
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-huge);
+            line-height: 1.7;
         }
 
         /* Footer */
         footer {
-            padding: 60px 24px 30px;
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--glass-border);
+            padding: var(--spacing-giant) var(--spacing-xl) var(--spacing-xxl);
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-default);
         }
 
         .footer-content {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 48px;
-            margin-bottom: 48px;
+            gap: var(--spacing-huge);
+            margin-bottom: var(--spacing-huge);
         }
 
         .footer-section h4 {
-            margin-bottom: 16px;
+            margin-bottom: var(--spacing-lg);
             font-size: 16px;
+            font-weight: 700;
         }
 
         .footer-section ul {
@@ -564,11 +621,12 @@
         }
 
         .footer-section a {
-            color: var(--text-secondary);
+            color: var(--text-tertiary);
             text-decoration: none;
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: var(--spacing-md);
             transition: color 0.3s ease;
+            font-size: 15px;
         }
 
         .footer-section a:hover {
@@ -577,10 +635,30 @@
 
         .footer-bottom {
             text-align: center;
-            padding-top: 24px;
-            border-top: 1px solid var(--glass-border);
-            color: var(--text-secondary);
+            padding-top: var(--spacing-xl);
+            border-top: 1px solid var(--border-default);
+            color: var(--text-muted);
             font-size: 14px;
+        }
+
+        /* App Preview */
+        .app-preview {
+            padding: var(--spacing-giant) var(--spacing-xl);
+            background: var(--bg-secondary);
+        }
+
+        .mockup-container {
+            max-width: 1400px;
+            margin: var(--spacing-giant) auto 0;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
+        }
+
+        .mockup-container img {
+            width: 100%;
+            height: auto;
+            display: block;
         }
 
         /* Animations */
@@ -595,6 +673,17 @@
             }
         }
 
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .scroll-reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         /* Mobile Navigation */
         .mobile-menu-btn {
             display: none;
@@ -603,6 +692,7 @@
             color: var(--text-primary);
             font-size: 24px;
             cursor: pointer;
+            padding: var(--spacing-sm);
         }
 
         /* Responsive Design */
@@ -617,15 +707,17 @@
 
             .cta-buttons {
                 flex-direction: column;
-                align-items: stretch;
-            }
-
-            .btn {
                 width: 100%;
             }
 
+            .gradient-btn,
+            .glass-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
             .features-grid,
-            .steps,
+            .steps-grid,
             .pricing-grid {
                 grid-template-columns: 1fr;
             }
@@ -635,28 +727,13 @@
             }
 
             .hero {
-                padding-top: 100px;
+                padding-top: 120px;
             }
 
-            .app-preview {
-                padding: 80px 24px;
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-xxl);
             }
-
-            .app-mockup-container {
-                margin-top: 40px;
-            }
-        }
-
-        /* Scroll reveal animation */
-        .scroll-reveal {
-            opacity: 0;
-            transform: translateY(50px);
-            transition: all 0.6s ease;
-        }
-
-        .scroll-reveal.active {
-            opacity: 1;
-            transform: translateY(0);
         }
     </style>
 </head>
@@ -671,7 +748,7 @@
                     <li><a href="#how-it-works">How It Works</a></li>
                     <li><a href="#pricing">Pricing</a></li>
                     <li><a href="blog/">Blog</a></li>
-                    <li><a href="#cta">Get Started</a></li>
+                    <li><a href="#cta" class="gradient-btn" style="padding: 10px 24px; font-size: 14px;">Get Started</a></li>
                 </ul>
                 <button class="mobile-menu-btn" aria-label="Menu">☰</button>
             </nav>
@@ -681,24 +758,28 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
-            <div class="hero-badge">10 Free Credits • No Credit Card Required</div>
+            <div class="hero-icon">📊</div>
+            <div class="badge">⭐ 10 Free Credits • No Credit Card Required</div>
             <h1>Check the vibe of your AI-generated code</h1>
-            <p>Analyze GitHub repositories and live applications for security vulnerabilities and monitoring gaps. Get actionable fixes powered by AI.</p>
+            <p class="hero-subtitle">Analyze GitHub repositories and live applications for security vulnerabilities and monitoring gaps</p>
+            <p class="hero-description">Scan for security vulnerabilities & monitoring gaps</p>
             <div class="cta-buttons">
-                <a href="#cta" class="btn btn-primary">Start Free Analysis</a>
-                <a href="#how-it-works" class="btn btn-secondary">See How It Works</a>
+                <a href="#cta" class="gradient-btn">Start Free Analysis →</a>
+                <a href="#how-it-works" class="glass-btn">See How It Works</a>
             </div>
         </div>
     </section>
 
     <!-- App Preview Section -->
-    <section class="app-preview">
+    <section class="app-preview scroll-reveal">
         <div class="container">
-            <h2 class="section-title scroll-reveal">See what problems VibeCheck finds and fixes</h2>
-            <p class="section-subtitle scroll-reveal">Real-time analysis showing security vulnerabilities and monitoring gaps with instant fix prompts</p>
+            <div class="section-header">
+                <h2 class="section-title">See what problems VibeCheck finds and fixes</h2>
+                <p class="section-description">Real-time analysis showing security vulnerabilities and monitoring gaps with instant fix prompts</p>
+            </div>
 
-            <div class="app-mockup-container scroll-reveal">
-                <img src="app-mockup.svg" alt="VibeCheck app interface showing security vulnerabilities like SQL injection, missing CSRF protection, and error tracking gaps with AI-powered fix buttons" loading="lazy">
+            <div class="mockup-container">
+                <img src="app-mockup.svg" alt="VibeCheck app interface showing security vulnerabilities" loading="lazy">
             </div>
         </div>
     </section>
@@ -706,41 +787,43 @@
     <!-- Features Section -->
     <section id="features" class="features">
         <div class="container">
-            <h2 class="section-title scroll-reveal">Why developers choose VibeCheck</h2>
-            <p class="section-subtitle scroll-reveal">Comprehensive analysis for both static code and live applications</p>
+            <div class="section-header scroll-reveal">
+                <h2 class="section-title">Why developers choose VibeCheck</h2>
+                <p class="section-description">Comprehensive analysis for both static code and live applications</p>
+            </div>
 
             <div class="features-grid">
-                <div class="feature-card glass scroll-reveal">
+                <div class="feature-card glass-card scroll-reveal">
                     <div class="feature-icon">📝</div>
                     <h3>Static Code Analysis</h3>
                     <p>Analyze GitHub repositories for code-level security vulnerabilities and monitoring gaps. AI identifies issues that human reviewers miss.</p>
                 </div>
 
-                <div class="feature-card glass scroll-reveal">
+                <div class="feature-card glass-card scroll-reveal">
                     <div class="feature-icon">🚀</div>
                     <h3>Runtime Analysis</h3>
                     <p>Scan live deployed applications for production security headers, cookies, and monitoring tools. No source code access needed.</p>
                 </div>
 
-                <div class="feature-card glass scroll-reveal">
+                <div class="feature-card glass-card scroll-reveal">
                     <div class="feature-icon">🤖</div>
                     <h3>AI-Powered Fixes</h3>
                     <p>Get instant Claude Code prompts to fix every issue. Copy, paste, and resolve vulnerabilities in minutes, not hours.</p>
                 </div>
 
-                <div class="feature-card glass scroll-reveal">
+                <div class="feature-card glass-card scroll-reveal">
                     <div class="feature-icon">✅</div>
                     <h3>Fix Validation</h3>
                     <p>Validate your fixes with AI-powered verification. Confirm security issues are resolved before deploying to production.</p>
                 </div>
 
-                <div class="feature-card glass scroll-reveal">
+                <div class="feature-card glass-card scroll-reveal">
                     <div class="feature-icon">🔒</div>
                     <h3>Security First</h3>
                     <p>Detect hardcoded secrets, SQL injection, XSS, missing headers, insecure cookies, and 20+ other vulnerability types.</p>
                 </div>
 
-                <div class="feature-card glass scroll-reveal">
+                <div class="feature-card glass-card scroll-reveal">
                     <div class="feature-icon">📊</div>
                     <h3>Monitoring Insights</h3>
                     <p>Identify missing analytics, error tracking, APM tools, and business metrics. Know what you're blind to in production.</p>
@@ -752,10 +835,12 @@
     <!-- How It Works -->
     <section id="how-it-works" class="how-it-works">
         <div class="container">
-            <h2 class="section-title scroll-reveal">How VibeCheck works</h2>
-            <p class="section-subtitle scroll-reveal">Analysis results in under 60 seconds</p>
+            <div class="section-header scroll-reveal">
+                <h2 class="section-title">How VibeCheck works</h2>
+                <p class="section-description">Analysis results in under 60 seconds</p>
+            </div>
 
-            <div class="steps">
+            <div class="steps-grid">
                 <div class="step scroll-reveal">
                     <div class="step-number">1</div>
                     <h3>Enter URL</h3>
@@ -786,40 +871,42 @@
     <!-- Pricing -->
     <section id="pricing" class="pricing">
         <div class="container">
-            <h2 class="section-title scroll-reveal">Simple, transparent pricing</h2>
-            <p class="section-subtitle scroll-reveal">Start free, upgrade when you need more analyses</p>
+            <div class="section-header scroll-reveal">
+                <h2 class="section-title">Simple, transparent pricing</h2>
+                <p class="section-description">Start free, upgrade when you need more analyses</p>
+            </div>
 
             <div class="pricing-grid">
-                <div class="pricing-card glass scroll-reveal">
+                <div class="pricing-card glass-card scroll-reveal">
                     <h3>Starter</h3>
                     <div class="price">$4.99</div>
                     <div class="price-period">one-time</div>
-                    <div class="credits">20 credits</div>
-                    <p style="color: var(--text-secondary); margin-bottom: 24px;">4 analyses + validations</p>
-                    <a href="#cta" class="btn btn-secondary" style="width: 100%;">Get Started</a>
+                    <div class="credits-amount">20 credits</div>
+                    <p style="color: var(--text-tertiary); margin-bottom: var(--spacing-xl);">4 analyses + validations</p>
+                    <a href="#cta" class="glass-btn" style="width: 100%; justify-content: center;">Get Started</a>
                 </div>
 
-                <div class="pricing-card glass popular scroll-reveal">
+                <div class="pricing-card glass-card popular scroll-reveal">
                     <div class="popular-badge">POPULAR</div>
                     <h3>Professional</h3>
                     <div class="price">$9.99</div>
                     <div class="price-period">one-time</div>
-                    <div class="credits">50 credits</div>
-                    <p style="color: var(--text-secondary); margin-bottom: 24px;">10 analyses + validations</p>
-                    <a href="#cta" class="btn btn-primary" style="width: 100%;">Get Started</a>
+                    <div class="credits-amount">50 credits</div>
+                    <p style="color: var(--text-tertiary); margin-bottom: var(--spacing-xl);">10 analyses + validations</p>
+                    <a href="#cta" class="gradient-btn" style="width: 100%; justify-content: center;">Get Started</a>
                 </div>
 
-                <div class="pricing-card glass scroll-reveal">
+                <div class="pricing-card glass-card scroll-reveal">
                     <h3>Enterprise</h3>
                     <div class="price">$39.99</div>
                     <div class="price-period">one-time</div>
-                    <div class="credits">300 credits</div>
-                    <p style="color: var(--text-secondary); margin-bottom: 24px;">60 analyses + validations</p>
-                    <a href="#cta" class="btn btn-secondary" style="width: 100%;">Get Started</a>
+                    <div class="credits-amount">300 credits</div>
+                    <p style="color: var(--text-tertiary); margin-bottom: var(--spacing-xl);">60 analyses + validations</p>
+                    <a href="#cta" class="glass-btn" style="width: 100%; justify-content: center;">Get Started</a>
                 </div>
             </div>
 
-            <p style="text-align: center; margin-top: 40px; color: var(--text-secondary);">
+            <p class="pricing-note">
                 Each analysis costs 5 credits • Validation costs 1 credit • Credits never expire
             </p>
         </div>
@@ -831,9 +918,9 @@
             <h2>Ready to secure your code?</h2>
             <p>Start with 10 free credits. No credit card required. Analyze your first repository in under 60 seconds.</p>
             <div class="cta-buttons">
-                <a href="https://app.vibecheck.dev" class="btn btn-primary">Launch VibeCheck App</a>
+                <a href="https://app.vibecheck.dev" class="gradient-btn">Launch VibeCheck App →</a>
             </div>
-            <p style="margin-top: 24px; font-size: 14px; color: var(--text-secondary);">
+            <p style="margin-top: var(--spacing-xl); font-size: 14px; color: var(--text-muted);">
                 Available on Web, iOS, Android, Windows, macOS, and Linux
             </p>
         </div>
@@ -859,6 +946,7 @@
                         <li><a href="https://github.com/yourusername/vibe-app-analyzer">GitHub</a></li>
                         <li><a href="https://github.com/yourusername/vibe-app-analyzer/blob/main/README.md">Documentation</a></li>
                         <li><a href="https://github.com/yourusername/vibe-app-analyzer/issues">Support</a></li>
+                        <li><a href="blog/">Blog</a></li>
                     </ul>
                 </div>
 
@@ -878,7 +966,7 @@
         </div>
     </footer>
 
-    <!-- Scroll Reveal & Header Script -->
+    <!-- Scripts -->
     <script>
         // Header scroll effect
         const header = document.getElementById('header');
@@ -893,7 +981,7 @@
         // Scroll reveal animation
         const observerOptions = {
             threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
+            rootMargin: '0px 0px -100px 0px'
         };
 
         const observer = new IntersectionObserver((entries) => {
@@ -914,7 +1002,12 @@
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const headerHeight = 80;
+                    const targetPosition = target.offsetTop - headerHeight;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
                 }
             });
         });
