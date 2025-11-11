@@ -13,7 +13,7 @@ class CreditsIndicator extends ConsumerWidget {
     return creditsAsync.when(
       data: (credits) => _buildIndicator(context, credits),
       loading: () => _buildIndicator(context, 0),
-      error: (_, __) => _buildIndicator(context, 0),
+      error: (error, stackTrace) => _buildIndicator(context, 0),
     );
   }
 

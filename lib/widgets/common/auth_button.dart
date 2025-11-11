@@ -68,14 +68,14 @@ class AuthButton extends ConsumerWidget {
               );
             },
             loading: () => _buildLoginButton(context),
-            error: (_, __) => _buildLoginButton(context),
+            error: (error, stackTrace) => _buildLoginButton(context),
           );
         } else {
           return _buildLoginButton(context);
         }
       },
       loading: () => _buildLoginButton(context),
-      error: (_, __) => _buildLoginButton(context),
+      error: (error, stackTrace) => _buildLoginButton(context),
     );
   }
 

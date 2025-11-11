@@ -17,7 +17,7 @@ class AuthService {
   AuthService._internal();
 
   final SupabaseClient _supabase = Supabase.instance.client;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  GoogleSignIn get _googleSignIn => GoogleSignIn.instance;
 
   /// Get current user
   User? get currentUser => _supabase.auth.currentUser;
@@ -83,16 +83,27 @@ class AuthService {
     try {
       // Check platform support
       if (kIsWeb || Platform.isIOS || Platform.isAndroid) {
-        // Web or mobile flow
-        final googleUser = await _googleSignIn.signIn();
-        if (googleUser == null) return null;
+        // Initialize Google Sign In (required in v7.0.0+)
+        await _googleSignIn.initialize();
 
-        final googleAuth = await googleUser.authentication;
+        // Authenticate user interactively
+        final googleUser = await _googleSignIn.authenticate();
+
+        // Get authentication tokens
+        final googleAuth = googleUser.authentication;
         final idToken = googleAuth.idToken;
-        final accessToken = googleAuth.accessToken;
 
-        if (idToken == null || accessToken == null) {
-          throw AuthException('Google sign in failed: Missing tokens');
+        if (idToken == null) {
+          throw AuthException('Google sign in failed: Missing ID token');
+        }
+
+        // Get access token via authorization (required for Supabase)
+        final scopes = <String>[];
+        final authorization = await googleUser.authorizationClient.authorizationForScopes(scopes);
+        final accessToken = authorization?.accessToken;
+
+        if (accessToken == null) {
+          throw AuthException('Google sign in failed: Missing access token');
         }
 
         final response = await _supabase.auth.signInWithIdToken(

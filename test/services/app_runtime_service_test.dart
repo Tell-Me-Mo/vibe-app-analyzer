@@ -1,12 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vibecheck/services/app_runtime_service.dart';
 
 void main() {
   group('AppRuntimeService', () {
-    late AppRuntimeService service;
-
     setUp(() {
-      service = AppRuntimeService();
+      // Test setup
     });
 
     group('Tool Detection', () {
@@ -137,7 +134,6 @@ void main() {
 
       test('reduces score for missing headers', () {
         int score = 10;
-        final headers = <String, String>{};
 
         // With no security headers, score should be reduced
         score -= 2; // No HSTS
