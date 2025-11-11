@@ -59,8 +59,8 @@ App Analyzer (VibeCheck) is a Flutter cross-platform application that analyzes b
       │ HTTPS     │ HTTPS         │ HTTPS         │ Local    │ HTTPS
       │           │               │               │ Storage  │
 ┌─────▼─────┐ ┌───▼──────┐ ┌──────▼──────┐ ┌─────▼─────┐ ┌─▼────────┐
-│  GitHub   │ │  OpenAI  │ │  Supabase   │ │ Hive/     │ │RevenueCat│
-│    API    │ │GPT-4o min│ │ (Auth+DB)   │ │SharedPrefs│ │(Payments)│
+│  GitHub   │ │  OpenAI  │ │  Supabase   │ │SharedPrefs│ │RevenueCat│
+│    API    │ │GPT-4o min│ │ (Auth+DB)   │ │(Encrypted)│ │(Payments)│
 └───────────┘ └──────────┘ └─────────────┘ └───────────┘ └──────────┘
                                    │
                            ┌───────▼────────┐
@@ -81,8 +81,7 @@ App Analyzer (VibeCheck) is a Flutter cross-platform application that analyzes b
 - **State Management:** Riverpod 2.6.1+
 - **HTTP Client:** dio 5.7.0 (for API calls)
 - **Local Storage:**
-  - shared_preferences 2.3.3 (credits, session)
-  - hive 2.2.3 + hive_flutter 1.1.0 (analysis history)
+  - shared_preferences 2.5.3 (encrypted analysis history, session)
   - flutter_secure_storage 9.2.2 (encryption keys)
   - encrypt 5.0.3 (data encryption)
 - **UI Components:** Material 3 design system
@@ -171,7 +170,7 @@ lib/services/
 ├── openai_service.dart          # OpenAI GPT-4o mini integration (analysis + validation)
 │                                # - Static code prompts
 │                                # - Runtime analysis prompts
-├── storage_service.dart         # Encrypted local storage (Hive) with update support
+├── storage_service.dart         # Encrypted local storage (SharedPreferences) with update support
 ├── auth_service.dart            # Supabase authentication
 ├── credits_service.dart         # Credits management (with refund support)
 ├── payment_service.dart         # RevenueCat payment integration

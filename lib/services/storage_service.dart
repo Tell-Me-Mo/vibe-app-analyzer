@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
@@ -19,8 +18,6 @@ class StorageService {
   encrypt.IV? _iv;
 
   Future<void> initialize() async {
-    await Hive.initFlutter();
-
     _prefs = await SharedPreferences.getInstance();
     _secureStorage = const FlutterSecureStorage(
       aOptions: AndroidOptions(

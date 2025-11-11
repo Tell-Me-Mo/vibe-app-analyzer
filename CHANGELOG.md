@@ -64,7 +64,7 @@ For more information about Riverpod 3.0 changes, see the [official migration gui
 - Integration with Supabase for authentication and user management
 - Support for Google Sign-In and Apple Sign-In
 - In-app purchases via RevenueCat
-- Persistent local storage with Hive
+- Persistent local storage with SharedPreferences (encrypted)
 - Secure credential storage
 - Analysis history tracking
 - GitHub API integration for repository analysis
