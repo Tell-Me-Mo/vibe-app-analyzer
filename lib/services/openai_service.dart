@@ -173,41 +173,17 @@ class OpenAIService {
         throw Exception('No active session. Please sign in.');
       }
 
+      // Convert runtime data to a formatted string for analysis
+      final runtimeDataString = runtimeData.toAnalysisPrompt();
+
       final response = await _dio.post(
         functionUrl,
         data: {
           'repositoryUrl': appUrl,
           'repositoryName': appName,
-          'code': '', // Not used for runtime analysis
+          'code': runtimeDataString, // Use formatted runtime data as "code"
           'analysisType': analysisType.value,
           'analysisMode': 'runtime',
-          'runtimeData': {
-            'url': runtimeData.url,
-            'html': runtimeData.html,
-            'headers': runtimeData.headers,
-            'statusCode': runtimeData.statusCode,
-            'ttfb': runtimeData.ttfb,
-            'pageLoadTime': runtimeData.pageLoadTime,
-            'detectedTools': {
-              'hasGoogleAnalytics': runtimeData.detectedTools.hasGoogleAnalytics,
-              'hasMixpanel': runtimeData.detectedTools.hasMixpanel,
-              'hasSegment': runtimeData.detectedTools.hasSegment,
-              'hasSentry': runtimeData.detectedTools.hasSentry,
-              'hasBugsnag': runtimeData.detectedTools.hasBugsnag,
-            },
-            'securityConfig': {
-              'hasHttps': runtimeData.securityConfig.hasHttps,
-              'hasHSTS': runtimeData.securityConfig.hasHSTS,
-              'hasCSP': runtimeData.securityConfig.hasCSP,
-              'securityHeaders': runtimeData.securityConfig.securityHeaders,
-              'cookies': runtimeData.securityConfig.cookies.map((c) => {
-                'name': c.name,
-                'isSecure': c.isSecure,
-                'isHttpOnly': c.isHttpOnly,
-                'sameSite': c.sameSite,
-              }).toList(),
-            },
-          },
         },
         options: Options(
           headers: {

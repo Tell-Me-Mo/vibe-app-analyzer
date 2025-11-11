@@ -39,6 +39,23 @@ class RuntimeAnalysisData {
     required this.securityConfig,
   });
 
+  /// Creates RuntimeAnalysisData from JSON
+  factory RuntimeAnalysisData.fromJson(Map<String, dynamic> json) {
+    return RuntimeAnalysisData(
+      url: json['url'] as String,
+      html: json['html'] as String,
+      headers: (json['headers'] as Map<String, dynamic>).map(
+        (key, value) => MapEntry(key, List<String>.from(value as List)),
+      ),
+      statusCode: json['statusCode'] as int,
+      ttfb: json['ttfb'] as int,
+      pageLoadTime: json['pageLoadTime'] as int,
+      detectedTools: DetectedTools.fromJson(json['detectedTools'] as Map<String, dynamic>),
+      performanceMetrics: PerformanceMetrics.fromJson(json['performanceMetrics'] as Map<String, dynamic>),
+      securityConfig: SecurityConfig.fromJson(json['securityConfig'] as Map<String, dynamic>),
+    );
+  }
+
   /// Converts to a formatted string for AI analysis
   String toAnalysisPrompt() {
     final buffer = StringBuffer();
@@ -126,6 +143,28 @@ class DetectedTools {
     this.hasLinkedInTag = false,
   });
 
+  factory DetectedTools.fromJson(Map<String, dynamic> json) {
+    return DetectedTools(
+      hasGoogleAnalytics: json['hasGoogleAnalytics'] as bool? ?? false,
+      hasMixpanel: json['hasMixpanel'] as bool? ?? false,
+      hasSegment: json['hasSegment'] as bool? ?? false,
+      hasAmplitude: json['hasAmplitude'] as bool? ?? false,
+      hasPostHog: json['hasPostHog'] as bool? ?? false,
+      hasPlausible: json['hasPlausible'] as bool? ?? false,
+      hasSentry: json['hasSentry'] as bool? ?? false,
+      hasBugsnag: json['hasBugsnag'] as bool? ?? false,
+      hasRollbar: json['hasRollbar'] as bool? ?? false,
+      hasLogRocket: json['hasLogRocket'] as bool? ?? false,
+      hasHotjar: json['hasHotjar'] as bool? ?? false,
+      hasFullStory: json['hasFullStory'] as bool? ?? false,
+      hasNewRelic: json['hasNewRelic'] as bool? ?? false,
+      hasDatadog: json['hasDatadog'] as bool? ?? false,
+      hasAppDynamics: json['hasAppDynamics'] as bool? ?? false,
+      hasMetaPixel: json['hasMetaPixel'] as bool? ?? false,
+      hasLinkedInTag: json['hasLinkedInTag'] as bool? ?? false,
+    );
+  }
+
   String toPromptString() {
     final buffer = StringBuffer();
 
@@ -204,6 +243,16 @@ class PerformanceMetrics {
     this.sslHandshakeTime,
   });
 
+  factory PerformanceMetrics.fromJson(Map<String, dynamic> json) {
+    return PerformanceMetrics(
+      pageLoadTime: json['pageLoadTime'] as int,
+      ttfb: json['ttfb'] as int,
+      dnsLookupTime: json['dnsLookupTime'] as int?,
+      tcpConnectionTime: json['tcpConnectionTime'] as int?,
+      sslHandshakeTime: json['sslHandshakeTime'] as int?,
+    );
+  }
+
   String get performanceRating {
     if (pageLoadTime < 1000) return 'Excellent';
     if (pageLoadTime < 2000) return 'Good';
@@ -238,6 +287,23 @@ class SecurityConfig {
     this.securityHeaders = const {},
     this.cookies = const [],
   });
+
+  factory SecurityConfig.fromJson(Map<String, dynamic> json) {
+    return SecurityConfig(
+      hasHttps: json['hasHttps'] as bool,
+      hasHSTS: json['hasHSTS'] as bool? ?? false,
+      hasCSP: json['hasCSP'] as bool? ?? false,
+      hasXFrameOptions: json['hasXFrameOptions'] as bool? ?? false,
+      hasXContentTypeOptions: json['hasXContentTypeOptions'] as bool? ?? false,
+      hasReferrerPolicy: json['hasReferrerPolicy'] as bool? ?? false,
+      hasPermissionsPolicy: json['hasPermissionsPolicy'] as bool? ?? false,
+      hasCORS: json['hasCORS'] as bool? ?? false,
+      securityHeaders: Map<String, String>.from(json['securityHeaders'] as Map? ?? {}),
+      cookies: (json['cookies'] as List?)
+          ?.map((e) => CookieInfo.fromJson(e as Map<String, dynamic>))
+          .toList() ?? [],
+    );
+  }
 
   String toPromptString() {
     final buffer = StringBuffer();
@@ -312,4 +378,13 @@ class CookieInfo {
     required this.isHttpOnly,
     this.sameSite,
   });
+
+  factory CookieInfo.fromJson(Map<String, dynamic> json) {
+    return CookieInfo(
+      name: json['name'] as String,
+      isSecure: json['isSecure'] as bool,
+      isHttpOnly: json['isHttpOnly'] as bool,
+      sameSite: json['sameSite'] as String?,
+    );
+  }
 }
