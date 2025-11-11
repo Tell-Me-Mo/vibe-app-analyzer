@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/analysis_result.dart';
 import '../../models/analysis_mode.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_typography.dart';
+import '../../theme/app_spacing.dart';
+import '../common/animated_card.dart';
 
 class HistoryCard extends StatelessWidget {
   final AnalysisResult result;
@@ -17,192 +21,190 @@ class HistoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM dd, HH:mm');
     final isSecurityAnalysis = result.analysisType.displayName == 'Security';
+    final gradient = isSecurityAnalysis
+        ? AppColors.gradientSecurity
+        : AppColors.gradientMonitoring;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF1E293B),
-          width: 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
+    return AnimatedCard(
+      onTap: onTap,
+      padding: AppSpacing.paddingXL,
+      child: Row(
+        children: [
+          // Modern gradient icon
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: gradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              boxShadow: AppElevation.glowSM(gradient.first),
+            ),
+            child: Icon(
+              isSecurityAnalysis
+                  ? Icons.security_rounded
+                  : Icons.show_chart_rounded,
+              color: AppColors.textPrimary,
+              size: 28,
+            ),
+          ),
+          AppSpacing.horizontalGapLG,
+
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon with gradient background
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: isSecurityAnalysis
-                          ? [const Color(0xFF60A5FA), const Color(0xFF3B82F6)]
-                          : [const Color(0xFF34D399), const Color(0xFF10B981)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    isSecurityAnalysis ? Icons.security : Icons.show_chart,
-                    color: const Color(0xFF0F172A),
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-
-                // Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          if (result.isDemo)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFBBF24).withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: const Color(0xFFFBBF24).withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: const Text(
-                                'DEMO',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFBBF24),
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          if (result.isDemo) const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              result.repositoryName,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFFF1F5F9),
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                // Title row with DEMO badge
+                Row(
+                  children: [
+                    if (result.isDemo) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(AppRadius.xs),
+                          border: Border.all(
+                            color: AppColors.warning.withValues(alpha: 0.3),
                           ),
-                        ],
+                        ),
+                        child: Text(
+                          'DEMO',
+                          style: AppTypography.labelSmall.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.warning,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          // Analysis Type Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSecurityAnalysis
-                                  ? const Color(0xFF60A5FA).withValues(alpha: 0.15)
-                                  : const Color(0xFF34D399).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              result.analysisType.displayName,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: isSecurityAnalysis
-                                    ? const Color(0xFF60A5FA)
-                                    : const Color(0xFF34D399),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          // Analysis Mode Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: (result.analysisMode == AnalysisMode.staticCode
-                                      ? const Color(0xFFA78BFA)
-                                      : const Color(0xFF4ADE80))
-                                  .withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  result.analysisMode.icon,
-                                  style: const TextStyle(fontSize: 10),
-                                ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  result.analysisMode.shortLabel,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
-                                    color: result.analysisMode == AnalysisMode.staticCode
-                                        ? const Color(0xFFA78BFA)
-                                        : const Color(0xFF4ADE80),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${result.summary.total} items',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '•',
-                            style: const TextStyle(
-                              color: Color(0xFF475569),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            dateFormat.format(result.timestamp),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
+                      AppSpacing.horizontalGapSM,
                     ],
-                  ),
+                    Expanded(
+                      child: Text(
+                        result.repositoryName,
+                        style: AppTypography.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
+                AppSpacing.verticalGapSM,
 
-                // Arrow icon
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Color(0xFF475569),
+                // Badges and metadata row
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.xs,
+                  children: [
+                    // Analysis Type Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: gradient.map((c) => c.withValues(alpha: 0.15)).toList(),
+                        ),
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
+                        border: Border.all(
+                          color: gradient.first.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        result.analysisType.displayName,
+                        style: AppTypography.labelSmall.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: gradient.first,
+                        ),
+                      ),
+                    ),
+
+                    // Analysis Mode Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (result.analysisMode == AnalysisMode.staticCode
+                                ? AppColors.primaryPurple
+                                : AppColors.success)
+                            .withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
+                        border: Border.all(
+                          color: (result.analysisMode == AnalysisMode.staticCode
+                                  ? AppColors.primaryPurple
+                                  : AppColors.success)
+                              .withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            result.analysisMode.icon,
+                            style: AppTypography.labelSmall,
+                          ),
+                          AppSpacing.horizontalGapXS,
+                          Text(
+                            result.analysisMode.shortLabel,
+                            style: AppTypography.labelSmall.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: result.analysisMode == AnalysisMode.staticCode
+                                  ? AppColors.primaryPurple
+                                  : AppColors.success,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Item count
+                    Text(
+                      '${result.summary.total} items',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+
+                    // Separator
+                    Text(
+                      '•',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textDisabled,
+                      ),
+                    ),
+
+                    // Date
+                    Text(
+                      dateFormat.format(result.timestamp),
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ),
+          AppSpacing.horizontalGapMD,
+
+          // Modern arrow icon
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 16,
+            color: AppColors.textMuted,
+          ),
+        ],
       ),
     );
   }

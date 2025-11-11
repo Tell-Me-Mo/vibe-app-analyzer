@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
+import '../widgets/common/glass_card.dart';
+import '../widgets/common/gradient_button.dart';
+import '../widgets/common/gradient_icon.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_typography.dart';
+import '../theme/app_spacing.dart';
 
 class AuthPage extends ConsumerStatefulWidget {
   const AuthPage({super.key});
@@ -10,19 +16,45 @@ class AuthPage extends ConsumerStatefulWidget {
   ConsumerState<AuthPage> createState() => _AuthPageState();
 }
 
-class _AuthPageState extends ConsumerState<AuthPage> {
+class _AuthPageState extends ConsumerState<AuthPage>
+    with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   bool _isSignUp = false;
   bool _isLoading = false;
   String? _errorMessage;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    ));
+    _animationController.forward();
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -68,164 +100,238 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 500),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Back button
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      onPressed: () => context.go('/'),
-                      icon: const Icon(Icons.arrow_back),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+      body: Stack(
+        children: [
+          // Background gradient
+          _buildBackgroundGradient(),
 
-                  // Title
-                  Text(
-                    _isSignUp ? 'Create Account' : 'Welcome Back',
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          fontSize: 32,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _isSignUp
-                        ? 'Sign up to save your credits and analysis history'
-                        : 'Sign in to access your account',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: const Color(0xFF94A3B8),
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 40),
-
-                  // Error message
-                  if (_errorMessage != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF87171).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color(0xFFF87171).withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: AppSpacing.paddingXXL,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Icon(
-                            Icons.error_outline,
-                            color: Color(0xFFF87171),
-                            size: 20,
+                          // Back button
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: IconButton(
+                              onPressed: () => context.go('/'),
+                              icon: const Icon(Icons.arrow_back_rounded),
+                              style: IconButton.styleFrom(
+                                backgroundColor: AppColors.surfaceGlass.withValues(alpha: 0.6),
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: const TextStyle(color: Color(0xFFF87171)),
+                          AppSpacing.verticalGapXXL,
+
+                          // Icon and title
+                          _buildHeader(),
+                          AppSpacing.verticalGapHuge,
+
+                          // Auth form in glass card
+                          GlassCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Error message
+                                if (_errorMessage != null) ...[
+                                  _buildErrorMessage(_errorMessage!),
+                                  AppSpacing.verticalGapXL,
+                                ],
+
+                                // Name field (sign up only)
+                                if (_isSignUp) ...[
+                                  TextField(
+                                    controller: _nameController,
+                                    style: AppTypography.bodyLarge,
+                                    decoration: InputDecoration(
+                                      labelText: 'Name (optional)',
+                                      labelStyle: AppTypography.bodyMedium,
+                                      prefixIcon: Icon(
+                                        Icons.person_outline_rounded,
+                                        color: AppColors.textTertiary,
+                                      ),
+                                    ),
+                                  ),
+                                  AppSpacing.verticalGapLG,
+                                ],
+
+                                // Email field
+                                TextField(
+                                  controller: _emailController,
+                                  style: AppTypography.bodyLarge,
+                                  decoration: InputDecoration(
+                                    labelText: 'Email',
+                                    labelStyle: AppTypography.bodyMedium,
+                                    prefixIcon: Icon(
+                                      Icons.email_outlined,
+                                      color: AppColors.textTertiary,
+                                    ),
+                                  ),
+                                  keyboardType: TextInputType.emailAddress,
+                                ),
+                                AppSpacing.verticalGapLG,
+
+                                // Password field
+                                TextField(
+                                  controller: _passwordController,
+                                  style: AppTypography.bodyLarge,
+                                  decoration: InputDecoration(
+                                    labelText: 'Password',
+                                    labelStyle: AppTypography.bodyMedium,
+                                    prefixIcon: Icon(
+                                      Icons.lock_outline_rounded,
+                                      color: AppColors.textTertiary,
+                                    ),
+                                  ),
+                                  obscureText: true,
+                                ),
+                                AppSpacing.verticalGapXXL,
+
+                                // Submit button
+                                GradientButton(
+                                  text: _isSignUp ? 'Sign Up' : 'Sign In',
+                                  icon: _isSignUp
+                                      ? Icons.person_add_rounded
+                                      : Icons.login_rounded,
+                                  onPressed: _isLoading ? null : _handleEmailAuth,
+                                  isLoading: _isLoading,
+                                  height: 56,
+                                ),
+                                AppSpacing.verticalGapLG,
+
+                                // Toggle sign up/sign in
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _isSignUp = !_isSignUp;
+                                      _errorMessage = null;
+                                      _animationController.reset();
+                                      _animationController.forward();
+                                    });
+                                  },
+                                  child: Text(
+                                    _isSignUp
+                                        ? 'Already have an account? Sign In'
+                                        : 'Don\'t have an account? Sign Up',
+                                    style: AppTypography.bodyMedium.copyWith(
+                                      color: AppColors.primaryBlue,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // Name field (sign up only)
-                  if (_isSignUp) ...[
-                    TextField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Name (optional)',
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Email field
-                  TextField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
                   ),
-                  const SizedBox(height: 16),
-
-                  // Password field
-                  TextField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock_outline),
-                    ),
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Submit button
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _handleEmailAuth,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF60A5FA),
-                      foregroundColor: const Color(0xFF0F172A),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFF0F172A),
-                            ),
-                          )
-                        : Text(
-                            _isSignUp ? 'Sign Up' : 'Sign In',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Toggle sign up/sign in
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _isSignUp = !_isSignUp;
-                        _errorMessage = null;
-                      });
-                    },
-                    child: Text(
-                      _isSignUp
-                          ? 'Already have an account? Sign In'
-                          : 'Don\'t have an account? Sign Up',
-                      style: const TextStyle(color: Color(0xFF60A5FA)),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackgroundGradient() {
+    return Positioned.fill(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topCenter,
+            radius: 1.5,
+            colors: [
+              AppColors.primaryBlue.withValues(alpha: 0.08),
+              AppColors.backgroundPrimary.withValues(alpha: 0.0),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      children: [
+        // Animated icon
+        GradientIcon(
+          icon: _isSignUp ? Icons.person_add_rounded : Icons.login_rounded,
+          size: 40,
+          gradient: AppColors.gradientPrimary,
+          padding: AppSpacing.paddingXL,
+        ),
+        AppSpacing.verticalGapXL,
+
+        // Title with gradient
+        ShaderMask(
+          shaderCallback: (bounds) => LinearGradient(
+            colors: AppColors.gradientPrimary,
+          ).createShader(bounds),
+          child: Text(
+            _isSignUp ? 'Create Account' : 'Welcome Back',
+            style: AppTypography.displaySmall.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        AppSpacing.verticalGapMD,
+
+        // Subtitle
+        Text(
+          _isSignUp
+              ? 'Sign up to save your credits and analysis history'
+              : 'Sign in to access your account',
+          style: AppTypography.bodyLarge.copyWith(
+            color: AppColors.textTertiary,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorMessage(String message) {
+    return Container(
+      padding: AppSpacing.paddingLG,
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: AppColors.error.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.errorLight,
+            size: 20,
+          ),
+          AppSpacing.horizontalGapMD,
+          Expanded(
+            child: Text(
+              message,
+              style: AppTypography.bodyMedium.copyWith(
+                color: AppColors.errorLight,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

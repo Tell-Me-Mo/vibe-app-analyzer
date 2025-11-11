@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_typography.dart';
+import '../../theme/app_spacing.dart';
+import 'gradient_button.dart';
 
 class AuthButton extends ConsumerWidget {
   const AuthButton({super.key});
@@ -24,53 +28,7 @@ class AuthButton extends ConsumerWidget {
           return userProfileAsync.when(
             data: (profile) {
               if (profile == null) return _buildLoginButton(context);
-
-              return InkWell(
-                onTap: () => context.go('/profile'),
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFF60A5FA).withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundColor: const Color(0xFF60A5FA),
-                        backgroundImage: profile.photoUrl != null
-                            ? NetworkImage(profile.photoUrl!)
-                            : null,
-                        child: profile.photoUrl == null
-                            ? Text(
-                                _getInitials(profile),
-                                style: const TextStyle(
-                                  color: Color(0xFF0F172A),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _getDisplayName(profile),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
+              return _buildProfileButton(context, profile);
             },
             loading: () => _buildLoginButton(context),
             error: (error, stackTrace) => _buildLoginButton(context),
@@ -85,60 +43,118 @@ class AuthButton extends ConsumerWidget {
   }
 
   Widget _buildGuestButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () => context.go('/auth'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF1E293B),
-        foregroundColor: const Color(0xFF94A3B8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: const Color(0xFF60A5FA).withValues(alpha: 0.3),
+    return InkWell(
+      onTap: () => context.go('/auth'),
+      borderRadius: BorderRadius.circular(AppRadius.full),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceGlass.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          border: Border.all(
+            color: AppColors.borderDefault,
+            width: 1.5,
           ),
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.person_outline, size: 18),
-          const SizedBox(width: 8),
-          Text(
-            'Guest',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF94A3B8),
-                ),
-          ),
-        ],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.person_outline_rounded,
+              size: 18,
+              color: AppColors.textTertiary,
+            ),
+            AppSpacing.horizontalGapSM,
+            Text(
+              'Guest',
+              style: AppTypography.labelMedium.copyWith(
+                color: AppColors.textTertiary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildLoginButton(BuildContext context) {
-    return ElevatedButton(
+    return GradientButton(
+      text: 'Sign In',
+      icon: Icons.login_rounded,
       onPressed: () => context.go('/auth'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF60A5FA),
-        foregroundColor: const Color(0xFF0F172A),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+      height: 44,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.login, size: 18),
-          const SizedBox(width: 8),
-          Text(
-            'Sign In',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF0F172A),
-                ),
+    );
+  }
+
+  Widget _buildProfileButton(BuildContext context, dynamic profile) {
+    return InkWell(
+      onTap: () => context.go('/profile'),
+      borderRadius: BorderRadius.circular(AppRadius.full),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceGlass.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          border: Border.all(
+            color: AppColors.primaryBlue.withValues(alpha: 0.4),
+            width: 1.5,
           ),
-        ],
+          boxShadow: AppElevation.glowSM(AppColors.primaryBlue),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Avatar with gradient border
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: AppColors.gradientPrimary,
+                ),
+              ),
+              padding: const EdgeInsets.all(2),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: AppColors.backgroundTertiary,
+                backgroundImage: profile.photoUrl != null
+                    ? NetworkImage(profile.photoUrl!)
+                    : null,
+                child: profile.photoUrl == null
+                    ? ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: AppColors.gradientPrimary,
+                        ).createShader(bounds),
+                        child: Text(
+                          _getInitials(profile),
+                          style: AppTypography.labelMedium.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+            AppSpacing.horizontalGapMD,
+            Text(
+              _getDisplayName(profile),
+              style: AppTypography.labelMedium.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/credits_service.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_typography.dart';
+import '../../theme/app_spacing.dart';
 
 class CreditsIndicator extends ConsumerWidget {
   const CreditsIndicator({super.key});
@@ -11,67 +14,90 @@ class CreditsIndicator extends ConsumerWidget {
     final creditsAsync = ref.watch(creditsProvider);
 
     return creditsAsync.when(
-      data: (credits) => _buildIndicator(context, credits),
-      loading: () => _buildIndicator(context, 0),
-      error: (error, stackTrace) => _buildIndicator(context, 0),
+      data: (credits) => _buildModernIndicator(context, credits),
+      loading: () => _buildModernIndicator(context, 0),
+      error: (error, stackTrace) => _buildModernIndicator(context, 0),
     );
   }
 
-  Widget _buildIndicator(BuildContext context, int credits) {
+  Widget _buildModernIndicator(BuildContext context, int credits) {
     // Determine color based on credits
     Color color;
+    List<Color> gradient;
     if (credits >= 20) {
-      color = const Color(0xFF34D399); // Green
+      color = AppColors.success;
+      gradient = AppColors.gradientSuccess;
     } else if (credits >= 10) {
-      color = const Color(0xFF60A5FA); // Blue
+      color = AppColors.primaryBlue;
+      gradient = AppColors.gradientPrimary;
     } else if (credits >= 5) {
-      color = const Color(0xFFFCD34D); // Yellow
+      color = AppColors.warning;
+      gradient = AppColors.gradientWarning;
     } else {
-      color = const Color(0xFFF87171); // Red
+      color = AppColors.error;
+      gradient = AppColors.gradientError;
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 1,
+    return InkWell(
+      onTap: () => context.go('/credits'),
+      borderRadius: BorderRadius.circular(AppRadius.full),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
         ),
-      ),
-      child: InkWell(
-        onTap: () {
-          context.go('/credits');
-        },
-        borderRadius: BorderRadius.circular(12),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceGlass.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          border: Border.all(
+            color: color.withValues(alpha: 0.4),
+            width: 1.5,
+          ),
+          boxShadow: AppElevation.glowSM(color),
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.stars,
-              color: color,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '$credits',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: color,
+            // Gradient icon
+            ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(
+                colors: gradient,
+              ).createShader(bounds),
+              child: const Icon(
+                Icons.stars_rounded,
+                color: AppColors.textPrimary,
+                size: 20,
               ),
             ),
-            const SizedBox(width: 4),
+            AppSpacing.horizontalGapSM,
+
+            // Credits count with gradient
+            ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(
+                colors: gradient,
+              ).createShader(bounds),
+              child: Text(
+                '$credits',
+                style: AppTypography.labelLarge.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            AppSpacing.horizontalGapXS,
+
+            // "credits" text
             Text(
               'credits',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF94A3B8),
-                  ),
+              style: AppTypography.labelSmall.copyWith(
+                color: AppColors.textTertiary,
+              ),
             ),
-            const SizedBox(width: 8),
+            AppSpacing.horizontalGapSM,
+
+            // Add icon with subtle animation
             Icon(
-              Icons.add_circle_outline,
+              Icons.add_circle_outline_rounded,
               color: color.withValues(alpha: 0.6),
               size: 18,
             ),

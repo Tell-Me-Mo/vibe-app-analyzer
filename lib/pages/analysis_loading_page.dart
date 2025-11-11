@@ -5,6 +5,10 @@ import '../models/analysis_type.dart';
 import '../models/analysis_mode.dart';
 import '../providers/analysis_provider.dart';
 import '../widgets/common/loading_animation.dart';
+import '../widgets/common/glass_card.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_typography.dart';
+import '../theme/app_spacing.dart';
 
 class AnalysisLoadingPage extends ConsumerStatefulWidget {
   final String url;
@@ -19,13 +23,30 @@ class AnalysisLoadingPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<AnalysisLoadingPage> createState() => _AnalysisLoadingPageState();
+  ConsumerState<AnalysisLoadingPage> createState() =>
+      _AnalysisLoadingPageState();
 }
 
-class _AnalysisLoadingPageState extends ConsumerState<AnalysisLoadingPage> {
+class _AnalysisLoadingPageState
+    extends ConsumerState<AnalysisLoadingPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
   @override
   void initState() {
     super.initState();
+
+    // Pulse animation for badges
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
     // Start analysis when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(analysisProvider.notifier).analyze(
@@ -34,6 +55,12 @@ class _AnalysisLoadingPageState extends ConsumerState<AnalysisLoadingPage> {
             analysisMode: widget.analysisMode,
           );
     });
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
   }
 
   @override
@@ -53,8 +80,14 @@ class _AnalysisLoadingPageState extends ConsumerState<AnalysisLoadingPage> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Analysis Failed'),
-            content: Text(analysisState.error!),
+            title: Text(
+              'Analysis Failed',
+              style: AppTypography.headlineSmall,
+            ),
+            content: Text(
+              analysisState.error!,
+              style: AppTypography.bodyMedium,
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -69,87 +102,177 @@ class _AnalysisLoadingPageState extends ConsumerState<AnalysisLoadingPage> {
       });
     }
 
+    final isSecurityAnalysis = widget.analysisType == AnalysisType.security;
+    final gradient = isSecurityAnalysis
+        ? AppColors.gradientSecurity
+        : AppColors.gradientMonitoring;
+
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                LoadingAnimation(
-                  progress: analysisState.progress,
-                  message: analysisState.progressMessage,
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  _getDisplayName(),
-                  style: Theme.of(context).textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                // Analysis Type Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: widget.analysisType == AnalysisType.security
-                        ? Colors.red.shade900.withValues(alpha: 0.3)
-                        : Colors.blue.shade900.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${widget.analysisType.displayName} Analysis',
-                    style: TextStyle(
-                      color: widget.analysisType == AnalysisType.security
-                          ? Colors.red.shade400
-                          : Colors.blue.shade400,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Analysis Mode Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: widget.analysisMode == AnalysisMode.staticCode
-                        ? Colors.purple.shade900.withValues(alpha: 0.3)
-                        : Colors.green.shade900.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: widget.analysisMode == AnalysisMode.staticCode
-                          ? Colors.purple.shade700
-                          : Colors.green.shade700,
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+      body: Stack(
+        children: [
+          // Animated background gradient
+          _buildAnimatedBackground(gradient),
+
+          SafeArea(
+            child: Center(
+              child: Padding(
+                padding: AppSpacing.paddingXXL,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        widget.analysisMode.icon,
-                        style: const TextStyle(fontSize: 14),
+                      // Loading animation
+                      LoadingAnimation(
+                        progress: analysisState.progress,
+                        message: analysisState.progressMessage,
                       ),
-                      const SizedBox(width: 6),
+                      AppSpacing.verticalGapHuge,
+
+                      // Repository/App name
                       Text(
-                        widget.analysisMode.displayName,
-                        style: TextStyle(
-                          color: widget.analysisMode == AnalysisMode.staticCode
-                              ? Colors.purple.shade300
-                              : Colors.green.shade300,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 13,
+                        _getDisplayName(),
+                        style: AppTypography.headlineMedium.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      AppSpacing.verticalGapXL,
+
+                      // Badges card
+                      GlassCard(
+                        padding: AppSpacing.paddingXL,
+                        child: Column(
+                          children: [
+                            // Analysis Type Badge
+                            ScaleTransition(
+                              scale: _pulseAnimation,
+                              child: _buildAnalysisTypeBadge(gradient),
+                            ),
+                            AppSpacing.verticalGapMD,
+
+                            // Analysis Mode Badge
+                            _buildAnalysisModeBadge(),
+                          ],
                         ),
                       ),
+                      AppSpacing.verticalGapXL,
+
+                      // Progress text
+                      if (analysisState.progressMessage != null)
+                        Text(
+                          analysisState.progressMessage!,
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.textTertiary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedBackground(List<Color> gradient) {
+    return AnimatedContainer(
+      duration: const Duration(seconds: 3),
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          center: Alignment.center,
+          radius: 1.0,
+          colors: [
+            gradient.first.withValues(alpha: 0.15),
+            AppColors.backgroundPrimary.withValues(alpha: 0.0),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAnalysisTypeBadge(List<Color> gradient) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xl,
+        vertical: AppSpacing.lg,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: gradient.map((c) => c.withValues(alpha: 0.2)).toList(),
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(
+          width: 2,
+          color: gradient.first.withValues(alpha: 0.5),
+        ),
+        boxShadow: AppElevation.glowMD(gradient.first),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ShaderMask(
+            shaderCallback: (bounds) => LinearGradient(
+              colors: gradient,
+            ).createShader(bounds),
+            child: Icon(
+              widget.analysisType == AnalysisType.security
+                  ? Icons.security_rounded
+                  : Icons.show_chart_rounded,
+              color: AppColors.textPrimary,
+              size: 24,
+            ),
+          ),
+          AppSpacing.horizontalGapMD,
+          Text(
+            '${widget.analysisType.displayName} Analysis',
+            style: AppTypography.titleMedium.copyWith(
+              fontWeight: FontWeight.bold,
+              color: gradient.first,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnalysisModeBadge() {
+    final isStaticCode = widget.analysisMode == AnalysisMode.staticCode;
+    final color = isStaticCode ? AppColors.primaryPurple : AppColors.success;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: color.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            widget.analysisMode.icon,
+            style: AppTypography.titleMedium,
+          ),
+          AppSpacing.horizontalGapMD,
+          Text(
+            widget.analysisMode.displayName,
+            style: AppTypography.bodyLarge.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

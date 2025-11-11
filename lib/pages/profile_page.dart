@@ -3,253 +3,354 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
 import '../widgets/common/credits_indicator.dart';
+import '../widgets/common/glass_card.dart';
+import '../widgets/common/gradient_button.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_typography.dart';
+import '../theme/app_spacing.dart';
 
-class ProfilePage extends ConsumerWidget {
+class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends ConsumerState<ProfilePage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userProfileAsync = ref.watch(currentUserProfileProvider);
 
     return Scaffold(
-      body: SafeArea(
-        child: userProfileAsync.when(
-          data: (profile) {
-            if (profile == null) {
-              // Not signed in, redirect to auth
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (context.mounted) {
-                  context.go('/auth');
+      body: Stack(
+        children: [
+          // Background gradient
+          _buildBackgroundGradient(),
+
+          SafeArea(
+            child: userProfileAsync.when(
+              data: (profile) {
+                if (profile == null) {
+                  // Not signed in, redirect to auth
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (context.mounted) {
+                      context.go('/auth');
+                    }
+                  });
+                  return const Center(child: CircularProgressIndicator());
                 }
-              });
-              return const Center(child: CircularProgressIndicator());
-            }
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Back button
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: IconButton(
-                          onPressed: () => context.go('/'),
-                          icon: const Icon(Icons.arrow_back),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Profile header
-                      Center(
+                return SingleChildScrollView(
+                  padding: AppSpacing.paddingXXL,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 600),
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundColor: const Color(0xFF60A5FA),
-                              backgroundImage: profile.photoUrl != null
-                                  ? NetworkImage(profile.photoUrl!)
-                                  : null,
-                              child: profile.photoUrl == null
-                                  ? Text(
-                                      profile.displayName?.substring(0, 1).toUpperCase() ??
-                                          profile.email.substring(0, 1).toUpperCase(),
-                                      style: const TextStyle(
-                                        color: Color(0xFF0F172A),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 32,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              profile.displayName ?? 'User',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(
-                                    fontSize: 24,
-                                  ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              profile.email,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-
-                      // Credits section
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E293B),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFF60A5FA).withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Your Credits',
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                const CreditsIndicator(),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () => context.go('/credits'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF60A5FA),
-                                foregroundColor: const Color(0xFF0F172A),
-                                minimumSize: const Size(double.infinity, 48),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                            // Back button
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: IconButton(
+                                onPressed: () => context.go('/'),
+                                icon: const Icon(Icons.arrow_back_rounded),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: AppColors.surfaceGlass.withValues(alpha: 0.6),
                                 ),
                               ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_shopping_cart, size: 20),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Buy More Credits',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ),
+                            AppSpacing.verticalGapXXL,
+
+                            // Profile header
+                            _buildProfileHeader(profile),
+                            AppSpacing.verticalGapHuge,
+
+                            // Credits section
+                            _buildCreditsSection(context),
+                            AppSpacing.verticalGapXL,
+
+                            // Account info
+                            _buildAccountInfo(profile),
+                            AppSpacing.verticalGapHuge,
+
+                            // Sign out button
+                            _buildSignOutButton(context),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24),
-
-                      // Account info
-                      _buildInfoCard(
-                        context,
-                        title: 'Account Information',
-                        items: [
-                          _InfoItem(
-                            label: 'Member since',
-                            value: _formatDate(profile.createdAt),
-                          ),
-                          _InfoItem(
-                            label: 'Account ID',
-                            value: profile.id.substring(0, 8).toUpperCase(),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 40),
-
-                      // Sign out button
-                      OutlinedButton(
-                        onPressed: () async {
-                          await ref.read(authServiceProvider).signOut();
-                          if (context.mounted) {
-                            context.go('/');
-                          }
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(
-                            color: Color(0xFFF87171),
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.logout,
-                              color: Color(0xFFF87171),
-                              size: 20,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Sign Out',
-                              style: TextStyle(
-                                color: Color(0xFFF87171),
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
+                );
+              },
+              loading: () => const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primaryBlue,
                 ),
               ),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Text('Error: $error'),
+              error: (error, _) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline_rounded,
+                      size: 64,
+                      color: AppColors.error,
+                    ),
+                    AppSpacing.verticalGapXL,
+                    Text(
+                      'Error loading profile',
+                      style: AppTypography.headlineSmall.copyWith(
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                    AppSpacing.verticalGapMD,
+                    Text(
+                      error.toString(),
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackgroundGradient() {
+    return Positioned.fill(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topCenter,
+            radius: 1.5,
+            colors: [
+              AppColors.primaryBlue.withValues(alpha: 0.08),
+              AppColors.backgroundPrimary.withValues(alpha: 0.0),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoCard(
-    BuildContext context, {
-    required String title,
-    required List<_InfoItem> items,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(16),
-      ),
+  Widget _buildProfileHeader(dynamic profile) {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 16),
-          ...items.map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    item.label,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: const Color(0xFF94A3B8),
-                        ),
-                  ),
-                  Text(
-                    item.value,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ],
+          // Avatar with gradient border
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: AppColors.gradientPrimary,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+              boxShadow: AppElevation.glowLG(AppColors.primaryBlue),
+            ),
+            padding: const EdgeInsets.all(4),
+            child: CircleAvatar(
+              radius: 56,
+              backgroundColor: AppColors.backgroundTertiary,
+              backgroundImage: profile.photoUrl != null
+                  ? NetworkImage(profile.photoUrl!)
+                  : null,
+              child: profile.photoUrl == null
+                  ? ShaderMask(
+                      shaderCallback: (bounds) => LinearGradient(
+                        colors: AppColors.gradientPrimary,
+                      ).createShader(bounds),
+                      child: Text(
+                        profile.displayName?.substring(0, 1).toUpperCase() ??
+                            profile.email.substring(0, 1).toUpperCase(),
+                        style: AppTypography.displayMedium.copyWith(
+                          color: AppColors.textPrimary,
+                          fontSize: 48,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+          ),
+          AppSpacing.verticalGapXL,
+
+          // Name
+          Text(
+            profile.displayName ?? 'User',
+            style: AppTypography.headlineMedium.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          AppSpacing.verticalGapSM,
+
+          // Email
+          Text(
+            profile.email,
+            style: AppTypography.bodyLarge.copyWith(
+              color: AppColors.textTertiary,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCreditsSection(BuildContext context) {
+    return GlassCard(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Your Credits',
+                style: AppTypography.titleLarge.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const CreditsIndicator(),
+            ],
+          ),
+          AppSpacing.verticalGapXL,
+          GradientButton(
+            text: 'Buy More Credits',
+            icon: Icons.add_shopping_cart_rounded,
+            onPressed: () => context.go('/credits'),
+            height: 56,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccountInfo(dynamic profile) {
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: AppColors.gradientPrimary,
+                ).createShader(bounds),
+                child: const Icon(
+                  Icons.info_outline_rounded,
+                  color: AppColors.textPrimary,
+                  size: 24,
+                ),
+              ),
+              AppSpacing.horizontalGapMD,
+              Text(
+                'Account Information',
+                style: AppTypography.titleLarge.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          AppSpacing.verticalGapXL,
+
+          _buildInfoRow(
+            'Member since',
+            _formatDate(profile.createdAt),
+            Icons.calendar_today_rounded,
+          ),
+          AppSpacing.verticalGapLG,
+
+          _buildInfoRow(
+            'Account ID',
+            profile.id.substring(0, 8).toUpperCase(),
+            Icons.fingerprint_rounded,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          padding: AppSpacing.paddingSM,
+          decoration: BoxDecoration(
+            color: AppColors.primaryBlue.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: AppColors.primaryBlue,
+          ),
+        ),
+        AppSpacing.horizontalGapLG,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textMuted,
+                ),
+              ),
+              AppSpacing.verticalGapXS,
+              Text(
+                value,
+                style: AppTypography.bodyLarge.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSignOutButton(BuildContext context) {
+    return GradientButton(
+      text: 'Sign Out',
+      icon: Icons.logout_rounded,
+      gradient: AppColors.gradientError,
+      onPressed: () async {
+        await ref.read(authServiceProvider).signOut();
+        if (context.mounted) {
+          context.go('/');
+        }
+      },
+      height: 56,
     );
   }
 
@@ -270,11 +371,4 @@ class ProfilePage extends ConsumerWidget {
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
-}
-
-class _InfoItem {
-  final String label;
-  final String value;
-
-  _InfoItem({required this.label, required this.value});
 }
