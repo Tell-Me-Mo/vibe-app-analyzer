@@ -7,8 +7,8 @@ import '../services/openai_service.dart';
 import '../services/app_runtime_service.dart';
 import '../services/storage_service.dart';
 import '../services/credits_service.dart';
-import '../services/auth_service.dart';
 import '../utils/validators.dart';
+import 'history_provider.dart';
 
 // Service providers with retry configuration for network failures
 final githubServiceProvider = Provider(
@@ -52,7 +52,6 @@ final appRuntimeServiceProvider = Provider(
 
 final storageServiceProvider = Provider((ref) => StorageService());
 final creditsServiceProviderForAnalysis = Provider((ref) => CreditsService());
-final authServiceProviderForAnalysis = Provider((ref) => AuthService());
 
 class AnalysisState {
   final bool isLoading;
@@ -92,7 +91,6 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
   late final AppRuntimeService _appRuntimeService;
   late final StorageService _storageService;
   late final CreditsService _creditsService;
-  late final AuthService _authService;
 
   @override
   AnalysisState build() {
@@ -101,7 +99,6 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
     _appRuntimeService = ref.watch(appRuntimeServiceProvider);
     _storageService = ref.watch(storageServiceProvider);
     _creditsService = ref.watch(creditsServiceProviderForAnalysis);
-    _authService = ref.watch(authServiceProviderForAnalysis);
 
     return AnalysisState();
   }
@@ -139,19 +136,13 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
     }
 
     try {
-      // Consume credits before starting analysis
+      // Consume credits before starting analysis (database-only operation)
       final consumed = await _creditsService.consumeCredits(5);
       if (!consumed) {
         state = state.copyWith(
           error: 'Insufficient credits. Please purchase more credits to continue.',
         );
         return;
-      }
-
-      // Sync credits with database if user is authenticated
-      if (_authService.isSignedIn) {
-        final currentCredits = await _creditsService.getCredits();
-        await _authService.updateCredits(currentCredits);
       }
 
       state = state.copyWith(
@@ -192,11 +183,22 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
 
       state = state.copyWith(
         progress: 0.9,
-        progressMessage: 'Generating recommendations...',
+        progressMessage: 'Saving results...',
       );
 
-      // Save to history
+      // Save to history - MUST complete before setting result
+      print('📝 [STATIC ANALYSIS] Starting to save analysis with ID: ${result.id}');
       await _storageService.saveAnalysis(result);
+      print('📝 [STATIC ANALYSIS] ✅ Save completed for ID: ${result.id}');
+      if (!ref.mounted) return;
+
+      // Invalidate history provider to force reload of fresh data
+      print('📝 [STATIC ANALYSIS] Invalidating history provider');
+      ref.invalidate(historyProvider);
+
+      // Small delay to ensure data is persisted and provider is refreshed
+      await Future.delayed(const Duration(milliseconds: 100));
+      print('📝 [STATIC ANALYSIS] Delay completed, setting result in state');
       if (!ref.mounted) return;
 
       state = state.copyWith(
@@ -205,15 +207,10 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
         progress: 1.0,
         progressMessage: 'Analysis complete!',
       );
+      print('📝 [STATIC ANALYSIS] ✅ Result set in state, navigation should trigger');
     } catch (e) {
-      // Refund credits on error
+      // Refund credits on error (database-only operation)
       await _creditsService.refundCredits(5);
-
-      // Sync with database
-      if (_authService.isSignedIn) {
-        final currentCredits = await _creditsService.getCredits();
-        await _authService.updateCredits(currentCredits);
-      }
 
       if (!ref.mounted) return;
 
@@ -239,19 +236,13 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
     }
 
     try {
-      // Consume credits before starting analysis
+      // Consume credits before starting analysis (database-only operation)
       final consumed = await _creditsService.consumeCredits(5);
       if (!consumed) {
         state = state.copyWith(
           error: 'Insufficient credits. Please purchase more credits to continue.',
         );
         return;
-      }
-
-      // Sync credits with database if user is authenticated
-      if (_authService.isSignedIn) {
-        final currentCredits = await _creditsService.getCredits();
-        await _authService.updateCredits(currentCredits);
       }
 
       state = state.copyWith(
@@ -293,11 +284,22 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
 
       state = state.copyWith(
         progress: 0.9,
-        progressMessage: 'Generating recommendations...',
+        progressMessage: 'Saving results...',
       );
 
-      // Save to history
+      // Save to history - MUST complete before setting result
+      print('📝 [RUNTIME ANALYSIS] Starting to save analysis with ID: ${result.id}');
       await _storageService.saveAnalysis(result);
+      print('📝 [RUNTIME ANALYSIS] ✅ Save completed for ID: ${result.id}');
+      if (!ref.mounted) return;
+
+      // Invalidate history provider to force reload of fresh data
+      print('📝 [RUNTIME ANALYSIS] Invalidating history provider');
+      ref.invalidate(historyProvider);
+
+      // Small delay to ensure data is persisted and provider is refreshed
+      await Future.delayed(const Duration(milliseconds: 100));
+      print('📝 [RUNTIME ANALYSIS] Delay completed, setting result in state');
       if (!ref.mounted) return;
 
       state = state.copyWith(
@@ -306,15 +308,10 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
         progress: 1.0,
         progressMessage: 'Analysis complete!',
       );
+      print('📝 [RUNTIME ANALYSIS] ✅ Result set in state, navigation should trigger');
     } catch (e) {
-      // Refund credits on error
+      // Refund credits on error (database-only operation)
       await _creditsService.refundCredits(5);
-
-      // Sync with database
-      if (_authService.isSignedIn) {
-        final currentCredits = await _creditsService.getCredits();
-        await _authService.updateCredits(currentCredits);
-      }
 
       if (!ref.mounted) return;
 

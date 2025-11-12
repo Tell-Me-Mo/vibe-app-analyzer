@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import '../models/analysis_result.dart';
 import '../models/analysis_type.dart';
 import '../models/analysis_mode.dart';
+import '../models/security_issue.dart';
+import '../models/monitoring_recommendation.dart';
 import '../providers/history_provider.dart';
 import '../providers/validation_provider.dart';
 import '../data/demo_data.dart';
@@ -60,23 +62,83 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
   }
 
   AnalysisResult? _getResult(WidgetRef ref) {
+    print('🔍 [RESULTS PAGE] Looking for result with ID: ${widget.resultId}');
     final history = ref.read(historyProvider);
+    print('🔍 [RESULTS PAGE] History size: ${history.length}');
+
+    if (history.isNotEmpty) {
+      print('🔍 [RESULTS PAGE] History IDs: ${history.map((r) => r.id).toList()}');
+    }
 
     // Try to find in history first
     for (final result in history) {
       if (result.id == widget.resultId) {
+        print('🔍 [RESULTS PAGE] ✅ Found result in history!');
         return result;
       }
     }
 
+    print('🔍 [RESULTS PAGE] Not found in history, checking demo data...');
     // Then try demo data
     for (final result in DemoData.demoExamples) {
       if (result.id == widget.resultId) {
+        print('🔍 [RESULTS PAGE] ✅ Found result in demo data!');
         return result;
       }
     }
 
+    print('🔍 [RESULTS PAGE] ❌ Result not found anywhere!');
     return null;
+  }
+
+  Future<void> _handleValidateSecurityIssue(SecurityIssue issue) async {
+    final result = _getResult(ref);
+    if (result == null || !mounted) return;
+
+    // Extract repository name from URL
+    final repositoryName = result.repositoryUrl?.split('/').last.replaceAll('.git', '') ?? 'Unknown';
+
+    await ref.read(validationProvider.notifier).validateSecurityFix(
+          context: context,
+          resultId: result.id,
+          issue: issue,
+          repositoryUrl: result.repositoryUrl ?? '',
+          repositoryName: repositoryName,
+          onInsufficientCredits: () {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Insufficient credits. Please purchase more credits to validate fixes.'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          },
+        );
+  }
+
+  Future<void> _handleValidateMonitoringRecommendation(MonitoringRecommendation recommendation) async {
+    final result = _getResult(ref);
+    if (result == null || !mounted) return;
+
+    // Extract repository name from URL
+    final repositoryName = result.repositoryUrl?.split('/').last.replaceAll('.git', '') ?? 'Unknown';
+
+    await ref.read(validationProvider.notifier).validateMonitoringImplementation(
+          context: context,
+          resultId: result.id,
+          recommendation: recommendation,
+          repositoryUrl: result.repositoryUrl ?? '',
+          repositoryName: repositoryName,
+          onInsufficientCredits: () {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Insufficient credits. Please purchase more credits to validate implementations.'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          },
+        );
   }
 
   @override
@@ -546,14 +608,22 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
           ...(result.securityIssues ?? []).map(
             (issue) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-              child: IssueCard(issue: issue),
+              child: IssueCard(
+                issue: issue,
+                repositoryUrl: result.repositoryUrl,
+                onValidate: _handleValidateSecurityIssue,
+              ),
             ),
           )
         else
           ...(result.monitoringRecommendations ?? []).map(
             (recommendation) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-              child: RecommendationCard(recommendation: recommendation),
+              child: RecommendationCard(
+                recommendation: recommendation,
+                repositoryUrl: result.repositoryUrl,
+                onValidate: _handleValidateMonitoringRecommendation,
+              ),
             ),
           ),
       ],

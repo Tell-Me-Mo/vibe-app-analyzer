@@ -5,7 +5,6 @@ import '../models/analysis_type.dart';
 import '../models/analysis_mode.dart';
 import '../providers/analysis_provider.dart';
 import '../widgets/common/loading_animation.dart';
-import '../widgets/common/glass_card.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../theme/app_spacing.dart';
@@ -28,24 +27,10 @@ class AnalysisLoadingPage extends ConsumerStatefulWidget {
 }
 
 class _AnalysisLoadingPageState
-    extends ConsumerState<AnalysisLoadingPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
-
+    extends ConsumerState<AnalysisLoadingPage> {
   @override
   void initState() {
     super.initState();
-
-    // Pulse animation for badges
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
 
     // Start analysis when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -58,18 +43,13 @@ class _AnalysisLoadingPageState
   }
 
   @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final analysisState = ref.watch(analysisProvider);
 
     // Navigate to results when complete
     ref.listen(analysisProvider, (previous, next) {
       if (!next.isLoading && next.result != null) {
+        print('🚀 [NAVIGATION] Navigating to results/${next.result!.id}');
         context.go('/results/${next.result!.id}');
       }
     });
@@ -122,52 +102,90 @@ class _AnalysisLoadingPageState
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Loading animation
+                      // Loading animation (no message - moved to bottom)
                       LoadingAnimation(
                         progress: analysisState.progress,
-                        message: analysisState.progressMessage,
+                        message: null,
                       ),
-                      AppSpacing.verticalGapHuge,
+                      const SizedBox(height: 48),
 
-                      // Repository/App name
-                      Text(
-                        _getDisplayName(),
-                        style: AppTypography.headlineMedium.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      AppSpacing.verticalGapXL,
-
-                      // Badges card
-                      GlassCard(
-                        padding: AppSpacing.paddingXL,
-                        child: Column(
-                          children: [
-                            // Analysis Type Badge
-                            ScaleTransition(
-                              scale: _pulseAnimation,
-                              child: _buildAnalysisTypeBadge(gradient),
+                      // Repository/App name with enhanced styling
+                      TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 600),
+                        tween: Tween<double>(begin: 0.0, end: 1.0),
+                        builder: (context, value, child) {
+                          return Opacity(
+                            opacity: value,
+                            child: Transform.translate(
+                              offset: Offset(0, 20 * (1 - value)),
+                              child: child,
                             ),
-                            AppSpacing.verticalGapMD,
-
-                            // Analysis Mode Badge
-                            _buildAnalysisModeBadge(),
-                          ],
-                        ),
-                      ),
-                      AppSpacing.verticalGapXL,
-
-                      // Progress text
-                      if (analysisState.progressMessage != null)
-                        Text(
-                          analysisState.progressMessage!,
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.textTertiary,
+                          );
+                        },
+                        child: Text(
+                          _getDisplayName(),
+                          style: AppTypography.headlineLarge.copyWith(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
                           ),
                           textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+
+                      // Progress text at bottom with animation
+                      if (analysisState.progressMessage != null)
+                        TweenAnimationBuilder<double>(
+                          key: ValueKey(analysisState.progressMessage),
+                          duration: const Duration(milliseconds: 400),
+                          tween: Tween<double>(begin: 0.0, end: 1.0),
+                          builder: (context, value, child) {
+                            return Opacity(
+                              opacity: value,
+                              child: child,
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceGlass.withValues(alpha: 0.4),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: gradient.first.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      gradient.first,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Flexible(
+                                  child: Text(
+                                    analysisState.progressMessage!,
+                                    style: AppTypography.bodyMedium.copyWith(
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                     ],
                   ),
@@ -192,87 +210,6 @@ class _AnalysisLoadingPageState
             AppColors.backgroundPrimary.withValues(alpha: 0.0),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildAnalysisTypeBadge(List<Color> gradient) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xl,
-        vertical: AppSpacing.lg,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: gradient.map((c) => c.withValues(alpha: 0.2)).toList(),
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-          width: 2,
-          color: gradient.first.withValues(alpha: 0.5),
-        ),
-        boxShadow: AppElevation.glowMD(gradient.first),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ShaderMask(
-            shaderCallback: (bounds) => LinearGradient(
-              colors: gradient,
-            ).createShader(bounds),
-            child: Icon(
-              widget.analysisType == AnalysisType.security
-                  ? Icons.security_rounded
-                  : Icons.show_chart_rounded,
-              color: AppColors.textPrimary,
-              size: 24,
-            ),
-          ),
-          AppSpacing.horizontalGapMD,
-          Text(
-            '${widget.analysisType.displayName} Analysis',
-            style: AppTypography.titleMedium.copyWith(
-              fontWeight: FontWeight.bold,
-              color: gradient.first,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAnalysisModeBadge() {
-    final isStaticCode = widget.analysisMode == AnalysisMode.staticCode;
-    final color = isStaticCode ? AppColors.primaryPurple : AppColors.success;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: color.withValues(alpha: 0.4),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            widget.analysisMode.icon,
-            style: AppTypography.titleMedium,
-          ),
-          AppSpacing.horizontalGapMD,
-          Text(
-            widget.analysisMode.displayName,
-            style: AppTypography.bodyLarge.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }

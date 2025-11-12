@@ -12,33 +12,59 @@ class AuthButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authStateAsync = ref.watch(authStateProvider);
+    debugPrint('🔴 [AUTH BUTTON] Building AuthButton widget');
     final userProfileAsync = ref.watch(currentUserProfileProvider);
     final authService = ref.watch(authServiceProvider);
 
-    return authStateAsync.when(
-      data: (isAuthenticated) {
-        if (isAuthenticated) {
-          // Check if user is anonymous (guest)
-          if (authService.isAnonymous) {
-            return _buildGuestButton(context);
-          }
-
-          // Show profile button for authenticated users
-          return userProfileAsync.when(
-            data: (profile) {
-              if (profile == null) return _buildLoginButton(context);
-              return _buildProfileButton(context, profile);
-            },
-            loading: () => _buildLoginButton(context),
-            error: (error, stackTrace) => _buildLoginButton(context),
-          );
-        } else {
+    return userProfileAsync.when(
+      data: (profile) {
+        // User is not authenticated
+        if (profile == null) {
           return _buildLoginButton(context);
         }
+
+        // Check if user is anonymous (guest)
+        if (authService.isAnonymous) {
+          return _buildGuestButton(context);
+        }
+
+        // Show profile button for authenticated users
+        return _buildProfileButton(context, profile);
       },
-      loading: () => _buildLoginButton(context),
+      loading: () => _buildLoadingButton(context),
       error: (error, stackTrace) => _buildLoginButton(context),
+    );
+  }
+
+  Widget _buildLoadingButton(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGlass.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(
+          color: AppColors.borderDefault,
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                AppColors.primaryBlue.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -99,8 +125,8 @@ class AuthButton extends ConsumerWidget {
       borderRadius: BorderRadius.circular(AppRadius.full),
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
           color: AppColors.surfaceGlass.withValues(alpha: 0.6),
@@ -124,7 +150,7 @@ class AuthButton extends ConsumerWidget {
               ),
               padding: const EdgeInsets.all(2),
               child: CircleAvatar(
-                radius: 16,
+                radius: 14,
                 backgroundColor: AppColors.backgroundTertiary,
                 backgroundImage: profile.photoUrl != null
                     ? NetworkImage(profile.photoUrl!)
@@ -136,7 +162,7 @@ class AuthButton extends ConsumerWidget {
                         ).createShader(bounds),
                         child: Text(
                           _getInitials(profile),
-                          style: AppTypography.labelMedium.copyWith(
+                          style: AppTypography.labelSmall.copyWith(
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
                           ),
@@ -145,11 +171,11 @@ class AuthButton extends ConsumerWidget {
                     : null,
               ),
             ),
-            AppSpacing.horizontalGapMD,
+            AppSpacing.horizontalGapSM,
             Text(
               _getDisplayName(profile),
-              style: AppTypography.labelMedium.copyWith(
-                fontWeight: FontWeight.w600,
+              style: AppTypography.labelLarge.copyWith(
+                fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
               ),
             ),

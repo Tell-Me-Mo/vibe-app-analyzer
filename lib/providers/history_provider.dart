@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/analysis_result.dart';
 import '../services/storage_service.dart';
@@ -8,29 +9,35 @@ final historyProvider = NotifierProvider<HistoryNotifier, List<AnalysisResult>>(
 });
 
 class HistoryNotifier extends Notifier<List<AnalysisResult>> {
-  late final StorageService _storageService;
-
   @override
   List<AnalysisResult> build() {
-    _storageService = ref.watch(storageServiceProvider);
-    return _storageService.getHistory();
+    debugPrint('🟠 [HISTORY PROVIDER] Building history provider');
+    final storageService = ref.watch(storageServiceProvider);
+    final history = storageService.getHistory();
+    debugPrint('🟠 [HISTORY PROVIDER] Loaded ${history.length} history items');
+    return history;
   }
 
   void loadHistory() {
-    state = _storageService.getHistory();
+    debugPrint('🟠 [HISTORY PROVIDER] Reloading history');
+    final storageService = ref.read(storageServiceProvider);
+    state = storageService.getHistory();
   }
 
   AnalysisResult? getById(String id) {
-    return _storageService.getAnalysisById(id);
+    final storageService = ref.read(storageServiceProvider);
+    return storageService.getAnalysisById(id);
   }
 
   Future<void> updateResult(AnalysisResult result) async {
-    await _storageService.updateAnalysis(result);
+    final storageService = ref.read(storageServiceProvider);
+    await storageService.updateAnalysis(result);
     loadHistory();
   }
 
   Future<void> clearHistory() async {
-    await _storageService.clearHistory();
+    final storageService = ref.read(storageServiceProvider);
+    await storageService.clearHistory();
     state = [];
   }
 }

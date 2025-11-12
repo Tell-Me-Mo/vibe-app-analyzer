@@ -1,7 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_profile.dart';
-import 'credits_service.dart';
 
 /// Authentication service using Supabase
 class AuthService {
@@ -104,8 +104,6 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _supabase.auth.signOut();
-      // Clear local credits
-      await CreditsService().resetCredits();
     } catch (e) {
       throw AuthException('Sign out failed: $e');
     }
@@ -144,9 +142,6 @@ class AuthService {
       throw AuthException('Failed to create user profile');
     }
 
-    // Sync credits locally
-    await CreditsService().syncFromProfile(profile);
-
     return profile;
   }
 
@@ -160,9 +155,7 @@ class AuthService {
           .single();
 
       final profile = UserProfile.fromJson(response);
-
-      // Sync credits locally
-      await CreditsService().syncFromProfile(profile);
+      debugPrint('🔵 [AUTH SERVICE] Fetched profile with ${profile.credits} credits');
 
       return profile;
     } catch (e) {
@@ -212,25 +205,16 @@ class AuthService {
       'credits': credits,
       'updated_at': DateTime.now().toIso8601String(),
     }).eq('id', currentUser!.id);
-
-    // Sync locally
-    await CreditsService().setCredits(credits);
   }
 
   /// Mark welcome as seen in database
   Future<void> markWelcomeAsSeen() async {
-    if (currentUser == null) {
-      // Guest user
-      await CreditsService().markWelcomeAsSeen();
-      return;
-    }
+    if (currentUser == null) return;
 
     await _supabase.from('profiles').update({
       'has_seen_welcome': true,
       'updated_at': DateTime.now().toIso8601String(),
     }).eq('id', currentUser!.id);
-
-    await CreditsService().markWelcomeAsSeen();
   }
 }
 
@@ -252,12 +236,37 @@ final authServiceProvider = Provider<AuthService>((ref) {
 final currentUserProfileProvider = StreamProvider<UserProfile?>((ref) async* {
   final authService = ref.watch(authServiceProvider);
 
-  // Listen to auth state changes
+  debugPrint('🔵 [AUTH PROVIDER] Initializing currentUserProfileProvider');
+
+  // Listen to auth state changes and prevent duplicate emissions
+  UserProfile? lastProfile;
+  int eventCount = 0;
   await for (final authState in authService.authStateChanges) {
+    eventCount++;
+    debugPrint('🔵 [AUTH PROVIDER] Event #$eventCount - Session: ${authState.session != null ? "exists" : "null"}, Event: ${authState.event}');
+
     if (authState.session != null) {
-      yield await authService.getCurrentUserProfile();
+      final profile = await authService.getCurrentUserProfile();
+      debugPrint('🔵 [AUTH PROVIDER] Fetched profile: ${profile?.id}, email: ${profile?.email}, name: ${profile?.displayName}');
+
+      // Only yield if profile actually changed
+      if (profile?.id != lastProfile?.id ||
+          profile?.email != lastProfile?.email ||
+          profile?.displayName != lastProfile?.displayName) {
+        debugPrint('🔵 [AUTH PROVIDER] ✅ Profile changed, emitting new value');
+        lastProfile = profile;
+        yield profile;
+      } else {
+        debugPrint('🔵 [AUTH PROVIDER] ⏭️  Profile unchanged, skipping emission');
+      }
     } else {
-      yield null;
+      if (lastProfile != null) {
+        debugPrint('🔵 [AUTH PROVIDER] ✅ User signed out, emitting null');
+        lastProfile = null;
+        yield null;
+      } else {
+        debugPrint('🔵 [AUTH PROVIDER] ⏭️  Already null, skipping emission');
+      }
     }
   }
 });

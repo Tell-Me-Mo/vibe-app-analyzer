@@ -1,48 +1,119 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user_profile.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Service for managing user credits
+/// Service for managing user credits using Supabase database only
+/// No local storage - single source of truth
 class CreditsService {
   static final CreditsService _instance = CreditsService._internal();
   factory CreditsService() => _instance;
   CreditsService._internal();
 
-  static const String _creditsKey = 'user_credits';
-  static const String _hasSeenWelcomeKey = 'has_seen_welcome';
+  final SupabaseClient _supabase = Supabase.instance.client;
+
   static const int initialCredits = 10;
   static const int costPerAnalysis = 5;
 
-  late SharedPreferences _prefs;
+  /// Get current user ID
+  String? get _currentUserId => _supabase.auth.currentUser?.id;
 
-  Future<void> initialize() async {
-    _prefs = await SharedPreferences.getInstance();
-  }
+  /// Check if user is authenticated
+  bool get isAuthenticated => _currentUserId != null;
 
-  /// Get current credits (from local storage for guests, from profile for authenticated users)
+  /// Get current credits from database
+  /// Returns 0 if user is not authenticated or profile doesn't exist
   Future<int> getCredits() async {
-    return _prefs.getInt(_creditsKey) ?? initialCredits;
+    if (!isAuthenticated) {
+      debugPrint('⚠️ [CREDITS SERVICE] User not authenticated, returning 0 credits');
+      return 0;
+    }
+
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select('credits')
+          .eq('id', _currentUserId!)
+          .single();
+
+      final credits = response['credits'] as int? ?? initialCredits;
+      debugPrint('✅ [CREDITS SERVICE] Fetched credits from DB: $credits');
+      return credits;
+    } catch (e) {
+      debugPrint('❌ [CREDITS SERVICE] Error fetching credits: $e');
+      return 0;
+    }
   }
 
-  /// Set credits
+  /// Set credits in database
   Future<void> setCredits(int credits) async {
-    await _prefs.setInt(_creditsKey, credits);
+    if (!isAuthenticated) {
+      throw Exception('User must be authenticated to set credits');
+    }
+
+    try {
+      await _supabase.from('profiles').update({
+        'credits': credits,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', _currentUserId!);
+
+      debugPrint('✅ [CREDITS SERVICE] Updated credits in DB: $credits');
+    } catch (e) {
+      debugPrint('❌ [CREDITS SERVICE] Error setting credits: $e');
+      rethrow;
+    }
   }
 
   /// Add credits to user account
   Future<void> addCredits(int amount) async {
-    final current = await getCredits();
-    await setCredits(current + amount);
+    if (!isAuthenticated) {
+      throw Exception('User must be authenticated to add credits');
+    }
+
+    try {
+      // Use atomic database operation to prevent race conditions
+      await _supabase.rpc('add_credits', params: {
+        'user_id': _currentUserId!,
+        'amount': amount,
+      });
+
+      debugPrint('✅ [CREDITS SERVICE] Added $amount credits via RPC');
+    } catch (e) {
+      debugPrint('❌ [CREDITS SERVICE] Error adding credits: $e');
+      // Fallback to manual update if RPC doesn't exist
+      final current = await getCredits();
+      await setCredits(current + amount);
+    }
   }
 
   /// Consume credits for an analysis
+  /// Returns true if successful, false if insufficient credits
   Future<bool> consumeCredits(int amount) async {
-    final current = await getCredits();
-    if (current >= amount) {
-      await setCredits(current - amount);
-      return true;
+    if (!isAuthenticated) {
+      throw Exception('User must be authenticated to consume credits');
     }
-    return false;
+
+    try {
+      // Use atomic database operation to prevent race conditions
+      final result = await _supabase.rpc('consume_credits', params: {
+        'user_id': _currentUserId!,
+        'amount': amount,
+      });
+
+      final success = result as bool? ?? false;
+      debugPrint(success
+          ? '✅ [CREDITS SERVICE] Consumed $amount credits via RPC'
+          : '⚠️ [CREDITS SERVICE] Insufficient credits to consume $amount');
+      return success;
+    } catch (e) {
+      debugPrint('❌ [CREDITS SERVICE] Error consuming credits: $e');
+      // Fallback to manual check and update
+      final current = await getCredits();
+      if (current >= amount) {
+        await setCredits(current - amount);
+        return true;
+      }
+      return false;
+    }
   }
 
   /// Refund credits (e.g., when analysis fails)
@@ -58,24 +129,58 @@ class CreditsService {
 
   /// Check if user has seen the welcome popup
   Future<bool> hasSeenWelcome() async {
-    return _prefs.getBool(_hasSeenWelcomeKey) ?? false;
+    if (!isAuthenticated) {
+      return false;
+    }
+
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select('has_seen_welcome')
+          .eq('id', _currentUserId!)
+          .single();
+
+      return response['has_seen_welcome'] as bool? ?? false;
+    } catch (e) {
+      debugPrint('❌ [CREDITS SERVICE] Error fetching has_seen_welcome: $e');
+      return false;
+    }
   }
 
   /// Mark welcome popup as seen
   Future<void> markWelcomeAsSeen() async {
-    await _prefs.setBool(_hasSeenWelcomeKey, true);
+    if (!isAuthenticated) {
+      return;
+    }
+
+    try {
+      await _supabase.from('profiles').update({
+        'has_seen_welcome': true,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', _currentUserId!);
+
+      debugPrint('✅ [CREDITS SERVICE] Marked welcome as seen');
+    } catch (e) {
+      debugPrint('❌ [CREDITS SERVICE] Error marking welcome as seen: $e');
+    }
   }
 
-  /// Reset credits (for testing or logout)
-  Future<void> resetCredits() async {
-    await _prefs.remove(_creditsKey);
-    await _prefs.remove(_hasSeenWelcomeKey);
-  }
+  /// Get credits as a stream for real-time updates
+  Stream<int> watchCredits() {
+    if (!isAuthenticated) {
+      return Stream.value(0);
+    }
 
-  /// Sync credits from user profile (when user logs in)
-  Future<void> syncFromProfile(UserProfile profile) async {
-    await setCredits(profile.credits);
-    await _prefs.setBool(_hasSeenWelcomeKey, profile.hasSeenWelcome);
+    return _supabase
+        .from('profiles')
+        .stream(primaryKey: ['id'])
+        .eq('id', _currentUserId!)
+        .map((data) {
+          if (data.isEmpty) return 0;
+          final credits = data.first['credits'] as int? ?? 0;
+          debugPrint('🔄 [CREDITS SERVICE] Stream update: $credits credits');
+          return credits;
+        });
   }
 }
 
@@ -84,16 +189,27 @@ final creditsServiceProvider = Provider<CreditsService>((ref) {
   return CreditsService();
 });
 
-/// Provider for current credits count
+/// Provider for current credits count using real-time database stream
 final creditsProvider = StreamProvider<int>((ref) async* {
   final service = ref.watch(creditsServiceProvider);
 
-  // Initial value
-  yield await service.getCredits();
+  debugPrint('🟢 [CREDITS PROVIDER] Initializing creditsProvider with database stream');
 
-  // Listen to changes
-  while (true) {
-    await Future.delayed(const Duration(milliseconds: 500));
-    yield await service.getCredits();
+  // If not authenticated, emit 0
+  if (!service.isAuthenticated) {
+    debugPrint('⚠️ [CREDITS PROVIDER] User not authenticated, emitting 0');
+    yield 0;
+    return;
+  }
+
+  // Get initial value
+  final initialCredits = await service.getCredits();
+  debugPrint('🟢 [CREDITS PROVIDER] ✅ Initial credits: $initialCredits, emitting');
+  yield initialCredits;
+
+  // Watch for real-time updates from database
+  await for (final credits in service.watchCredits()) {
+    debugPrint('🟢 [CREDITS PROVIDER] ✅ Credits changed to: $credits, emitting');
+    yield credits;
   }
 });

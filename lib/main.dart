@@ -4,7 +4,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'services/storage_service.dart';
-import 'services/credits_service.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -21,9 +20,6 @@ void main() async {
 
   // Initialize storage
   await StorageService().initialize();
-
-  // Initialize credits service
-  await CreditsService().initialize();
 
   // Ensure user is authenticated (anonymously if not signed in)
   try {

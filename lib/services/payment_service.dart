@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io' show Platform;
-import 'auth_service.dart';
 import 'credits_service.dart';
 import '../models/credit_package.dart';
 
@@ -129,13 +128,8 @@ class PaymentService {
     }
 
     if (totalCredits > 0) {
-      // Update credits in both local storage and database
+      // Add credits to database only
       await CreditsService().addCredits(totalCredits);
-      final authService = AuthService();
-      if (authService.isSignedIn) {
-        final currentCredits = await CreditsService().getCredits();
-        await authService.updateCredits(currentCredits);
-      }
     }
   }
 
@@ -147,14 +141,8 @@ class PaymentService {
     final credits = CreditPackages.getCreditsForProductId(productId);
 
     if (credits > 0) {
+      // Add credits to database only
       await CreditsService().addCredits(credits);
-
-      // Sync to database for authenticated users
-      final authService = AuthService();
-      if (authService.isSignedIn) {
-        final currentCredits = await CreditsService().getCredits();
-        await authService.updateCredits(currentCredits);
-      }
     }
   }
 

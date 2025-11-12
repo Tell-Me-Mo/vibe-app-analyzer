@@ -11,16 +11,49 @@ class CreditsIndicator extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    debugPrint('🟡 [CREDITS INDICATOR] Building CreditsIndicator widget');
     final creditsAsync = ref.watch(creditsProvider);
 
     return creditsAsync.when(
-      data: (credits) => _buildModernIndicator(context, credits),
-      loading: () => _buildModernIndicator(context, 0),
-      error: (error, stackTrace) => _buildModernIndicator(context, 0),
+      data: (credits) => _buildModernIndicator(context, credits, isLoading: false),
+      loading: () => _buildLoadingIndicator(context),
+      error: (error, stackTrace) => _buildModernIndicator(context, 0, isLoading: false),
     );
   }
 
-  Widget _buildModernIndicator(BuildContext context, int credits) {
+  Widget _buildLoadingIndicator(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGlass.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(
+          color: AppColors.borderDefault,
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                AppColors.primaryBlue.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernIndicator(BuildContext context, int credits, {bool isLoading = false}) {
     // Determine color based on credits
     Color color;
     List<Color> gradient;

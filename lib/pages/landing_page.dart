@@ -17,14 +17,14 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../theme/app_spacing.dart';
 
-class LandingPage extends ConsumerStatefulWidget {
+class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
 
   @override
-  ConsumerState<LandingPage> createState() => _LandingPageState();
+  State<LandingPage> createState() => _LandingPageState();
 }
 
-class _LandingPageState extends ConsumerState<LandingPage>
+class _LandingPageState extends State<LandingPage>
     with SingleTickerProviderStateMixin {
   final _urlController = TextEditingController();
   String? _errorText;
@@ -145,10 +145,7 @@ class _LandingPageState extends ConsumerState<LandingPage>
 
   @override
   Widget build(BuildContext context) {
-    final history = ref.watch(historyProvider);
-    final allResults = [...DemoData.demoExamples, ...history];
-    // Sort by timestamp, most recent first
-    allResults.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    debugPrint('🟣 [LANDING PAGE] Building LandingPage widget (hashCode: $hashCode)');
 
     return Scaffold(
       body: Stack(
@@ -160,52 +157,31 @@ class _LandingPageState extends ConsumerState<LandingPage>
           SafeArea(
             child: Stack(
               children: [
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xxl,
-                      vertical: AppSpacing.huge,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 900),
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: Column(
-                            children: [
-                              // Hero Section
-                              _buildModernHeroSection(),
-                              AppSpacing.verticalGapGiant,
-
-                              // Input Section
-                              _buildModernInputSection(),
-                              const SizedBox(height: 100),
-
-                              // History Section - Fixed header with scrollable list
-                              if (allResults.isNotEmpty)
-                                Expanded(
-                                  child: _buildModernHistorySection(allResults),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                _MainContent(
+                  key: const ValueKey('main_content'),
+                  fadeAnimation: _fadeAnimation,
+                  slideAnimation: _slideAnimation,
+                  onAnalyze: _onAnalyze,
+                  urlController: _urlController,
+                  errorText: _errorText,
+                  onUrlChanged: () {
+                    if (_errorText != null) {
+                      setState(() => _errorText = null);
+                    }
+                    setState(() {});
+                  },
+                  onClearUrl: () {
+                    _urlController.clear();
+                    setState(() {});
+                  },
                 ),
 
-                // Top-right corner: credits and auth button
-                Positioned(
+                // Top-right corner: credits and auth button (isolated to prevent page rebuilds)
+                const Positioned(
+                  key: ValueKey('top_right_indicators'),
                   top: AppSpacing.lg,
                   right: AppSpacing.lg,
-                  child: Row(
-                    children: [
-                      const CreditsIndicator(),
-                      AppSpacing.horizontalGapMD,
-                      const AuthButton(),
-                    ],
-                  ),
+                  child: _TopRightIndicators(),
                 ),
               ],
             ),
@@ -226,6 +202,85 @@ class _LandingPageState extends ConsumerState<LandingPage>
               AppColors.primaryBlue.withValues(alpha: 0.08),
               AppColors.backgroundPrimary.withValues(alpha: 0.0),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Main content widget isolated from top-right indicators
+class _MainContent extends StatefulWidget {
+  final Animation<double> fadeAnimation;
+  final Animation<Offset> slideAnimation;
+  final Function(AnalysisType) onAnalyze;
+  final TextEditingController urlController;
+  final String? errorText;
+  final VoidCallback onUrlChanged;
+  final VoidCallback onClearUrl;
+
+  const _MainContent({
+    super.key,
+    required this.fadeAnimation,
+    required this.slideAnimation,
+    required this.onAnalyze,
+    required this.urlController,
+    required this.errorText,
+    required this.onUrlChanged,
+    required this.onClearUrl,
+  });
+
+  @override
+  State<_MainContent> createState() => _MainContentState();
+}
+
+class _MainContentState extends State<_MainContent> {
+  @override
+  Widget build(BuildContext context) {
+    debugPrint('🟢 [MAIN CONTENT] Building _MainContent widget');
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xxl,
+          vertical: AppSpacing.huge,
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: FadeTransition(
+            opacity: widget.fadeAnimation,
+            child: SlideTransition(
+              position: widget.slideAnimation,
+              child: Column(
+                children: [
+                  // Hero Section
+                  _buildModernHeroSection(),
+                  AppSpacing.verticalGapGiant,
+
+                  // Input Section
+                  _buildModernInputSection(),
+                  const SizedBox(height: 100),
+
+                  // History Section - Use Consumer only for this part
+                  Expanded(
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        final history = ref.watch(historyProvider);
+                        final allResults = [...DemoData.demoExamples, ...history];
+                        // Sort by timestamp, most recent first
+                        allResults.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+                        if (allResults.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return _buildModernHistorySection(allResults);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -297,31 +352,23 @@ class _LandingPageState extends ConsumerState<LandingPage>
         children: [
           // URL Input with modern styling
           TextField(
-            controller: _urlController,
+            controller: widget.urlController,
             style: AppTypography.bodyLarge,
             decoration: InputDecoration(
               hintText: 'https://github.com/user/repo or https://yourapp.com',
-              errorText: _errorText,
+              errorText: widget.errorText,
               prefixIcon: Icon(
                 Icons.link_rounded,
                 color: AppColors.textTertiary,
               ),
-              suffixIcon: _urlController.text.isNotEmpty
+              suffixIcon: widget.urlController.text.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear_rounded),
-                      onPressed: () {
-                        _urlController.clear();
-                        setState(() {});
-                      },
+                      onPressed: widget.onClearUrl,
                     )
                   : null,
             ),
-            onChanged: (_) {
-              if (_errorText != null) {
-                setState(() => _errorText = null);
-              }
-              setState(() {});
-            },
+            onChanged: (_) => widget.onUrlChanged(),
           ),
           AppSpacing.verticalGapXXL,
 
@@ -337,7 +384,7 @@ class _LandingPageState extends ConsumerState<LandingPage>
                         text: 'Analyze Security',
                         icon: Icons.security_rounded,
                         gradient: AppColors.gradientSecurity,
-                        onPressed: () => _onAnalyze(AnalysisType.security),
+                        onPressed: () => widget.onAnalyze(AnalysisType.security),
                         height: 60,
                       ),
                     ),
@@ -347,7 +394,7 @@ class _LandingPageState extends ConsumerState<LandingPage>
                         text: 'Analyze Monitoring',
                         icon: Icons.show_chart_rounded,
                         gradient: AppColors.gradientMonitoring,
-                        onPressed: () => _onAnalyze(AnalysisType.monitoring),
+                        onPressed: () => widget.onAnalyze(AnalysisType.monitoring),
                         height: 60,
                       ),
                     ),
@@ -362,7 +409,7 @@ class _LandingPageState extends ConsumerState<LandingPage>
                       text: 'Analyze Security',
                       icon: Icons.security_rounded,
                       gradient: AppColors.gradientSecurity,
-                      onPressed: () => _onAnalyze(AnalysisType.security),
+                      onPressed: () => widget.onAnalyze(AnalysisType.security),
                       height: 60,
                     ),
                     AppSpacing.verticalGapLG,
@@ -370,7 +417,7 @@ class _LandingPageState extends ConsumerState<LandingPage>
                       text: 'Analyze Monitoring',
                       icon: Icons.show_chart_rounded,
                       gradient: AppColors.gradientMonitoring,
-                      onPressed: () => _onAnalyze(AnalysisType.monitoring),
+                      onPressed: () => widget.onAnalyze(AnalysisType.monitoring),
                       height: 60,
                     ),
                   ],
@@ -427,6 +474,28 @@ class _LandingPageState extends ConsumerState<LandingPage>
             },
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// Isolated widget for top-right indicators to prevent page rebuilds
+class _TopRightIndicators extends StatefulWidget {
+  const _TopRightIndicators();
+
+  @override
+  State<_TopRightIndicators> createState() => _TopRightIndicatorsState();
+}
+
+class _TopRightIndicatorsState extends State<_TopRightIndicators> {
+  @override
+  Widget build(BuildContext context) {
+    debugPrint('🟤 [TOP RIGHT INDICATORS] Building _TopRightIndicators widget');
+    return Row(
+      children: [
+        const CreditsIndicator(),
+        AppSpacing.horizontalGapMD,
+        const AuthButton(),
       ],
     );
   }

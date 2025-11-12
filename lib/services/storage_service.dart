@@ -113,8 +113,11 @@ class StorageService {
 
   // History Management with encryption for sensitive data
   Future<void> saveAnalysis(AnalysisResult result) async {
+    print('💾 [STORAGE] saveAnalysis called for ID: ${result.id}');
     final history = getHistory();
+    print('💾 [STORAGE] Current history size: ${history.length}');
     history.insert(0, result);
+    print('💾 [STORAGE] Inserted result, new size: ${history.length}');
 
     // Keep only the latest items
     if (history.length > AppConfig.maxHistoryItems) {
@@ -134,8 +137,11 @@ class StorageService {
       final encryptedStrings = jsonStrings.map((str) => _encrypt(str)).toList();
 
       // Save encrypted data
+      print('💾 [STORAGE] Writing ${encryptedStrings.length} items to SharedPreferences');
       await _prefs.setStringList('history', encryptedStrings);
+      print('💾 [STORAGE] ✅ Successfully saved to SharedPreferences');
     } catch (e) {
+      print('💾 [STORAGE] ❌ Error saving: $e');
       throw Exception('Failed to save analysis history: $e');
     }
   }
