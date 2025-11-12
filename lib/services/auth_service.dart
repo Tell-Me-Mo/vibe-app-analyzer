@@ -32,7 +32,6 @@ class AuthService {
         // Create anonymous user profile with initial credits
         return await _createUserProfile(
           user: response.user!,
-          displayName: 'Guest',
         );
       }
 
@@ -50,20 +49,14 @@ class AuthService {
   }
 
   /// Sign up with email and password
-  /// If user is currently anonymous, this will link the email to the anonymous account
+  /// Note: This creates a NEW user account, not linked to any existing anonymous account
   Future<UserProfile?> signUpWithEmail({
     required String email,
     required String password,
     String? displayName,
   }) async {
     try {
-      UserProfile? existingProfile;
-
-      // If user is anonymous, get their existing profile to preserve credits
-      if (isAnonymous && currentUser != null) {
-        existingProfile = await _getUserProfile(currentUser!.id);
-      }
-
+      // Sign up creates a completely new user account
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
@@ -73,26 +66,10 @@ class AuthService {
       );
 
       if (response.user != null) {
-        // If we had an anonymous profile, update it with new user info
-        if (existingProfile != null) {
-          final updatedProfile = existingProfile.copyWith(
-            email: email,
-            displayName: displayName ?? existingProfile.displayName,
-            updatedAt: DateTime.now(),
-          );
-
-          await _supabase.from('profiles').update(updatedProfile.toJson()).eq(
-                'id',
-                response.user!.id,
-              );
-
-          return updatedProfile;
-        }
-
-        // Otherwise create new profile with initial credits
+        // The database trigger will create the profile automatically
+        // Just fetch and return it
         return await _createUserProfile(
           user: response.user!,
-          displayName: displayName,
         );
       }
 
@@ -143,26 +120,29 @@ class AuthService {
     }
   }
 
-  /// Create user profile in database
+  /// Get user profile from database after signup
+  /// Note: The database trigger automatically creates the profile on user signup
+  /// This method retrieves the trigger-created profile
   Future<UserProfile> _createUserProfile({
     required User user,
-    String? displayName,
-    String? photoUrl,
   }) async {
-    final now = DateTime.now();
-    final profile = UserProfile(
-      id: user.id,
-      email: user.email ?? '',
-      displayName: displayName ?? user.userMetadata?['display_name'],
-      photoUrl: photoUrl ?? user.userMetadata?['avatar_url'],
-      credits: CreditsService.initialCredits,
-      createdAt: now,
-      updatedAt: now,
-      hasSeenWelcome: false,
-    );
+    // Wait a moment for the trigger to complete
+    await Future.delayed(const Duration(milliseconds: 100));
 
-    // Save to Supabase
-    await _supabase.from('profiles').upsert(profile.toJson());
+    // Fetch the profile created by the database trigger
+    UserProfile? profile = await _getUserProfile(user.id);
+
+    // If profile doesn't exist yet (edge case), retry a few times
+    int retries = 0;
+    while (profile == null && retries < 5) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      profile = await _getUserProfile(user.id);
+      retries++;
+    }
+
+    if (profile == null) {
+      throw AuthException('Failed to create user profile');
+    }
 
     // Sync credits locally
     await CreditsService().syncFromProfile(profile);
