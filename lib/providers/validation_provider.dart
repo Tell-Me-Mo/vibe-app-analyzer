@@ -6,6 +6,7 @@ import '../models/monitoring_recommendation.dart';
 import '../models/validation_status.dart';
 import '../services/validation_service.dart';
 import '../services/notification_service.dart';
+import '../services/analytics_service.dart';
 import 'history_provider.dart';
 
 /// Provider for managing validation state and operations
@@ -60,6 +61,16 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
           message: updatedIssue.validationResult?.status.displayName ?? 'Validation complete',
         );
       }
+
+      // Track successful validation
+      await AnalyticsService().logEvent(
+        name: 'validation_completed',
+        parameters: {
+          'validation_type': 'security_issue',
+          'severity': issue.severity,
+          'validation_result': updatedIssue.validationResult?.status.toString(),
+        },
+      );
     } on InsufficientCreditsException catch (e) {
       if (context.mounted) {
         NotificationService.showWarning(
@@ -70,6 +81,15 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
       }
       onInsufficientCredits();
     } catch (e) {
+      // Track validation error
+      await AnalyticsService().logEvent(
+        name: 'validation_error',
+        parameters: {
+          'validation_type': 'security_issue',
+          'error_message': e.toString(),
+        },
+      );
+
       if (context.mounted) {
         NotificationService.showError(
           context,
@@ -122,6 +142,16 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
               'Validation complete',
         );
       }
+
+      // Track successful validation
+      await AnalyticsService().logEvent(
+        name: 'validation_completed',
+        parameters: {
+          'validation_type': 'monitoring_recommendation',
+          'category': recommendation.category,
+          'validation_result': updatedRecommendation.validationResult?.status.toString(),
+        },
+      );
     } on InsufficientCreditsException catch (e) {
       if (context.mounted) {
         NotificationService.showWarning(
@@ -132,6 +162,15 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
       }
       onInsufficientCredits();
     } catch (e) {
+      // Track validation error
+      await AnalyticsService().logEvent(
+        name: 'validation_error',
+        parameters: {
+          'validation_type': 'monitoring_recommendation',
+          'error_message': e.toString(),
+        },
+      );
+
       if (context.mounted) {
         NotificationService.showError(
           context,

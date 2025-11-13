@@ -9,10 +9,15 @@ import 'pages/auth_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/credits_page.dart';
 import 'theme/app_theme.dart';
+import 'services/analytics_service.dart';
 
 // Router configuration - defined outside the widget to prevent recreation
 final _router = GoRouter(
   initialLocation: '/',
+  observers: [
+    // Add Firebase Analytics observer for automatic screen tracking
+    AnalyticsService().analyticsObserver,
+  ],
   routes: [
     GoRoute(
       path: '/',

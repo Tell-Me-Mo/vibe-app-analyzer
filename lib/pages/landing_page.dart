@@ -13,6 +13,7 @@ import '../widgets/common/gradient_button.dart';
 import '../widgets/common/gradient_icon.dart';
 import '../utils/validators.dart';
 import '../services/credits_service.dart';
+import '../services/analytics_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../theme/app_spacing.dart';
@@ -61,12 +62,29 @@ class _LandingPageState extends State<LandingPage> {
       setState(() {
         _errorText = 'Please enter a valid GitHub repository or live app URL';
       });
+      // Track validation failure
+      await AnalyticsService().logEvent(
+        name: 'url_validation_failed',
+        parameters: {
+          'url': url,
+          'analysis_type': analysisType.toString(),
+        },
+      );
       return;
     }
 
     // Check if user has enough credits
     final hasCredits = await CreditsService().hasEnoughCredits(5);
     if (!hasCredits) {
+      // Track insufficient credits
+      await AnalyticsService().logEvent(
+        name: 'insufficient_credits',
+        parameters: {
+          'analysis_type': analysisType.toString(),
+          'url_mode': urlMode.toString(),
+        },
+      );
+
       if (mounted) {
         final shouldBuy = await showDialog<bool>(
           context: context,
@@ -103,6 +121,16 @@ class _LandingPageState extends State<LandingPage> {
     setState(() {
       _errorText = null;
     });
+
+    // Track analysis initiation
+    await AnalyticsService().logEvent(
+      name: 'analysis_initiated',
+      parameters: {
+        'analysis_type': analysisType.toString(),
+        'url_mode': urlMode.toString(),
+        'is_github': urlMode.toString().contains('github'),
+      },
+    );
 
     if (mounted) {
       context.go('/analyze', extra: {

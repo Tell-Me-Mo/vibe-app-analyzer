@@ -7,6 +7,7 @@ import '../services/openai_service.dart';
 import '../services/app_runtime_service.dart';
 import '../services/storage_service.dart';
 import '../services/credits_service.dart';
+import '../services/analytics_service.dart';
 import '../utils/validators.dart';
 import 'history_provider.dart';
 
@@ -135,7 +136,14 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
       return;
     }
 
+    final startTime = DateTime.now();
+
     try {
+      // Track analysis start
+      await AnalyticsService().logAnalysisStarted(
+        codeType: 'github_repository',
+      );
+
       // Consume credits before starting analysis (database-only operation)
       final consumed = await _creditsService.consumeCredits(5);
       if (!consumed) {
@@ -208,11 +216,30 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
         progressMessage: 'Analysis complete!',
       );
       print('📝 [STATIC ANALYSIS] ✅ Result set in state, navigation should trigger');
+
+      // Track successful analysis completion
+      final duration = DateTime.now().difference(startTime);
+      final totalIssues = (result.securityIssues?.length ?? 0) +
+                         (result.monitoringRecommendations?.length ?? 0);
+      await AnalyticsService().logAnalysisCompleted(
+        codeType: 'github_repository',
+        issuesFound: totalIssues,
+        durationMs: duration.inMilliseconds,
+      );
     } catch (e) {
       // Refund credits on error (database-only operation)
       await _creditsService.refundCredits(5);
 
       if (!ref.mounted) return;
+
+      // Track analysis error
+      await AnalyticsService().logEvent(
+        name: 'analysis_error',
+        parameters: {
+          'error_type': 'static_code_analysis',
+          'error_message': e.toString(),
+        },
+      );
 
       state = state.copyWith(
         isLoading: false,
@@ -235,7 +262,14 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
       return;
     }
 
+    final startTime = DateTime.now();
+
     try {
+      // Track analysis start
+      await AnalyticsService().logAnalysisStarted(
+        codeType: 'runtime_app',
+      );
+
       // Consume credits before starting analysis (database-only operation)
       final consumed = await _creditsService.consumeCredits(5);
       if (!consumed) {
@@ -309,11 +343,30 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
         progressMessage: 'Analysis complete!',
       );
       print('📝 [RUNTIME ANALYSIS] ✅ Result set in state, navigation should trigger');
+
+      // Track successful analysis completion
+      final duration = DateTime.now().difference(startTime);
+      final totalIssues = (result.securityIssues?.length ?? 0) +
+                         (result.monitoringRecommendations?.length ?? 0);
+      await AnalyticsService().logAnalysisCompleted(
+        codeType: 'runtime_app',
+        issuesFound: totalIssues,
+        durationMs: duration.inMilliseconds,
+      );
     } catch (e) {
       // Refund credits on error (database-only operation)
       await _creditsService.refundCredits(5);
 
       if (!ref.mounted) return;
+
+      // Track analysis error
+      await AnalyticsService().logEvent(
+        name: 'analysis_error',
+        parameters: {
+          'error_type': 'runtime_app_analysis',
+          'error_message': e.toString(),
+        },
+      );
 
       state = state.copyWith(
         isLoading: false,

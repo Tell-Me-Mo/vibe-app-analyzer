@@ -5,6 +5,7 @@ import '../models/credit_package.dart';
 import '../services/auth_service.dart';
 import '../services/payment_service.dart';
 import '../services/notification_service.dart';
+import '../services/analytics_service.dart';
 import '../widgets/common/credits_indicator.dart';
 import '../widgets/common/pricing_card.dart';
 import '../widgets/common/glass_card.dart';
@@ -48,10 +49,34 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
   }
 
   Future<void> _handlePurchase(CreditPackage package) async {
+    // Track begin checkout using Firebase standard event
+    await AnalyticsService().logBeginCheckout(
+      value: package.price,
+      currency: 'USD',
+    );
+
+    // Track purchase initiation with custom event for detailed analytics
+    await AnalyticsService().logEvent(
+      name: 'purchase_initiated',
+      parameters: {
+        'package_id': package.id,
+        'credits': package.credits,
+        'price': package.price,
+      },
+    );
+
     final authService = ref.read(authServiceProvider);
 
     // Check if user is signed in
     if (!authService.isSignedIn) {
+      // Track auth requirement during purchase
+      await AnalyticsService().logEvent(
+        name: 'purchase_requires_auth',
+        parameters: {
+          'package_id': package.id,
+        },
+      );
+
       if (!mounted) return;
       final shouldSignIn = await showDialog<bool>(
         context: context,
@@ -109,6 +134,23 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
       final success = await paymentService.purchasePackage(revenueCatPackage);
 
       if (success && mounted) {
+        // Track successful purchase using Firebase standard event
+        await AnalyticsService().logPurchase(
+          transactionId: DateTime.now().millisecondsSinceEpoch.toString(),
+          currency: 'USD',
+          value: package.price,
+        );
+
+        // Also track custom purchase_completed event for detailed analytics
+        await AnalyticsService().logEvent(
+          name: 'purchase_completed',
+          parameters: {
+            'package_id': package.id,
+            'credits': package.credits,
+            'price': package.price,
+          },
+        );
+
         // Show success message
         NotificationService.showSuccess(
           context,
@@ -117,10 +159,30 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
         );
       }
     } on PaymentException catch (e) {
+      // Track payment error
+      await AnalyticsService().logEvent(
+        name: 'purchase_error',
+        parameters: {
+          'package_id': package.id,
+          'error_type': 'payment_exception',
+          'error_message': e.message,
+        },
+      );
+
       setState(() {
         _errorMessage = e.message;
       });
     } catch (e) {
+      // Track general purchase error
+      await AnalyticsService().logEvent(
+        name: 'purchase_error',
+        parameters: {
+          'package_id': package.id,
+          'error_type': 'general',
+          'error_message': e.toString(),
+        },
+      );
+
       setState(() {
         _errorMessage = 'Purchase failed. Please try again.';
       });

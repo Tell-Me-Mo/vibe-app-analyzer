@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
+import '../services/analytics_service.dart';
 import '../widgets/common/glass_card.dart';
 import '../widgets/common/gradient_button.dart';
 import '../widgets/common/gradient_icon.dart';
@@ -64,6 +65,8 @@ class _AuthPageState extends ConsumerState<AuthPage>
       _errorMessage = null;
     });
 
+    final authMethod = _isSignUp ? 'email_signup' : 'email_signin';
+
     try {
       final authService = ref.read(authServiceProvider);
 
@@ -75,21 +78,60 @@ class _AuthPageState extends ConsumerState<AuthPage>
               ? null
               : _nameController.text.trim(),
         );
+        // Track successful sign up
+        await AnalyticsService().logSignUp(method: authMethod);
       } else {
         await authService.signInWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
+        // Track successful sign in
+        await AnalyticsService().logLogin(method: authMethod);
       }
+
+      // Set user ID for analytics
+      final user = authService.currentUser;
+      if (user != null) {
+        await AnalyticsService().setUserId(user.id);
+      }
+
+      // Track auth completion
+      await AnalyticsService().logEvent(
+        name: 'auth_completed',
+        parameters: {
+          'auth_method': authMethod,
+          'auth_type': _isSignUp ? 'signup' : 'signin',
+        },
+      );
 
       if (mounted) {
         context.go('/');
       }
     } on AuthException catch (e) {
+      // Track auth error
+      await AnalyticsService().logEvent(
+        name: 'auth_error',
+        parameters: {
+          'auth_method': authMethod,
+          'error_type': 'auth_exception',
+          'error_message': e.message,
+        },
+      );
+
       setState(() {
         _errorMessage = e.message;
       });
     } catch (e) {
+      // Track general auth error
+      await AnalyticsService().logEvent(
+        name: 'auth_error',
+        parameters: {
+          'auth_method': authMethod,
+          'error_type': 'general',
+          'error_message': e.toString(),
+        },
+      );
+
       setState(() {
         _errorMessage = 'An error occurred. Please try again.';
       });

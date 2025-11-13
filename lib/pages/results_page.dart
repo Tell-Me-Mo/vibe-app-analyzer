@@ -11,6 +11,7 @@ import '../models/monitoring_recommendation.dart';
 import '../providers/history_provider.dart';
 import '../providers/validation_provider.dart';
 import '../services/notification_service.dart';
+import '../services/analytics_service.dart';
 import '../data/demo_data.dart';
 import '../widgets/results/issue_card.dart';
 import '../widgets/results/recommendation_card.dart';
@@ -99,6 +100,16 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
     final result = _getResult(ref);
     if (result == null || !mounted) return;
 
+    // Track validation initiation
+    await AnalyticsService().logEvent(
+      name: 'validation_initiated',
+      parameters: {
+        'validation_type': 'security_issue',
+        'severity': issue.severity,
+        'issue_title': issue.title,
+      },
+    );
+
     // Extract repository name from URL
     final repositoryName = result.repositoryUrl?.split('/').last.replaceAll('.git', '') ?? 'Unknown';
 
@@ -115,6 +126,13 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
               title: 'Insufficient Credits',
               message: 'Please purchase more credits to validate fixes.',
             );
+            // Track insufficient credits during validation
+            AnalyticsService().logEvent(
+              name: 'validation_insufficient_credits',
+              parameters: {
+                'validation_type': 'security_issue',
+              },
+            );
           },
         );
   }
@@ -122,6 +140,16 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
   Future<void> _handleValidateMonitoringRecommendation(MonitoringRecommendation recommendation) async {
     final result = _getResult(ref);
     if (result == null || !mounted) return;
+
+    // Track validation initiation
+    await AnalyticsService().logEvent(
+      name: 'validation_initiated',
+      parameters: {
+        'validation_type': 'monitoring_recommendation',
+        'category': recommendation.category,
+        'recommendation_title': recommendation.title,
+      },
+    );
 
     // Extract repository name from URL
     final repositoryName = result.repositoryUrl?.split('/').last.replaceAll('.git', '') ?? 'Unknown';
@@ -138,6 +166,13 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
               context,
               title: 'Insufficient Credits',
               message: 'Please purchase more credits to validate implementations.',
+            );
+            // Track insufficient credits during validation
+            AnalyticsService().logEvent(
+              name: 'validation_insufficient_credits',
+              parameters: {
+                'validation_type': 'monitoring_recommendation',
+              },
             );
           },
         );
