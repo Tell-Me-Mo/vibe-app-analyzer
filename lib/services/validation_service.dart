@@ -3,6 +3,7 @@ import '../models/security_issue.dart';
 import '../models/monitoring_recommendation.dart';
 import '../models/validation_status.dart';
 import '../models/validation_result.dart';
+import '../models/analysis_mode.dart';
 import 'credits_service.dart';
 import 'github_service.dart';
 import 'openai_service.dart';
@@ -41,6 +42,7 @@ class ValidationService {
     required SecurityIssue issue,
     required String repositoryUrl,
     required String repositoryName,
+    required AnalysisMode analysisMode,
   }) async {
     // Check credits (client-side check for UI feedback)
     if (!await canValidate()) {
@@ -53,16 +55,27 @@ class ValidationService {
     // This prevents double-spending and race conditions
 
     try {
+      print('🔍 [VALIDATION] Starting security fix validation');
+      print('🔍 [VALIDATION] Analysis Mode: $analysisMode');
+      print('🔍 [VALIDATION] Repository URL: $repositoryUrl');
+      print('🔍 [VALIDATION] Repository Name: $repositoryName');
+
       // Update status to validating
       var updatedIssue = issue.copyWith(
         validationStatus: ValidationStatus.validating,
       );
 
-      // Fetch updated code from repository (only the specific file if available)
-      final updatedCode = await _fetchRepositoryCode(
-        repositoryUrl,
-        filePath: issue.filePath,
-      );
+      // Fetch updated code from repository (only for static code analysis)
+      // For runtime monitoring, we don't need to fetch code from GitHub
+      final updatedCode = analysisMode == AnalysisMode.staticCode
+          ? await _fetchRepositoryCode(
+              repositoryUrl,
+              filePath: issue.filePath,
+            )
+          : '';
+
+      print('🔍 [VALIDATION] Updated code length: ${updatedCode.length}');
+      print('🔍 [VALIDATION] Calling OpenAI service for validation');
 
       // Perform validation (Edge Function will consume credits)
       final validationResult = await _openaiService.validateSecurityFix(
@@ -70,6 +83,8 @@ class ValidationService {
         updatedCode: updatedCode,
         repositoryName: repositoryName,
       );
+
+      print('🔍 [VALIDATION] Validation result received: ${validationResult.status}');
 
       // Update issue with validation result
       updatedIssue = updatedIssue.copyWith(
@@ -79,6 +94,8 @@ class ValidationService {
 
       return updatedIssue;
     } catch (e) {
+      print('❌ [VALIDATION] Error caught: ${e.toString()}');
+      print('❌ [VALIDATION] Error type: ${e.runtimeType}');
       // Note: No refund here since Edge Function handles credit management
       // Return issue with error status
       return issue.copyWith(
@@ -102,6 +119,7 @@ class ValidationService {
     required MonitoringRecommendation recommendation,
     required String repositoryUrl,
     required String repositoryName,
+    required AnalysisMode analysisMode,
   }) async {
     // Check credits (client-side check for UI feedback)
     if (!await canValidate()) {
@@ -114,16 +132,27 @@ class ValidationService {
     // This prevents double-spending and race conditions
 
     try {
+      print('🔍 [VALIDATION] Starting monitoring validation');
+      print('🔍 [VALIDATION] Analysis Mode: $analysisMode');
+      print('🔍 [VALIDATION] Repository URL: $repositoryUrl');
+      print('🔍 [VALIDATION] Repository Name: $repositoryName');
+
       // Update status to validating
       var updatedRecommendation = recommendation.copyWith(
         validationStatus: ValidationStatus.validating,
       );
 
-      // Fetch updated code from repository (only the specific file if available)
-      final updatedCode = await _fetchRepositoryCode(
-        repositoryUrl,
-        filePath: recommendation.filePath,
-      );
+      // Fetch updated code from repository (only for static code analysis)
+      // For runtime monitoring, we don't need to fetch code from GitHub
+      final updatedCode = analysisMode == AnalysisMode.staticCode
+          ? await _fetchRepositoryCode(
+              repositoryUrl,
+              filePath: recommendation.filePath,
+            )
+          : '';
+
+      print('🔍 [VALIDATION] Updated code length: ${updatedCode.length}');
+      print('🔍 [VALIDATION] Calling OpenAI service for validation');
 
       // Perform validation (Edge Function will consume credits)
       final validationResult =
@@ -133,6 +162,8 @@ class ValidationService {
         repositoryName: repositoryName,
       );
 
+      print('🔍 [VALIDATION] Validation result received: ${validationResult.status}');
+
       // Update recommendation with validation result
       updatedRecommendation = updatedRecommendation.copyWith(
         validationStatus: validationResult.status,
@@ -141,6 +172,8 @@ class ValidationService {
 
       return updatedRecommendation;
     } catch (e) {
+      print('❌ [VALIDATION] Error caught: ${e.toString()}');
+      print('❌ [VALIDATION] Error type: ${e.runtimeType}');
       // Note: No refund here since Edge Function handles credit management
       // Return recommendation with error status
       return recommendation.copyWith(

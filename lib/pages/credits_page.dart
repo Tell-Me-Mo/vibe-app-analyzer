@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../models/credit_package.dart';
 import '../services/auth_service.dart';
 import '../services/payment_service.dart';
+import '../services/credits_service.dart';
 import '../services/notification_service.dart';
 import '../services/analytics_service.dart';
 import '../widgets/common/credits_indicator.dart';
@@ -23,7 +24,7 @@ class CreditsPage extends ConsumerStatefulWidget {
 
 class _CreditsPageState extends ConsumerState<CreditsPage>
     with SingleTickerProviderStateMixin {
-  bool _isLoading = false;
+  String? _purchasingPackageId; // Track which package is being purchased
   String? _errorMessage;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -67,13 +68,14 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
 
     final authService = ref.read(authServiceProvider);
 
-    // Check if user is signed in
-    if (!authService.isSignedIn) {
+    // Check if user is a guest (anonymous) or not signed in
+    if (!authService.isSignedIn || authService.isAnonymous) {
       // Track auth requirement during purchase
       await AnalyticsService().logEvent(
         name: 'purchase_requires_auth',
         parameters: {
           'package_id': package.id,
+          'is_anonymous': authService.isAnonymous ? 1 : 0,
         },
       );
 
@@ -82,11 +84,11 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
         context: context,
         builder: (context) => AlertDialog(
           title: Text(
-            'Sign In Required',
+            'Account Required',
             style: AppTypography.headlineSmall,
           ),
           content: Text(
-            'You need to sign in to purchase credits. Your purchases will be synced across devices.',
+            'You need to create an account or sign in to purchase credits. Your purchases will be synced across all your devices.',
             style: AppTypography.bodyMedium,
           ),
           actions: [
@@ -111,7 +113,7 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
     }
 
     setState(() {
-      _isLoading = true;
+      _purchasingPackageId = package.id;
       _errorMessage = null;
     });
 
@@ -121,17 +123,8 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
       // Initialize payment service with user ID
       await paymentService.initialize(authService.currentUser!.id);
 
-      // Get available packages
-      final packages = await paymentService.getAvailablePackages();
-
-      // Find matching package
-      final revenueCatPackage = packages.firstWhere(
-        (p) => p.identifier.contains(package.id),
-        orElse: () => packages.first,
-      );
-
-      // Purchase the package
-      final success = await paymentService.purchasePackage(revenueCatPackage);
+      // Purchase the package directly (mock mode)
+      final success = await paymentService.purchasePackage(package);
 
       if (success && mounted) {
         // Track successful purchase using Firebase standard event
@@ -150,6 +143,9 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
             'price': package.price,
           },
         );
+
+        // Refresh the credits indicator by invalidating the credits provider
+        ref.invalidate(creditsProvider);
 
         // Show success message
         NotificationService.showSuccess(
@@ -188,13 +184,15 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
       });
     } finally {
       setState(() {
-        _isLoading = false;
+        _purchasingPackageId = null;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -203,7 +201,9 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
 
           SafeArea(
             child: SingleChildScrollView(
-              padding: AppSpacing.paddingXXL,
+              padding: isMobile
+                ? AppSpacing.paddingLG  // 16px for mobile
+                : AppSpacing.paddingXXL, // 24px for desktop
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1200),
@@ -226,25 +226,35 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
                             const CreditsIndicator(),
                           ],
                         ),
-                        AppSpacing.verticalGapHuge,
+                        isMobile
+                          ? AppSpacing.verticalGapXXL  // 24px for mobile
+                          : AppSpacing.verticalGapHuge, // 40px for desktop
 
                         // Title section
                         _buildTitleSection(),
-                        AppSpacing.verticalGapHuge,
+                        isMobile
+                          ? AppSpacing.verticalGapXXL  // 24px for mobile
+                          : AppSpacing.verticalGapHuge, // 40px for desktop
 
                         // Error message
                         if (_errorMessage != null) ...[
                           _buildErrorMessage(_errorMessage!),
-                          AppSpacing.verticalGapXXL,
+                          isMobile
+                            ? AppSpacing.verticalGapLG   // 16px for mobile
+                            : AppSpacing.verticalGapXXL, // 24px for desktop
                         ],
 
                         // Pricing cards grid
                         _buildPricingGrid(),
-                        AppSpacing.verticalGapHuge,
+                        isMobile
+                          ? AppSpacing.verticalGapXXL  // 24px for mobile
+                          : AppSpacing.verticalGapHuge, // 40px for desktop
 
                         // Info section
                         _buildInfoSection(),
-                        AppSpacing.verticalGapHuge,
+                        isMobile
+                          ? AppSpacing.verticalGapXXL  // 24px for mobile
+                          : AppSpacing.verticalGapHuge, // 40px for desktop
                       ],
                     ),
                   ),
@@ -275,11 +285,13 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
   }
 
   Widget _buildTitleSection() {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Column(
       children: [
         // Icon
         Container(
-          padding: AppSpacing.paddingLG,
+          padding: isMobile ? AppSpacing.paddingMD : AppSpacing.paddingLG,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: LinearGradient(
@@ -287,13 +299,13 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
             ),
             boxShadow: AppElevation.glowLG(AppColors.primaryBlue),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.stars_rounded,
-            size: 40,
+            size: isMobile ? 32 : 40,
             color: AppColors.textPrimary,
           ),
         ),
-        AppSpacing.verticalGapXXL,
+        isMobile ? AppSpacing.verticalGapLG : AppSpacing.verticalGapXXL,
 
         // Title
         ShaderMask(
@@ -302,19 +314,23 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
           ).createShader(bounds),
           child: Text(
             'Get More Credits',
-            style: AppTypography.displaySmall.copyWith(
+            style: (isMobile
+              ? AppTypography.headlineLarge
+              : AppTypography.displaySmall).copyWith(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w800,
             ),
             textAlign: TextAlign.center,
           ),
         ),
-        AppSpacing.verticalGapMD,
+        isMobile ? AppSpacing.verticalGapSM : AppSpacing.verticalGapMD,
 
         // Subtitle
         Text(
           'Choose the perfect package for your needs',
-          style: AppTypography.bodyLarge.copyWith(
+          style: (isMobile
+            ? AppTypography.bodyMedium
+            : AppTypography.bodyLarge).copyWith(
             color: AppColors.textTertiary,
           ),
           textAlign: TextAlign.center,
@@ -352,11 +368,28 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
   Widget _buildPricingGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 900
-            ? 4
-            : constraints.maxWidth > 600
-                ? 2
-                : 1;
+        final isMobile = constraints.maxWidth < 600;
+
+        // Mobile: Use Column for horizontal cards
+        if (isMobile) {
+          return Column(
+            children: CreditPackages.all.map((package) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: package == CreditPackages.all.last ? 0 : AppSpacing.md,
+                ),
+                child: PricingCard(
+                  package: package,
+                  onPurchase: () => _handlePurchase(package),
+                  isLoading: _purchasingPackageId == package.id,
+                ),
+              );
+            }).toList(),
+          );
+        }
+
+        // Desktop: Use GridView
+        final crossAxisCount = constraints.maxWidth > 900 ? 4 : 2;
 
         return GridView.builder(
           shrinkWrap: true,
@@ -373,7 +406,7 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
             return PricingCard(
               package: package,
               onPurchase: () => _handlePurchase(package),
-              isLoading: _isLoading,
+              isLoading: _purchasingPackageId == package.id,
             );
           },
         );
@@ -382,35 +415,41 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
   }
 
   Widget _buildInfoSection() {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return GlassCard(
       child: Column(
         children: [
           Container(
-            padding: AppSpacing.paddingMD,
+            padding: isMobile ? AppSpacing.paddingSM : AppSpacing.paddingMD,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 colors: AppColors.gradientSecondary,
               ),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.info_outline_rounded,
               color: AppColors.textPrimary,
-              size: 28,
+              size: isMobile ? 24 : 28,
             ),
           ),
-          AppSpacing.verticalGapLG,
+          isMobile ? AppSpacing.verticalGapMD : AppSpacing.verticalGapLG,
           Text(
             'Each analysis costs 5 credits',
-            style: AppTypography.titleMedium.copyWith(
+            style: (isMobile
+              ? AppTypography.titleSmall
+              : AppTypography.titleMedium).copyWith(
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
-          AppSpacing.verticalGapMD,
+          isMobile ? AppSpacing.verticalGapSM : AppSpacing.verticalGapMD,
           Text(
             'Credits never expire and are synced across all your devices',
-            style: AppTypography.bodyMedium.copyWith(
+            style: (isMobile
+              ? AppTypography.bodySmall
+              : AppTypography.bodyMedium).copyWith(
               color: AppColors.textTertiary,
             ),
             textAlign: TextAlign.center,

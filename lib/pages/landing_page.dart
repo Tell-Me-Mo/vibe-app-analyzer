@@ -18,14 +18,14 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../theme/app_spacing.dart';
 
-class LandingPage extends StatefulWidget {
+class LandingPage extends ConsumerStatefulWidget {
   const LandingPage({super.key});
 
   @override
-  State<LandingPage> createState() => _LandingPageState();
+  ConsumerState<LandingPage> createState() => _LandingPageState();
 }
 
-class _LandingPageState extends State<LandingPage> {
+class _LandingPageState extends ConsumerState<LandingPage> {
   final _urlController = TextEditingController();
   String? _errorText;
 
@@ -43,6 +43,10 @@ class _LandingPageState extends State<LandingPage> {
           builder: (context) => const WelcomePopup(),
         );
       }
+
+      // Invalidate credits provider to force refresh when returning to this page
+      // This ensures credits are always up-to-date when navigating back from results
+      ref.invalidate(creditsProvider);
     });
   }
 
@@ -128,7 +132,7 @@ class _LandingPageState extends State<LandingPage> {
       parameters: {
         'analysis_type': analysisType.toString(),
         'url_mode': urlMode.toString(),
-        'is_github': urlMode.toString().contains('github'),
+        'is_github': urlMode.toString().contains('github') ? 1 : 0,
       },
     );
 

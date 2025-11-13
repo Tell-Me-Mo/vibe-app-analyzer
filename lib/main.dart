@@ -5,58 +5,90 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'app.dart';
 import 'services/storage_service.dart';
 import 'services/auth_service.dart';
 import 'services/analytics_service.dart';
 import 'widgets/loading_screen.dart';
 import 'firebase_options.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  // IMPORTANT: Configure URL strategy FIRST, before any async operations
+  // This must run synchronously before WidgetsFlutterBinding.ensureInitialized()
+  usePathUrlStrategy();
 
-  // Show loading screen immediately
-  runApp(const LoadingScreen());
+  // Now run async initialization
+  _initializeApp();
+}
 
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
+Future<void> _initializeApp() async {
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = 'https://de1d2da8fd4a90072b4c053e267d71e1@o4507007486394368.ingest.us.sentry.io/4510357912813568';
+      options.sendDefaultPii = true;
+      options.enableLogs = true;
+      // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
+      // We recommend adjusting this value in production.
+      options.tracesSampleRate = 1.0;
 
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+      // Filter out the benign go_router initialization error
+      options.beforeSend = (event, hint) {
+        // Ignore the "Could not navigate to initial route" error - it's a false positive
+        // that occurs during go_router initialization in debug mode on web
+        if (event.message?.formatted?.contains('Could not navigate to initial route') ?? false) {
+          return null; // Don't send to Sentry
+        }
+        return event;
+      };
+    },
+    appRunner: () async {
+      // Initialize Flutter bindings inside Sentry's zone
+      WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase Analytics
-  FirebaseAnalytics.instance;
+      // Show loading screen immediately
+      runApp(const LoadingScreen());
 
-  // Log app open event
-  await AnalyticsService().logAppOpen();
+      // Load environment variables
+      await dotenv.load(fileName: ".env");
 
-  // Initialize Supabase
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL'] ?? '',
-    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
-  );
+      // Initialize Firebase
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
 
-  // Initialize storage
-  await StorageService().initialize();
+      // Initialize Firebase Analytics
+      FirebaseAnalytics.instance;
 
-  // Preload Google Fonts to prevent FOUT (Flash of Unstyled Text)
-  await _preloadFonts();
+      // Log app open event
+      await AnalyticsService().logAppOpen();
 
-  // Ensure user is authenticated (anonymously if not signed in)
-  try {
-    await AuthService().ensureAuthenticated();
-  } catch (e) {
-    // If anonymous auth fails, continue anyway - user can still sign up/in manually
-    debugPrint('Failed to initialize anonymous auth: $e');
-  }
+      // Initialize Supabase
+      await Supabase.initialize(
+        url: dotenv.env['SUPABASE_URL'] ?? '',
+        anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+      );
 
-  // Launch the main app after initialization is complete
-  runApp(
-    const ProviderScope(
-      child: VibeCheckApp(),
-    ),
+      // Initialize storage
+      await StorageService().initialize();
+
+      // Preload Google Fonts to prevent FOUT (Flash of Unstyled Text)
+      await _preloadFonts();
+
+      // Ensure user is authenticated (anonymously if not signed in)
+      try {
+        await AuthService().ensureAuthenticated();
+      } catch (e) {
+        // If anonymous auth fails, continue anyway - user can still sign up/in manually
+        debugPrint('Failed to initialize anonymous auth: $e');
+      }
+
+      // Launch the main app after initialization is complete
+      runApp(const ProviderScope(
+        child: VibeCheckApp(),
+      ));
+    },
   );
 }
 

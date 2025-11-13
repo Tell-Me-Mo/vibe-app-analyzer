@@ -11,9 +11,9 @@ import 'pages/credits_page.dart';
 import 'theme/app_theme.dart';
 import 'services/analytics_service.dart';
 
-// Router configuration - defined outside the widget to prevent recreation
+// Router configuration
 final _router = GoRouter(
-  initialLocation: '/',
+  debugLogDiagnostics: true,
   observers: [
     // Add Firebase Analytics observer for automatic screen tracking
     AnalyticsService().analyticsObserver,
@@ -74,6 +74,9 @@ class App extends StatelessWidget {
       themeMode: ThemeMode.dark,
       darkTheme: AppTheme.darkTheme,
       routerConfig: _router,
+      // Support web URL restoration (back button, refresh)
+      // This helps maintain the route during hot reload
+      restorationScopeId: 'app',
     );
   }
 }

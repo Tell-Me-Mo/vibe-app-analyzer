@@ -47,12 +47,12 @@ This document lists all Firebase Analytics events tracked throughout the VibeChe
 - **Purpose:** Track credit-related friction in funnel
 
 #### `analysis_initiated`
-**Location:** `lib/pages/landing_page.dart:126-133`
+**Location:** `lib/pages/landing_page.dart:130-137`
 - **When:** User clicks analyze button and has credits
 - **Parameters:**
   - `analysis_type` (string) - security or monitoring
   - `url_mode` (string) - github or app URL
-  - `is_github` (boolean) - Whether it's a GitHub URL
+  - `is_github` (number: 0 or 1) - Whether it's a GitHub URL (1 = true, 0 = false)
 - **Purpose:** Track analysis feature usage
 
 ---

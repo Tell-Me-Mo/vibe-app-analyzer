@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../models/monitoring_recommendation.dart';
 import '../../models/validation_status.dart';
 import '../../services/notification_service.dart';
+import '../common/severity_badge.dart';
 import '../common/category_badge.dart';
 import '../common/validation_status_badge.dart';
 import '../common/validation_result_display.dart';
@@ -303,6 +304,7 @@ class _RecommendationCardState extends State<RecommendationCard> {
           spacing: 6,
           runSpacing: 6,
           children: [
+            SeverityBadge(severity: widget.recommendation.severity),
             CategoryBadge(
               category: widget.recommendation.category,
               color: _getCategoryColor(widget.recommendation.category),
@@ -328,6 +330,8 @@ class _RecommendationCardState extends State<RecommendationCard> {
         const SizedBox(width: 10),
 
         // Badges - more compact
+        SeverityBadge(severity: widget.recommendation.severity),
+        const SizedBox(width: 8),
         CategoryBadge(
           category: widget.recommendation.category,
           color: _getCategoryColor(widget.recommendation.category),

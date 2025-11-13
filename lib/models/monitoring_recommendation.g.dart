@@ -12,6 +12,9 @@ MonitoringRecommendation _$MonitoringRecommendationFromJson(
   id: json['id'] as String,
   title: json['title'] as String,
   category: json['category'] as String,
+  severity: MonitoringRecommendation._severityFromJson(
+    json['severity'] as String,
+  ),
   description: json['description'] as String,
   businessValue: json['businessValue'] as String,
   claudeCodePrompt: json['claudeCodePrompt'] as String,
@@ -35,6 +38,7 @@ Map<String, dynamic> _$MonitoringRecommendationToJson(
   'id': instance.id,
   'title': instance.title,
   'category': instance.category,
+  'severity': MonitoringRecommendation._severityToJson(instance.severity),
   'description': instance.description,
   'businessValue': instance.businessValue,
   'claudeCodePrompt': instance.claudeCodePrompt,

@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  sentry_flutter: ^9.8.0
   flutter:
     sdk: flutter
 
@@ -61,14 +62,16 @@ dependencies:
   # Authentication
   supabase_flutter: ^2.10.3
 
-  # Payments
-  purchases_flutter: ^9.9.5
+  # Payments - Using mock payment service for now
+  # TODO: Integrate Paddle directly for production
+  # purchases_flutter: ^9.9.5
 
   # Firebase
   firebase_core: ^4.2.1
   firebase_analytics: ^12.0.4
 
 dev_dependencies:
+  sentry_dart_plugin: ^3.2.0
   flutter_test:
     sdk: flutter
 
@@ -80,6 +83,9 @@ dev_dependencies:
 
   # Testing
   mockito: ^5.4.4
+
+  # Icon generation
+  flutter_launcher_icons: ^0.14.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -95,6 +101,7 @@ flutter:
   # Assets
   assets:
     - .env
+    - assets/logo.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -122,3 +129,22 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+sentry:
+  upload_debug_symbols: true
+  upload_source_maps: true
+  project: vibecheck
+  org: visieasy
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+  windows:
+    generate: true
+  macos:
+    generate: true
+  image_path: "assets/logo.png"
+  adaptive_icon_background: "#0f0f1a"
+  adaptive_icon_foreground: "assets/logo.png"

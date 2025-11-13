@@ -105,7 +105,7 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
       name: 'validation_initiated',
       parameters: {
         'validation_type': 'security_issue',
-        'severity': issue.severity,
+        'severity': issue.severity.toString().split('.').last,
         'issue_title': issue.title,
       },
     );
@@ -119,6 +119,7 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
           issue: issue,
           repositoryUrl: result.repositoryUrl ?? '',
           repositoryName: repositoryName,
+          analysisMode: result.analysisMode,
           onInsufficientCredits: () {
             if (!mounted) return;
             NotificationService.showWarning(
@@ -146,7 +147,7 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
       name: 'validation_initiated',
       parameters: {
         'validation_type': 'monitoring_recommendation',
-        'category': recommendation.category,
+        'category': recommendation.category.toString().split('.').last,
         'recommendation_title': recommendation.title,
       },
     );
@@ -160,6 +161,7 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
           recommendation: recommendation,
           repositoryUrl: result.repositoryUrl ?? '',
           repositoryName: repositoryName,
+          analysisMode: result.analysisMode,
           onInsufficientCredits: () {
             if (!mounted) return;
             NotificationService.showWarning(
@@ -710,7 +712,8 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
   ) {
     final isSelected = severity != null && _selectedSeverities.contains(severity);
     final isDisabled = count == 0;
-    final isFilterable = result.analysisType == AnalysisType.security && !isDisabled;
+    // Enable filtering for both security and monitoring analysis
+    final isFilterable = !isDisabled;
 
     return InkWell(
       onTap: !isFilterable ? null : () {
@@ -784,8 +787,8 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
   ) {
     final isSelected = severity != null && _selectedSeverities.contains(severity);
     final isDisabled = count == 0;
-    // Only enable filtering for security analysis
-    final isFilterable = result.analysisType == AnalysisType.security && !isDisabled;
+    // Enable filtering for both security and monitoring analysis
+    final isFilterable = !isDisabled;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -857,15 +860,19 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
   }
 
   Widget _buildResultsList(BuildContext context, AnalysisResult result) {
-    // Filter issues based on selected severities (only for security analysis)
+    // Filter items based on selected severities (works for both security and monitoring)
     final filteredSecurityIssues = _selectedSeverities.isEmpty
         ? (result.securityIssues ?? [])
         : (result.securityIssues ?? [])
             .where((issue) => _selectedSeverities.contains(issue.severity.value))
             .toList();
 
-    // Monitoring recommendations don't have severity, so no filtering
-    final filteredRecommendations = result.monitoringRecommendations ?? [];
+    // Filter monitoring recommendations by severity
+    final filteredRecommendations = _selectedSeverities.isEmpty
+        ? (result.monitoringRecommendations ?? [])
+        : (result.monitoringRecommendations ?? [])
+            .where((rec) => _selectedSeverities.contains(rec.severity.value))
+            .toList();
 
     final totalItems = result.analysisType == AnalysisType.security
         ? result.securityIssues?.length ?? 0
@@ -875,8 +882,7 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
         ? filteredSecurityIssues.length
         : filteredRecommendations.length;
 
-    final showingFiltered = _selectedSeverities.isNotEmpty &&
-                            result.analysisType == AnalysisType.security;
+    final showingFiltered = _selectedSeverities.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

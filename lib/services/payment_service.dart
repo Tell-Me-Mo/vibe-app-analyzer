@@ -28,7 +28,7 @@ class PaymentService {
   Future<List<MockPackage>> getAvailablePackages() async {
     await Future.delayed(const Duration(milliseconds: 200));
 
-    return CreditPackages.allPackages.map((pkg) => MockPackage(
+    return CreditPackages.all.map((pkg) => MockPackage(
       id: pkg.id,
       name: pkg.name,
       credits: pkg.credits,

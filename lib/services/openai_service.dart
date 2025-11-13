@@ -426,7 +426,7 @@ class OpenAIService {
 
   /// Validates a monitoring recommendation object has required fields
   void _validateMonitoringRecommendation(Map<String, dynamic> rec) {
-    final requiredFields = ['title', 'category', 'description', 'businessValue', 'claudeCodePrompt'];
+    final requiredFields = ['title', 'category', 'severity', 'description', 'businessValue', 'claudeCodePrompt'];
 
     for (final field in requiredFields) {
       if (!rec.containsKey(field) || rec[field] == null) {
@@ -441,6 +441,12 @@ class OpenAIService {
     final category = rec['category'];
     if (category is! String || !['analytics', 'error_tracking', 'business_metrics'].contains(category.toLowerCase())) {
       throw Exception('Invalid monitoring category: $category');
+    }
+
+    // Validate severity is a valid enum value
+    final severity = rec['severity'];
+    if (severity is! String || !['critical', 'high', 'medium', 'low'].contains(severity.toLowerCase())) {
+      throw Exception('Invalid severity value: $severity');
     }
 
     // Validate line number if present
@@ -578,6 +584,7 @@ class OpenAIService {
           'recommendation': {
             'title': recommendation.title,
             'category': recommendation.category,
+            'severity': recommendation.severity.value,
             'description': recommendation.description,
             'businessValue': recommendation.businessValue,
             'filePath': recommendation.filePath,

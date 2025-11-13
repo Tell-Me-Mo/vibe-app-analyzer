@@ -4,9 +4,11 @@ import '../models/analysis_result.dart';
 import '../models/security_issue.dart';
 import '../models/monitoring_recommendation.dart';
 import '../models/validation_status.dart';
+import '../models/analysis_mode.dart';
 import '../services/validation_service.dart';
 import '../services/notification_service.dart';
 import '../services/analytics_service.dart';
+import '../services/credits_service.dart';
 import 'history_provider.dart';
 
 /// Provider for managing validation state and operations
@@ -28,6 +30,7 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
     required SecurityIssue issue,
     required String repositoryUrl,
     required String repositoryName,
+    required AnalysisMode analysisMode,
     required VoidCallback onInsufficientCredits,
   }) async {
     try {
@@ -48,10 +51,15 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
         issue: issue,
         repositoryUrl: repositoryUrl,
         repositoryName: repositoryName,
+        analysisMode: analysisMode,
       );
 
       // Update the issue in the analysis result
       await _updateIssueInResult(resultId, updatedIssue);
+
+      // Invalidate credits provider to refresh credits in UI
+      // Credits were consumed by the Edge Function during validation
+      ref.invalidate(creditsProvider);
 
       // Show success notification
       if (context.mounted) {
@@ -67,8 +75,8 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
         name: 'validation_completed',
         parameters: {
           'validation_type': 'security_issue',
-          'severity': issue.severity,
-          'validation_result': updatedIssue.validationResult?.status.toString(),
+          'severity': issue.severity.toString().split('.').last,
+          'validation_result': updatedIssue.validationResult?.status.toString().split('.').last,
         },
       );
     } on InsufficientCreditsException catch (e) {
@@ -107,14 +115,24 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
     required MonitoringRecommendation recommendation,
     required String repositoryUrl,
     required String repositoryName,
+    required AnalysisMode analysisMode,
     required VoidCallback onInsufficientCredits,
   }) async {
     try {
+      print('🚀 [PROVIDER] validateMonitoringImplementation called');
+      print('🚀 [PROVIDER] Result ID: $resultId');
+      print('🚀 [PROVIDER] Repository URL: $repositoryUrl');
+      print('🚀 [PROVIDER] Repository Name: $repositoryName');
+      print('🚀 [PROVIDER] Analysis Mode: $analysisMode');
+
       // Check credits first
       if (!await _validationService.canValidate()) {
+        print('⚠️ [PROVIDER] Insufficient credits');
         onInsufficientCredits();
         return;
       }
+
+      print('✅ [PROVIDER] Credits check passed');
 
       // Set status to validating immediately for UI feedback
       final validatingRecommendation = recommendation.copyWith(
@@ -123,15 +141,22 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
       await _updateRecommendationInResult(resultId, validatingRecommendation);
 
       // Perform validation
+      print('🔄 [PROVIDER] Calling validation service...');
       final updatedRecommendation =
           await _validationService.validateMonitoringImplementation(
         recommendation: recommendation,
         repositoryUrl: repositoryUrl,
         repositoryName: repositoryName,
+        analysisMode: analysisMode,
       );
+      print('✅ [PROVIDER] Validation service completed');
 
       // Update the recommendation in the analysis result
       await _updateRecommendationInResult(resultId, updatedRecommendation);
+
+      // Invalidate credits provider to refresh credits in UI
+      // Credits were consumed by the Edge Function during validation
+      ref.invalidate(creditsProvider);
 
       // Show success notification
       if (context.mounted) {
@@ -148,8 +173,8 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
         name: 'validation_completed',
         parameters: {
           'validation_type': 'monitoring_recommendation',
-          'category': recommendation.category,
-          'validation_result': updatedRecommendation.validationResult?.status.toString(),
+          'category': recommendation.category.toString().split('.').last,
+          'validation_result': updatedRecommendation.validationResult?.status.toString().split('.').last,
         },
       );
     } on InsufficientCreditsException catch (e) {
@@ -162,6 +187,9 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
       }
       onInsufficientCredits();
     } catch (e) {
+      print('❌ [PROVIDER] Error in validateMonitoringImplementation: ${e.toString()}');
+      print('❌ [PROVIDER] Error type: ${e.runtimeType}');
+
       // Track validation error
       await AnalyticsService().logEvent(
         name: 'validation_error',
