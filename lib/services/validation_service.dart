@@ -42,18 +42,15 @@ class ValidationService {
     required String repositoryUrl,
     required String repositoryName,
   }) async {
-    // Check credits
+    // Check credits (client-side check for UI feedback)
     if (!await canValidate()) {
       throw InsufficientCreditsException(
         'You need $costPerValidation credit to validate a fix. Current balance: ${await getCredits()}',
       );
     }
 
-    // Consume credits before validation
-    final consumed = await _creditsService.consumeCredits(costPerValidation);
-    if (!consumed) {
-      throw Exception('Failed to consume credits for validation');
-    }
+    // NOTE: Credits are consumed by the Edge Function, not here
+    // This prevents double-spending and race conditions
 
     try {
       // Update status to validating
@@ -67,7 +64,7 @@ class ValidationService {
         filePath: issue.filePath,
       );
 
-      // Perform validation
+      // Perform validation (Edge Function will consume credits)
       final validationResult = await _openaiService.validateSecurityFix(
         issue: issue,
         updatedCode: updatedCode,
@@ -82,9 +79,7 @@ class ValidationService {
 
       return updatedIssue;
     } catch (e) {
-      // Refund credit if validation failed due to error
-      await _creditsService.addCredits(costPerValidation);
-
+      // Note: No refund here since Edge Function handles credit management
       // Return issue with error status
       return issue.copyWith(
         validationStatus: ValidationStatus.error,
@@ -108,18 +103,15 @@ class ValidationService {
     required String repositoryUrl,
     required String repositoryName,
   }) async {
-    // Check credits
+    // Check credits (client-side check for UI feedback)
     if (!await canValidate()) {
       throw InsufficientCreditsException(
         'You need $costPerValidation credit to validate an implementation. Current balance: ${await getCredits()}',
       );
     }
 
-    // Consume credits before validation
-    final consumed = await _creditsService.consumeCredits(costPerValidation);
-    if (!consumed) {
-      throw Exception('Failed to consume credits for validation');
-    }
+    // NOTE: Credits are consumed by the Edge Function, not here
+    // This prevents double-spending and race conditions
 
     try {
       // Update status to validating
@@ -133,7 +125,7 @@ class ValidationService {
         filePath: recommendation.filePath,
       );
 
-      // Perform validation
+      // Perform validation (Edge Function will consume credits)
       final validationResult =
           await _openaiService.validateMonitoringImplementation(
         recommendation: recommendation,
@@ -149,9 +141,7 @@ class ValidationService {
 
       return updatedRecommendation;
     } catch (e) {
-      // Refund credit if validation failed due to error
-      await _creditsService.addCredits(costPerValidation);
-
+      // Note: No refund here since Edge Function handles credit management
       // Return recommendation with error status
       return recommendation.copyWith(
         validationStatus: ValidationStatus.error,

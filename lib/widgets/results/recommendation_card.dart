@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/monitoring_recommendation.dart';
 import '../../models/validation_status.dart';
+import '../../services/notification_service.dart';
 import '../common/category_badge.dart';
 import '../common/validation_status_badge.dart';
 import '../common/validation_result_display.dart';
@@ -185,11 +186,9 @@ class _RecommendationCardState extends State<RecommendationCard> {
                                 TextButton.icon(
                                   onPressed: () {
                                     Clipboard.setData(ClipboardData(text: widget.recommendation.claudeCodePrompt));
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Prompt copied to clipboard!'),
-                                        duration: Duration(seconds: 2),
-                                      ),
+                                    NotificationService.showSuccess(
+                                      context,
+                                      message: 'Prompt copied to clipboard!',
                                     );
                                   },
                                   icon: const Icon(Icons.copy, size: 14),

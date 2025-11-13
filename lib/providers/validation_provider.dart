@@ -5,6 +5,7 @@ import '../models/security_issue.dart';
 import '../models/monitoring_recommendation.dart';
 import '../models/validation_status.dart';
 import '../services/validation_service.dart';
+import '../services/notification_service.dart';
 import 'history_provider.dart';
 
 /// Provider for managing validation state and operations
@@ -51,36 +52,29 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
       // Update the issue in the analysis result
       await _updateIssueInResult(resultId, updatedIssue);
 
-      // Show success snackbar
+      // Show success notification
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              updatedIssue.validationResult?.status.displayName ?? 'Validation complete',
-            ),
-            duration: const Duration(seconds: 3),
-          ),
+        NotificationService.showSuccess(
+          context,
+          title: 'Validation Complete',
+          message: updatedIssue.validationResult?.status.displayName ?? 'Validation complete',
         );
       }
     } on InsufficientCreditsException catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 3),
-          ),
+        NotificationService.showWarning(
+          context,
+          title: 'Insufficient Credits',
+          message: e.message,
         );
       }
       onInsufficientCredits();
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Validation failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
+        NotificationService.showError(
+          context,
+          title: 'Validation Failed',
+          message: e.toString(),
         );
       }
     }
@@ -119,37 +113,30 @@ class ValidationNotifier extends Notifier<Map<String, dynamic>> {
       // Update the recommendation in the analysis result
       await _updateRecommendationInResult(resultId, updatedRecommendation);
 
-      // Show success snackbar
+      // Show success notification
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              updatedRecommendation.validationResult?.status.displayName ??
-                  'Validation complete',
-            ),
-            duration: const Duration(seconds: 3),
-          ),
+        NotificationService.showSuccess(
+          context,
+          title: 'Validation Complete',
+          message: updatedRecommendation.validationResult?.status.displayName ??
+              'Validation complete',
         );
       }
     } on InsufficientCreditsException catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 3),
-          ),
+        NotificationService.showWarning(
+          context,
+          title: 'Insufficient Credits',
+          message: e.message,
         );
       }
       onInsufficientCredits();
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Validation failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
+        NotificationService.showError(
+          context,
+          title: 'Validation Failed',
+          message: e.toString(),
         );
       }
     }

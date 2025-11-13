@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../models/credit_package.dart';
 import '../services/auth_service.dart';
 import '../services/payment_service.dart';
+import '../services/notification_service.dart';
 import '../widgets/common/credits_indicator.dart';
 import '../widgets/common/pricing_card.dart';
 import '../widgets/common/glass_card.dart';
@@ -109,24 +110,10 @@ class _CreditsPageState extends ConsumerState<CreditsPage>
 
       if (success && mounted) {
         // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(
-                  Icons.check_circle_rounded,
-                  color: AppColors.textPrimary,
-                ),
-                AppSpacing.horizontalGapMD,
-                Text(
-                  'Successfully purchased ${package.credits} credits!',
-                  style: AppTypography.bodyMedium,
-                ),
-              ],
-            ),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
+        NotificationService.showSuccess(
+          context,
+          title: 'Purchase Complete',
+          message: 'Successfully purchased ${package.credits} credits!',
         );
       }
     } on PaymentException catch (e) {

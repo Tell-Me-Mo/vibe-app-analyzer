@@ -10,6 +10,7 @@ import '../models/security_issue.dart';
 import '../models/monitoring_recommendation.dart';
 import '../providers/history_provider.dart';
 import '../providers/validation_provider.dart';
+import '../services/notification_service.dart';
 import '../data/demo_data.dart';
 import '../widgets/results/issue_card.dart';
 import '../widgets/results/recommendation_card.dart';
@@ -106,11 +107,10 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
           repositoryName: repositoryName,
           onInsufficientCredits: () {
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Insufficient credits. Please purchase more credits to validate fixes.'),
-                duration: Duration(seconds: 3),
-              ),
+            NotificationService.showWarning(
+              context,
+              title: 'Insufficient Credits',
+              message: 'Please purchase more credits to validate fixes.',
             );
           },
         );
@@ -131,11 +131,10 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
           repositoryName: repositoryName,
           onInsufficientCredits: () {
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Insufficient credits. Please purchase more credits to validate implementations.'),
-                duration: Duration(seconds: 3),
-              ),
+            NotificationService.showWarning(
+              context,
+              title: 'Insufficient Credits',
+              message: 'Please purchase more credits to validate implementations.',
             );
           },
         );
@@ -291,24 +290,9 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
                     ClipboardData(text: result.repositoryUrl),
                   );
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(
-                              Icons.check_circle_rounded,
-                              color: AppColors.textPrimary,
-                            ),
-                            AppSpacing.horizontalGapMD,
-                            Text(
-                              'URL copied to clipboard!',
-                              style: AppTypography.bodyMedium,
-                            ),
-                          ],
-                        ),
-                        backgroundColor: AppColors.success,
-                        behavior: SnackBarBehavior.floating,
-                      ),
+                    NotificationService.showSuccess(
+                      context,
+                      message: 'Repository URL copied to clipboard!',
                     );
                   }
                 },

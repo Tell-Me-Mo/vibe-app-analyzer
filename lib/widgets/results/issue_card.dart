@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/security_issue.dart';
 import '../../models/validation_status.dart';
+import '../../services/notification_service.dart';
 import '../common/severity_badge.dart';
 import '../common/category_badge.dart';
 import '../common/validation_status_badge.dart';
@@ -185,11 +186,9 @@ class _IssueCardState extends State<IssueCard> {
                                 TextButton.icon(
                                   onPressed: () {
                                     Clipboard.setData(ClipboardData(text: widget.issue.claudeCodePrompt));
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Prompt copied to clipboard!'),
-                                        duration: Duration(seconds: 2),
-                                      ),
+                                    NotificationService.showSuccess(
+                                      context,
+                                      message: 'Prompt copied to clipboard!',
                                     );
                                   },
                                   icon: const Icon(Icons.copy, size: 14),
