@@ -239,6 +239,8 @@ class _MainContentState extends State<_MainContent> {
   Widget build(BuildContext context) {
     debugPrint('🟢 [MAIN CONTENT] Building _MainContent widget');
 
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -251,39 +253,73 @@ class _MainContentState extends State<_MainContent> {
             opacity: widget.fadeAnimation,
             child: SlideTransition(
               position: widget.slideAnimation,
-              child: Column(
-                children: [
-                  // Hero Section
-                  _buildModernHeroSection(),
-                  AppSpacing.verticalGapGiant,
-
-                  // Input Section
-                  _buildModernInputSection(),
-                  const SizedBox(height: 100),
-
-                  // History Section - Use Consumer only for this part
-                  Expanded(
-                    child: Consumer(
-                      builder: (context, ref, child) {
-                        final history = ref.watch(historyProvider);
-                        final allResults = [...DemoData.demoExamples, ...history];
-                        // Sort by timestamp, most recent first
-                        allResults.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-
-                        if (allResults.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-
-                        return _buildModernHistorySection(allResults);
-                      },
-                    ),
-                  ),
-                ],
-              ),
+              child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  // Mobile layout - entire page scrollable
+  Widget _buildMobileLayout() {
+    return Consumer(
+      builder: (context, ref, child) {
+        final history = ref.watch(historyProvider);
+        final allResults = [...DemoData.demoExamples, ...history];
+        // Sort by timestamp, most recent first
+        allResults.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              // Hero Section
+              _buildModernHeroSection(),
+              AppSpacing.verticalGapGiant,
+
+              // Input Section
+              _buildModernInputSection(),
+              const SizedBox(height: 100),
+
+              // History Section
+              if (allResults.isNotEmpty) _buildMobileHistorySection(allResults),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Desktop layout - fixed header with scrollable history
+  Widget _buildDesktopLayout() {
+    return Column(
+      children: [
+        // Hero Section
+        _buildModernHeroSection(),
+        AppSpacing.verticalGapGiant,
+
+        // Input Section
+        _buildModernInputSection(),
+        const SizedBox(height: 100),
+
+        // History Section - Use Consumer only for this part
+        Expanded(
+          child: Consumer(
+            builder: (context, ref, child) {
+              final history = ref.watch(historyProvider);
+              final allResults = [...DemoData.demoExamples, ...history];
+              // Sort by timestamp, most recent first
+              allResults.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+              if (allResults.isEmpty) {
+                return const SizedBox.shrink();
+              }
+
+              return _buildModernHistorySection(allResults);
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -430,6 +466,56 @@ class _MainContentState extends State<_MainContent> {
     );
   }
 
+  // Mobile history section - no Expanded, uses shrinkWrap
+  Widget _buildMobileHistorySection(List allResults) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        Row(
+          children: [
+            Container(
+              width: 4,
+              height: 28,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: AppColors.gradientPrimary,
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            AppSpacing.horizontalGapMD,
+            Text(
+              'Recent Analyses',
+              style: AppTypography.headlineMedium,
+            ),
+          ],
+        ),
+        AppSpacing.verticalGapXXL,
+
+        // List - using shrinkWrap for mobile scrolling
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: allResults.length,
+          itemBuilder: (context, index) {
+            final result = allResults[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+              child: HistoryCard(
+                result: result,
+                onTap: () => context.go('/results/${result.id}'),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  // Desktop history section - uses Expanded for scrollable area
   Widget _buildModernHistorySection(List allResults) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
