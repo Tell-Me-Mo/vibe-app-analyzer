@@ -119,9 +119,10 @@ class _GradientButtonState extends State<GradientButton>
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 child: Container(
                   padding: widget.padding ??
-                      const EdgeInsets.symmetric(
+                      EdgeInsets.symmetric(
                         horizontal: AppSpacing.xxl,
-                        vertical: AppSpacing.lg,
+                        // Only add vertical padding if no height is specified
+                        vertical: widget.height == null ? AppSpacing.lg : 0,
                       ),
                   child: widget.isLoading
                       ? Center(
@@ -154,14 +155,18 @@ class _GradientButtonState extends State<GradientButton>
                               ),
                               AppSpacing.horizontalGapMD,
                             ],
-                            Text(
-                              widget.text,
-                              style: AppTypography.buttonMedium.copyWith(
-                                color: widget.isOutlined
-                                    ? (isEnabled
-                                        ? gradientColors.first
-                                        : AppColors.textDisabled)
-                                    : AppColors.textPrimary,
+                            Flexible(
+                              child: Text(
+                                widget.text,
+                                style: AppTypography.buttonMedium.copyWith(
+                                  color: widget.isOutlined
+                                      ? (isEnabled
+                                          ? gradientColors.first
+                                          : AppColors.textDisabled)
+                                      : AppColors.textPrimary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
                             ),
                           ],

@@ -25,187 +25,205 @@ class HistoryCard extends StatelessWidget {
         ? AppColors.gradientSecurity
         : AppColors.gradientMonitoring;
 
-    return AnimatedCard(
-      onTap: onTap,
-      padding: AppSpacing.paddingXL,
-      child: Row(
-        children: [
-          // Modern gradient icon
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: gradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              boxShadow: AppElevation.glowSM(gradient.first),
-            ),
-            child: Icon(
-              isSecurityAnalysis
-                  ? Icons.security_rounded
-                  : Icons.show_chart_rounded,
-              color: AppColors.textPrimary,
-              size: 28,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return AnimatedCard(
+          onTap: onTap,
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 14 : 16,
+            vertical: isMobile ? 12 : 10,
           ),
-          AppSpacing.horizontalGapLG,
-
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title row with DEMO badge
-                Row(
-                  children: [
-                    if (result.isDemo) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm,
-                          vertical: AppSpacing.xs,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.warning.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(AppRadius.xs),
-                          border: Border.all(
-                            color: AppColors.warning.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Text(
-                          'DEMO',
-                          style: AppTypography.labelSmall.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.warning,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                      AppSpacing.horizontalGapSM,
-                    ],
-                    Expanded(
-                      child: Text(
-                        result.repositoryName,
-                        style: AppTypography.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+          child: Row(
+            children: [
+              // Compact gradient icon
+              Container(
+                width: isMobile ? 44 : 40,
+                height: isMobile ? 44 : 40,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: gradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: AppElevation.glowSM(gradient.first),
                 ),
-                AppSpacing.verticalGapSM,
+                child: Icon(
+                  isSecurityAnalysis
+                      ? Icons.security_rounded
+                      : Icons.show_chart_rounded,
+                  color: AppColors.textPrimary,
+                  size: isMobile ? 22 : 20,
+                ),
+              ),
+              SizedBox(width: isMobile ? 12 : 14),
 
-                // Badges and metadata row
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.xs,
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Analysis Type Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: gradient.map((c) => c.withValues(alpha: 0.15)).toList(),
-                        ),
-                        borderRadius: BorderRadius.circular(AppRadius.xs),
-                        border: Border.all(
-                          color: gradient.first.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Text(
-                        result.analysisType.displayName,
-                        style: AppTypography.labelSmall.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: gradient.first,
-                        ),
-                      ),
-                    ),
-
-                    // Analysis Mode Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: (result.analysisMode == AnalysisMode.staticCode
-                                ? AppColors.primaryPurple
-                                : AppColors.success)
-                            .withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(AppRadius.xs),
-                        border: Border.all(
-                          color: (result.analysisMode == AnalysisMode.staticCode
-                                  ? AppColors.primaryPurple
-                                  : AppColors.success)
-                              .withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            result.analysisMode.icon,
-                            style: AppTypography.labelSmall,
-                          ),
-                          AppSpacing.horizontalGapXS,
-                          Text(
-                            result.analysisMode.shortLabel,
-                            style: AppTypography.labelSmall.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: result.analysisMode == AnalysisMode.staticCode
-                                  ? AppColors.primaryPurple
-                                  : AppColors.success,
+                    // Title row with badges
+                    Row(
+                      children: [
+                        if (result.isDemo) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: AppColors.warning.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Text(
+                              'DEMO',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.warning,
+                                fontSize: 9,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
+                          const SizedBox(width: 6),
                         ],
-                      ),
+                        Expanded(
+                          child: Text(
+                            result.repositoryName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 6),
 
-                    // Item count
-                    Text(
-                      '${result.summary.total} items',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.textMuted,
-                      ),
-                    ),
+                    // Badges and metadata row
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        // Analysis Type Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: gradient.map((c) => c.withValues(alpha: 0.15)).toList(),
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: gradient.first.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            result.analysisType.displayName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: gradient.first,
+                              fontSize: 10,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
 
-                    // Separator
-                    Text(
-                      '•',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.textDisabled,
-                      ),
-                    ),
+                        // Analysis Mode Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: (result.analysisMode == AnalysisMode.staticCode
+                                    ? AppColors.primaryPurple
+                                    : AppColors.success)
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: (result.analysisMode == AnalysisMode.staticCode
+                                      ? AppColors.primaryPurple
+                                      : AppColors.success)
+                                  .withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                result.analysisMode.icon,
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                result.analysisMode.shortLabel,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: result.analysisMode == AnalysisMode.staticCode
+                                      ? AppColors.primaryPurple
+                                      : AppColors.success,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
 
-                    // Date
-                    Text(
-                      dateFormat.format(result.timestamp),
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.textMuted,
-                      ),
+                        // Item count
+                        Text(
+                          '${result.summary.total} items',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 11,
+                          ),
+                        ),
+
+                        // Separator
+                        Text(
+                          '•',
+                          style: TextStyle(
+                            color: AppColors.textDisabled,
+                            fontSize: 11,
+                          ),
+                        ),
+
+                        // Date
+                        Text(
+                          dateFormat.format(result.timestamp),
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          AppSpacing.horizontalGapMD,
+              ),
+              const SizedBox(width: 8),
 
-          // Modern arrow icon
-          Icon(
-            Icons.arrow_forward_ios_rounded,
-            size: 16,
-            color: AppColors.textMuted,
+              // Compact arrow icon
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: AppColors.textMuted,
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

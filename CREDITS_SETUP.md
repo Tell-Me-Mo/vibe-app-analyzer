@@ -7,7 +7,7 @@ This guide will help you set up the credits-based system with Supabase authentic
 The app now includes:
 - **Credits System**: 10 free credits on first launch, 5 credits per analysis
 - **Authentication**: Sign in with Email, Google, or Apple (powered by Supabase)
-- **Payments**: Purchase credit packages via RevenueCat (iOS/Android/Web)
+- **Payments**: Purchase credit packages via RevenueCat (Web only with Paddle)
 - **User Profiles**: Synced across devices with credit balance
 
 ## Technical Stack
@@ -15,7 +15,8 @@ The app now includes:
 - **RevenueCat SDK**: `purchases_flutter: ^9.9.4` (with Flutter Web beta support)
 - **Supabase**: `supabase_flutter: ^2.10.3` (latest stable with idempotent initialization)
 - **Crypto**: `crypto: ^3.0.6` (for secure Apple Sign In nonce generation)
-- **Platform Support**: iOS 11.0+, Android 5.0+, macOS 10.14+, Web (all browsers)
+- **Payment Provider**: Paddle (for web payments)
+- **Platform Support**: Web (all browsers)
 
 ## Supabase Setup
 
@@ -133,113 +134,119 @@ Create the following products in RevenueCat dashboard:
 
 **Important**: The product IDs must match exactly as shown above (they're referenced in `lib/models/credit_package.dart:87-96`).
 
-### 3. Platform-Specific Setup
+### 3. Web Setup with Paddle
 
-#### iOS/macOS Setup
+**Step 1: Paddle Account**
+1. Create a [Paddle](https://www.paddle.com) account if you don't have one
+2. Complete account verification and seller onboarding
+3. Navigate to the Paddle dashboard
+4. Note your Paddle Vendor ID and API credentials
 
-**Step 1: App Store Connect Configuration**
-1. Log in to [App Store Connect](https://appstoreconnect.apple.com)
-2. Go to your app → Features → In-App Purchases
-3. Create 4 new in-app purchases (Non-Consumable):
-   - Product ID: `starter_pack`, Price: $4.99
-   - Product ID: `popular_pack`, Price: $9.99
-   - Product ID: `professional_pack`, Price: $19.99
-   - Product ID: `enterprise_pack`, Price: $39.99
-4. Fill in the required metadata for each product
-5. Submit for review
+**Step 2: Add Web Billing App in RevenueCat**
+1. Log into your [RevenueCat dashboard](https://app.revenuecat.com)
+2. Select your project
+3. Go to **Apps & providers** (left sidebar)
+4. Click **"+ New"** button
+5. Select **"Web"** or **"Web Billing"** from the platform options
+6. Give your web app a name (e.g., "VibeCheck Web")
 
-**Step 2: Xcode Configuration**
-1. Open `ios/Runner.xcworkspace` in Xcode
-2. Select the Runner target
-3. Go to "Signing & Capabilities" tab
-4. Click "+ Capability" and add "In-App Purchase"
-5. Ensure your Bundle Identifier matches App Store Connect
+**Step 3: Connect Paddle to RevenueCat**
+1. In the Web Billing app configuration screen:
+   - Select **Paddle** as your payment provider
+   - Enter your **Paddle Vendor ID**
+   - Add your **Paddle API credentials** (Auth Code or API Key)
+   - Copy the webhook URL provided by RevenueCat
+2. Go back to your Paddle dashboard:
+   - Navigate to Developer Tools → Webhooks
+   - Add the RevenueCat webhook URL
+   - Enable necessary webhook events (subscriptions, payments, etc.)
+3. Choose your environment:
+   - **Sandbox** for testing
+   - **Production** for live payments
 
-**Step 3: RevenueCat Integration**
-1. In RevenueCat dashboard, go to Project Settings → Apps
-2. Click "Add App" → iOS
-3. Enter your Bundle ID
-4. Select "App Store"
-5. Enter your App Store Connect credentials (App-Specific Shared Secret)
-6. Copy your **iOS API Key** (format: `appl_xxxxxxxxxxxxx`)
+**Step 4: Get Your RevenueCat Public API Keys**
 
-**Step 4: Minimum iOS Version**
-Ensure `ios/Podfile` has:
-```ruby
-platform :ios, '11.0'
+After creating your Web Billing app, RevenueCat automatically generates **two public API keys**:
+
+**Where to find them:**
+- Option 1: Go to **Project Settings → API Keys** → look for your Web app keys
+- Option 2: Go to **Apps & providers** → click on your Web Billing app → view the API key section
+
+You'll see:
+1. **Production Key**: `rcb_xxxxxxxxxxxxx`
+   - Use this for your production web app
+   - Works with Paddle production environment
+   - Safe to expose in client-side code
+
+2. **Sandbox Key**: `rcb_sb_xxxxxxxxxxxxx`
+   - Use this for development and testing
+   - Works with Paddle sandbox/test environment
+   - **Never use in production!**
+
+**To verify your key is working:**
+```bash
+curl https://api.revenuecat.com/rcbilling/v1/branding \
+  -H 'Authorization: Bearer rcb_your_key_here'
 ```
+Should return a 200 response.
 
-#### Android Setup
-
-**Step 1: Google Play Console Configuration**
-1. Log in to [Google Play Console](https://play.google.com/console)
-2. Select your app → Monetize → In-app products
-3. Create 4 new managed products:
-   - Product ID: `starter_pack`, Price: $4.99
-   - Product ID: `popular_pack`, Price: $9.99
-   - Product ID: `professional_pack`, Price: $19.99
-   - Product ID: `enterprise_pack`, Price: $39.99
-4. Activate each product
-
-**Step 2: Android Manifest Configuration** ✅
-The following has been pre-configured in `android/app/src/main/AndroidManifest.xml`:
-- ✅ `BILLING` permission added (line 3)
-- ✅ `launchMode` set to `singleTop` (line 9)
-
-**Step 3: RevenueCat Integration**
-1. In RevenueCat dashboard, go to Project Settings → Apps
-2. Click "Add App" → Android
-3. Enter your Package Name (e.g., `com.vibecheck.app`)
-4. Select "Google Play"
-5. Upload your Google Play service credentials JSON
-6. Copy your **Android API Key** (format: `goog_xxxxxxxxxxxxx`)
-
-#### Web Setup (Beta)
-
-**Step 1: Stripe Account**
-1. Create a [Stripe](https://stripe.com) account if you don't have one
-2. Complete account verification
-3. Get your Stripe API keys from the dashboard
-
-**Step 2: RevenueCat Web Billing**
-1. In RevenueCat dashboard, go to Project Settings → Apps
-2. Click "Add App" → Web
-3. Connect your Stripe account
-4. Configure your products in the Web Billing section
-5. Copy your **Web API Key** (format: `rcb_xxxxxxxxxxxxx` for production or `rcb_sb_xxxxxxxxxxxxx` for sandbox)
-
-**Important**: Web API keys have a specific format:
-- Production: `rcb_xxxxxxxxxxxxx`
-- Sandbox: `rcb_sb_xxxxxxxxxxxxx`
-
-**Step 3: Stripe Product Configuration**
-Create corresponding products in Stripe with the same pricing:
+**Step 5: Paddle Product Configuration**
+Create corresponding products in Paddle with the same pricing:
 - starter_pack: $4.99
 - popular_pack: $9.99
 - professional_pack: $19.99
 - enterprise_pack: $39.99
 
-### 4. Update .env File
+Make sure the product IDs in Paddle match the ones defined in `lib/models/credit_package.dart`.
 
-Create or update your `.env` file in the project root:
+### 4. Configure API Keys
+
+You have several options for managing API keys in Flutter Web:
+
+#### Option A: Environment Variables at Build Time (Recommended for Production)
+
+Pass keys during build without storing in files:
+
+```bash
+flutter build web --release \
+  --dart-define=SUPABASE_URL=https://your-project-id.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=your-anon-key \
+  --dart-define=REVENUECAT_API_KEY_WEB=rcb_your_web_key
+```
+
+Then access in code:
+```dart
+const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+const revenueCatKey = String.fromEnvironment('REVENUECAT_API_KEY_WEB');
+```
+
+#### Option B: .env File (Simpler for Development)
+
+Create a `.env` file in the project root:
 
 ```env
-# Supabase Configuration
+# Supabase Configuration (anon key is safe for client-side)
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_ANON_KEY=your-anon-key-here
 
-# RevenueCat API Keys
-# iOS/macOS: appl_xxxxxxxxxxxxx
-REVENUECAT_API_KEY_IOS=appl_your_ios_key_here
-
-# Android: goog_xxxxxxxxxxxxx
-REVENUECAT_API_KEY_ANDROID=goog_your_android_key_here
-
+# RevenueCat Public API Key (safe for client-side)
 # Web: rcb_xxxxxxxxxxxxx (production) or rcb_sb_xxxxxxxxxxxxx (sandbox)
 REVENUECAT_API_KEY_WEB=rcb_your_web_key_here
 ```
 
-**Security Note**: Never commit the `.env` file to version control. It's already in `.gitignore`.
+**Security Notes**:
+- ✅ The `SUPABASE_ANON_KEY` is a **public key** designed for client-side use (protected by RLS)
+- ✅ The RevenueCat Web key (`rcb_` prefix) is a **public key** safe for client exposure
+- ⚠️ Never use Supabase `service_role` key on the client side
+- ⚠️ Never use RevenueCat secret API keys on the client side
+- ✅ Add `.env` to `.gitignore` to avoid committing keys to version control
+
+**What makes these keys safe?**
+- These are publishable/public keys with limited permissions
+- They can only perform client-side operations (auth, purchases, queries)
+- Server admin operations require separate secret keys
+- Similar security model to Stripe publishable keys or Firebase config
 
 ## Credit Packages
 
@@ -311,38 +318,19 @@ Each analysis costs 5 credits.
 3. Test purchasing a package (use RevenueCat sandbox mode)
 4. Verify credits are added after purchase
 
-## Platform-Specific Build Instructions
-
-### iOS/macOS
-```bash
-# Install dependencies
-cd ios && pod install && cd ..
-
-# Run on iOS
-flutter run -d ios
-
-# Build for release
-flutter build ios --release
-```
-
-### Android
-```bash
-# Run on Android
-flutter run -d android
-
-# Build for release
-flutter build apk --release
-# or
-flutter build appbundle --release
-```
+## Build Instructions
 
 ### Web
 ```bash
-# Run on Web
+# Run on Web (development)
 flutter run -d chrome
 
 # Build for production
 flutter build web --release
+
+# Serve locally for testing
+cd build/web
+python3 -m http.server 8000
 ```
 
 ## Troubleshooting
@@ -363,29 +351,17 @@ flutter build web --release
 
 ### RevenueCat Payment Issues
 
-**iOS Specific:**
-- ✅ Verify "In-App Purchase" capability is enabled in Xcode
-- ✅ Ensure Bundle ID matches App Store Connect
-- ✅ Check App Store Connect for product status (must be "Ready to Submit")
-- ✅ Test with sandbox account in iOS Settings
-- ✅ Verify App-Specific Shared Secret is configured
-
-**Android Specific:**
-- ✅ Verify `BILLING` permission is in `AndroidManifest.xml`
-- ✅ Ensure Package Name matches Google Play Console
-- ✅ Check Google Play Console for product status (must be "Active")
-- ✅ Upload service account JSON to RevenueCat
-- ✅ Test with Google Play Console test account
-
-**Web Specific:**
-- ✅ Verify Web API key format (`rcb_` prefix)
-- ✅ Check Stripe webhook configuration
-- ✅ Ensure Stripe products match RevenueCat configuration
+**Web + Paddle:**
+- ✅ Verify Web API key format (`rcb_` prefix for production, `rcb_sb_` for sandbox)
+- ✅ Check Paddle webhook configuration in Paddle dashboard
+- ✅ Ensure Paddle products match RevenueCat configuration
 - ✅ Test in sandbox mode first (`rcb_sb_` key)
 - ✅ Check browser console for errors
+- ✅ Verify Paddle seller account is fully verified
+- ✅ Confirm products are active in Paddle dashboard
 
 **General:**
-- ✅ Verify RevenueCat API keys in `.env`
+- ✅ Verify RevenueCat Web API key in `.env`
 - ✅ Check RevenueCat dashboard → Customer History for transaction logs
 - ✅ Ensure products are properly configured with matching IDs
 - ✅ Test in sandbox/test mode before production
@@ -403,11 +379,8 @@ If credits are not granted after purchase:
 flutter clean
 flutter pub get
 
-# iOS specific
-cd ios && pod install && cd ..
-
-# Regenerate platform files
-flutter create .
+# Rebuild web
+flutter build web --release
 ```
 
 ## Testing Checklist
@@ -429,32 +402,35 @@ flutter create .
   - [ ] Sign out works
 
 - [ ] **Payments (Sandbox/Test)**
-  - [ ] iOS: Test with sandbox account
-  - [ ] Android: Test with Google Play test account
-  - [ ] Web: Test with Stripe test mode
+  - [ ] Web: Test with Paddle sandbox mode
   - [ ] Credits are added after purchase
   - [ ] Credits sync to database for authenticated users
   - [ ] Purchase history appears in RevenueCat dashboard
+  - [ ] Paddle checkout flow works correctly in browser
 
-- [ ] **Cross-Platform Sync**
-  - [ ] Sign in on Device A
-  - [ ] Purchase credits on Device A
-  - [ ] Sign in on Device B with same account
-  - [ ] Credits appear on Device B
+- [ ] **Cross-Browser Sync**
+  - [ ] Sign in on Browser A (e.g., Chrome)
+  - [ ] Purchase credits on Browser A
+  - [ ] Sign in on Browser B (e.g., Firefox) with same account
+  - [ ] Credits appear on Browser B
+  - [ ] Test on different devices (desktop, mobile web)
 
 ## Notes
 
 - ✅ Credits never expire
 - ✅ Minimum purchase is 20 credits ($4.99)
 - ✅ Guest users get 10 free credits (2 analyses) without signing in
-- ✅ Authenticated users can purchase credits and sync across all devices
+- ✅ Authenticated users can purchase credits and sync across all browsers/devices
 - ✅ RevenueCat free tier: $0-10k monthly tracked revenue
 - ✅ Product IDs are centrally managed in `lib/models/credit_package.dart`
-- ✅ All platform configurations are complete (Android permissions, iOS capabilities)
+- ✅ Web-only deployment with Paddle as payment provider
+- ✅ Supports all modern browsers (Chrome, Firefox, Safari, Edge)
 
 ## Support & Resources
 
 - **RevenueCat Docs**: https://www.revenuecat.com/docs
 - **RevenueCat Flutter Guide**: https://www.revenuecat.com/docs/getting-started/installation/flutter
+- **RevenueCat + Paddle Integration**: https://www.revenuecat.com/docs/paddle
+- **Paddle Docs**: https://developer.paddle.com/
 - **Supabase Docs**: https://supabase.com/docs
 - **Flutter Web Support**: https://docs.flutter.dev/platform-integration/web

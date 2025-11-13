@@ -12,7 +12,7 @@ class ValidationStatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: _getBackgroundColor(status),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(
           color: _getBorderColor(status),
           width: 1,
@@ -32,6 +32,7 @@ class ValidationStatusBadge extends StatelessWidget {
               color: _getTextColor(status),
               fontSize: 11,
               fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
             ),
           ),
         ],
