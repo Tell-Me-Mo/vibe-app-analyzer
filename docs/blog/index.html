@@ -206,19 +206,55 @@
 
         /* Footer */
         footer {
-            padding: 60px 24px 30px;
-            background: var(--bg-secondary);
+            padding: 64px 24px 32px;
+            background: var(--bg-primary);
             border-top: 1px solid var(--glass-border);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 48px;
+            margin-bottom: 48px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
             text-align: center;
         }
 
-        footer a {
-            color: var(--accent-primary);
-            text-decoration: none;
+        .footer-section h4 {
+            margin-bottom: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
         }
 
-        footer a:hover {
-            text-decoration: underline;
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 12px;
+            transition: color 0.3s ease;
+            font-size: 15px;
+        }
+
+        .footer-section a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            font-size: 14px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         /* Responsive */
@@ -311,7 +347,36 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2025 VibeCheck. All rights reserved. | <a href="../">Home</a> | <a href="../#features">Features</a> | <a href="../#pricing">Pricing</a></p>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="../#features">Features</a></li>
+                        <li><a href="../#pricing">Pricing</a></li>
+                        <li><a href="../#how-it-works">How It Works</a></li>
+                        <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer">Launch App</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="./">Blog</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="../privacy.html">Privacy Policy</a></li>
+                        <li><a href="../terms.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 VibeCheck. All rights reserved.</p>
+            </div>
         </div>
     </footer>
 </body>

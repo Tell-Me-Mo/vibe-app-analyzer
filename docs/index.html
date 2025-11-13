@@ -1176,9 +1176,13 @@
 
         .footer-content {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: var(--spacing-huge);
             margin-bottom: var(--spacing-huge);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
         }
 
         .footer-section h4 {
@@ -1194,7 +1198,7 @@
         .footer-section a {
             color: var(--text-tertiary);
             text-decoration: none;
-            display: block;
+            display: inline-block;
             margin-bottom: var(--spacing-md);
             transition: color 0.3s ease;
             font-size: 15px;
@@ -1418,7 +1422,7 @@
                     <li><a href="#how-it-works">How It Works</a></li>
                     <li><a href="#pricing">Pricing</a></li>
                     <li><a href="blog/">Blog</a></li>
-                    <li><a href="#cta" class="gradient-btn" style="padding: 10px 24px; font-size: 14px; color: white; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Get Started</a></li>
+                    <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="gradient-btn" style="padding: 10px 24px; font-size: 14px; color: white; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Get Started</a></li>
                 </ul>
                 <button class="mobile-menu-btn" aria-label="Menu">☰</button>
             </nav>
@@ -1432,70 +1436,62 @@
                 <h1>Check the vibe of your AI-generated code</h1>
                 <p class="hero-subtitle">Analyze GitHub repositories and live applications for security vulnerabilities and monitoring gaps. Get AI-powered fixes instantly.</p>
                 <div class="cta-buttons">
-                    <a href="#cta" class="gradient-btn">Start Free Analysis →</a>
+                    <a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="gradient-btn">Start Free Analysis →</a>
                 </div>
             </div>
 
             <div class="hero-mockup">
-                <div class="mockup-wrapper">
-                    <div class="mockup-browser">
-                        <div class="browser-header">
-                            <div class="browser-dot red"></div>
-                            <div class="browser-dot yellow"></div>
-                            <div class="browser-dot green"></div>
+                <div class="demo-window">
+                    <div class="demo-header">
+                        <div class="demo-dot red"></div>
+                        <div class="demo-dot yellow"></div>
+                        <div class="demo-dot green"></div>
+                    </div>
+                    <div class="demo-content" style="min-height: auto;">
+                        <div class="demo-results-header">
+                            <div class="demo-results-title">Analysis Complete</div>
+                            <div class="demo-results-stats">
+                                <div class="demo-stat-item">
+                                    <span>⚠️</span>
+                                    <span>3 Issues Found</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="browser-content">
-                            <div class="mock-header">
-                                <div class="mock-title">VibeCheck Analysis</div>
-                                <div class="mock-url">github.com/user/my-app</div>
-                            </div>
 
-                            <div class="mock-stats">
-                                <div class="mock-stat">
-                                    <span class="mock-stat-icon">⚠️</span>
-                                    <span class="mock-stat-text">5 Security Issues</span>
+                        <div class="demo-issue-card critical" style="animation: none; opacity: 1;">
+                            <div class="demo-issue-header">
+                                <div class="demo-issue-title">
+                                    <span>🔴</span>
+                                    <span>SQL Injection Vulnerability</span>
                                 </div>
-                                <div class="mock-stat">
-                                    <span class="mock-stat-icon">📊</span>
-                                    <span class="mock-stat-text">3 Monitoring Gaps</span>
-                                </div>
+                                <span class="demo-badge critical">Critical</span>
                             </div>
+                            <div class="demo-issue-desc">User input not sanitized in database queries</div>
+                            <button class="demo-fix-button">Get Fix →</button>
+                        </div>
 
-                            <div class="mock-issue critical">
-                                <div class="mock-issue-header">
-                                    <div class="mock-issue-title">
-                                        <span class="mock-issue-icon">🔴</span>
-                                        <span>SQL Injection Vulnerability</span>
-                                    </div>
-                                    <span class="mock-issue-badge critical">Critical</span>
+                        <div class="demo-issue-card warning" style="animation: none; opacity: 1;">
+                            <div class="demo-issue-header">
+                                <div class="demo-issue-title">
+                                    <span>🟡</span>
+                                    <span>Missing CSRF Protection</span>
                                 </div>
-                                <div class="mock-issue-desc">User input not sanitized in database queries</div>
-                                <button class="mock-fix-btn">Get Fix →</button>
+                                <span class="demo-badge warning">Medium</span>
                             </div>
+                            <div class="demo-issue-desc">Forms lack CSRF tokens for POST requests</div>
+                            <button class="demo-fix-button">Get Fix →</button>
+                        </div>
 
-                            <div class="mock-issue warning">
-                                <div class="mock-issue-header">
-                                    <div class="mock-issue-title">
-                                        <span class="mock-issue-icon">🟡</span>
-                                        <span>Missing CSRF Protection</span>
-                                    </div>
-                                    <span class="mock-issue-badge warning">Medium</span>
+                        <div class="demo-issue-card warning" style="animation: none; opacity: 1;">
+                            <div class="demo-issue-header">
+                                <div class="demo-issue-title">
+                                    <span>📊</span>
+                                    <span>No Error Tracking</span>
                                 </div>
-                                <div class="mock-issue-desc">Forms lack CSRF tokens for POST requests</div>
-                                <button class="mock-fix-btn">Get Fix →</button>
+                                <span class="demo-badge warning">Monitoring</span>
                             </div>
-
-                            <div class="mock-issue success">
-                                <div class="mock-issue-header">
-                                    <div class="mock-issue-title">
-                                        <span class="mock-issue-icon">🟢</span>
-                                        <span>No Error Tracking</span>
-                                    </div>
-                                    <span class="mock-issue-badge warning">Monitoring</span>
-                                </div>
-                                <div class="mock-issue-desc">Missing Sentry or error monitoring service</div>
-                                <button class="mock-fix-btn">Get Fix →</button>
-                            </div>
+                            <div class="demo-issue-desc">Missing Sentry or error monitoring service</div>
+                            <button class="demo-fix-button">Get Fix →</button>
                         </div>
                     </div>
                 </div>
@@ -1727,7 +1723,7 @@
             <h2>Ready to secure your code?</h2>
             <p>Start with 10 free credits. No credit card required. Analyze your first repository in under 60 seconds.</p>
             <div class="cta-buttons" style="justify-content: center;">
-                <a href="https://app.vibecheck.dev" class="gradient-btn">Launch VibeCheck App →</a>
+                <a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="gradient-btn">Launch VibeCheck App →</a>
             </div>
         </div>
     </section>
@@ -1742,16 +1738,13 @@
                         <li><a href="#features">Features</a></li>
                         <li><a href="#pricing">Pricing</a></li>
                         <li><a href="#how-it-works">How It Works</a></li>
-                        <li><a href="https://app.vibecheck.dev">Launch App</a></li>
+                        <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer">Launch App</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-section">
                     <h4>Resources</h4>
                     <ul>
-                        <li><a href="https://github.com/yourusername/vibe-app-analyzer">GitHub</a></li>
-                        <li><a href="https://github.com/yourusername/vibe-app-analyzer/blob/main/README.md">Documentation</a></li>
-                        <li><a href="https://github.com/yourusername/vibe-app-analyzer/issues">Support</a></li>
                         <li><a href="blog/">Blog</a></li>
                     </ul>
                 </div>
@@ -1759,9 +1752,8 @@
                 <div class="footer-section">
                     <h4>Company</h4>
                     <ul>
-                        <li><a href="#cta">About</a></li>
-                        <li><a href="https://github.com/yourusername/vibe-app-analyzer">Privacy Policy</a></li>
-                        <li><a href="https://github.com/yourusername/vibe-app-analyzer">Terms of Service</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms of Service</a></li>
                     </ul>
                 </div>
             </div>

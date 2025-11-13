@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - VibeCheck</title>
+    <meta name="description" content="Privacy Policy for VibeCheck - Learn how we collect, use, and protect your data.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #151623;
+            --bg-tertiary: #1c1d2e;
+            --surface-glass: rgba(255, 255, 255, 0.05);
+            --border-default: rgba(255, 255, 255, 0.1);
+            --primary-blue: #6366F1;
+            --primary-purple: #8B5CF6;
+            --text-primary: #F9FAFB;
+            --text-secondary: #D1D5DB;
+            --text-tertiary: #9CA3AF;
+            --text-muted: #6B7280;
+            --gradient-primary: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+            --spacing-xl: 24px;
+            --spacing-xxl: 32px;
+            --spacing-huge: 48px;
+            --spacing-giant: 64px;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: var(--spacing-lg) 0;
+            background: rgba(15, 15, 26, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-xl);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: var(--spacing-xxl);
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .gradient-btn {
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            background: var(--gradient-primary);
+            color: white !important;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.4);
+            color: white !important;
+            text-decoration: none;
+        }
+
+        /* Content */
+        .content {
+            max-width: 900px;
+            margin: 120px auto 80px;
+            padding: 0 var(--spacing-xl);
+        }
+
+        h1 {
+            font-size: clamp(36px, 5vw, 48px);
+            font-weight: 800;
+            margin-bottom: var(--spacing-xl);
+            letter-spacing: -1px;
+        }
+
+        .last-updated {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: var(--spacing-huge);
+        }
+
+        h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: var(--spacing-huge);
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-primary);
+        }
+
+        h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: var(--spacing-xl);
+            margin-bottom: var(--spacing-md);
+            color: var(--text-secondary);
+        }
+
+        p {
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-lg);
+            line-height: 1.8;
+        }
+
+        ul, ol {
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-lg);
+            padding-left: var(--spacing-xl);
+            line-height: 1.8;
+        }
+
+        li {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        strong {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--primary-purple);
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            padding: var(--spacing-giant) var(--spacing-xl) var(--spacing-xxl);
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-default);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-huge);
+            margin-bottom: var(--spacing-huge);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        .footer-section h4 {
+            margin-bottom: var(--spacing-lg);
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-section a {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: var(--spacing-md);
+            transition: color 0.3s ease;
+            font-size: 15px;
+        }
+
+        .footer-section a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: var(--spacing-xl);
+            border-top: 1px solid var(--border-default);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-xxl);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav>
+                <a href="./" class="logo">VibeCheck</a>
+                <ul class="nav-links">
+                    <li><a href="./#features">Features</a></li>
+                    <li><a href="./#how-it-works">How It Works</a></li>
+                    <li><a href="./#pricing">Pricing</a></li>
+                    <li><a href="./blog/">Blog</a></li>
+                    <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="gradient-btn">Get Started</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+        <h1>Privacy Policy</h1>
+        <p class="last-updated">Last Updated: November 13, 2025</p>
+
+        <p>Welcome to VibeCheck. We respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information when you use our service.</p>
+
+        <h2>1. Information We Collect</h2>
+
+        <h3>1.1 Information You Provide</h3>
+        <ul>
+            <li><strong>Account Information:</strong> Email address, name, and authentication credentials</li>
+            <li><strong>Repository URLs:</strong> GitHub repository links or live application URLs you submit for analysis</li>
+            <li><strong>Payment Information:</strong> Processed securely through third-party payment processors (we do not store credit card details)</li>
+        </ul>
+
+        <h3>1.2 Automatically Collected Information</h3>
+        <ul>
+            <li><strong>Usage Data:</strong> Analysis history, credits used, and feature interactions</li>
+            <li><strong>Device Information:</strong> Browser type, operating system, and device identifiers</li>
+            <li><strong>Analytics:</strong> Anonymous usage statistics to improve our service</li>
+        </ul>
+
+        <h2>2. How We Use Your Information</h2>
+        <p>We use the collected information to:</p>
+        <ul>
+            <li>Provide and maintain the VibeCheck service</li>
+            <li>Analyze code repositories for security vulnerabilities and monitoring gaps</li>
+            <li>Process payments and manage your credit balance</li>
+            <li>Send service updates and security notifications</li>
+            <li>Improve our AI analysis algorithms and features</li>
+            <li>Comply with legal obligations</li>
+        </ul>
+
+        <h2>3. Data Security</h2>
+        <p>We implement industry-standard security measures to protect your data:</p>
+        <ul>
+            <li>Encryption of data in transit and at rest</li>
+            <li>Regular security audits and vulnerability assessments</li>
+            <li>Access controls and authentication mechanisms</li>
+            <li>Secure API integrations with third-party services</li>
+        </ul>
+
+        <h2>4. Data Sharing and Third Parties</h2>
+        <p>We do not sell your personal information. We may share data with:</p>
+        <ul>
+            <li><strong>AI Service Providers:</strong> OpenAI (GPT-4o mini) for code analysis</li>
+            <li><strong>Payment Processors:</strong> For secure payment processing</li>
+            <li><strong>Cloud Infrastructure:</strong> Firebase and other hosting services</li>
+            <li><strong>Analytics Providers:</strong> For anonymous usage analytics</li>
+        </ul>
+
+        <h2>5. Code Repository Access</h2>
+        <p>When you provide a GitHub repository URL:</p>
+        <ul>
+            <li>We only access publicly available repositories or those you explicitly authorize</li>
+            <li>Code is analyzed temporarily and not permanently stored</li>
+            <li>Analysis results are associated with your account</li>
+            <li>We do not share your code with third parties except AI analysis providers</li>
+        </ul>
+
+        <h2>6. Your Rights</h2>
+        <p>You have the right to:</p>
+        <ul>
+            <li>Access your personal data</li>
+            <li>Request data correction or deletion</li>
+            <li>Export your analysis history</li>
+            <li>Opt-out of marketing communications</li>
+            <li>Withdraw consent for data processing</li>
+        </ul>
+
+        <h2>7. Data Retention</h2>
+        <p>We retain your data for as long as your account is active. Upon account deletion:</p>
+        <ul>
+            <li>Personal information is deleted within 30 days</li>
+            <li>Analysis history may be retained in anonymized form for service improvement</li>
+            <li>Financial records are retained as required by law</li>
+        </ul>
+
+        <h2>8. Cookies and Tracking</h2>
+        <p>We use cookies and similar technologies for:</p>
+        <ul>
+            <li>Session management and authentication</li>
+            <li>Analytics and performance monitoring</li>
+            <li>User preferences and settings</li>
+        </ul>
+        <p>You can control cookies through your browser settings.</p>
+
+        <h2>9. Children's Privacy</h2>
+        <p>VibeCheck is not intended for users under 13 years of age. We do not knowingly collect personal information from children.</p>
+
+        <h2>10. International Data Transfers</h2>
+        <p>Your data may be processed in countries outside your jurisdiction. We ensure appropriate safeguards are in place to protect your information in accordance with this privacy policy.</p>
+
+        <h2>11. Changes to This Policy</h2>
+        <p>We may update this privacy policy periodically. We will notify you of significant changes via email or through the service. Continued use after changes constitutes acceptance of the updated policy.</p>
+
+        <h2>12. Contact Us</h2>
+        <p>For privacy-related questions or requests, please contact us at:</p>
+        <p><strong>Email:</strong> privacy@vibecheck.dev</p>
+
+        <h2>13. GDPR Compliance</h2>
+        <p>For users in the European Union, we comply with GDPR requirements including:</p>
+        <ul>
+            <li>Lawful basis for data processing</li>
+            <li>Data portability rights</li>
+            <li>Right to be forgotten</li>
+            <li>Data breach notifications</li>
+        </ul>
+
+        <h2>14. California Privacy Rights</h2>
+        <p>California residents have additional rights under CCPA including the right to know what personal information is collected and the right to opt-out of sale (though we do not sell personal information).</p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="./#features">Features</a></li>
+                        <li><a href="./#pricing">Pricing</a></li>
+                        <li><a href="./#how-it-works">How It Works</a></li>
+                        <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer">Launch App</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="./blog/">Blog</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="./privacy.html">Privacy Policy</a></li>
+                        <li><a href="./terms.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 VibeCheck. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
