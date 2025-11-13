@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:uuid/uuid.dart';
 import '../models/analysis_result.dart';
@@ -13,20 +12,11 @@ class StorageService {
   StorageService._internal();
 
   late SharedPreferences _prefs;
-  late FlutterSecureStorage _secureStorage;
   encrypt.Encrypter? _encrypter;
   encrypt.IV? _iv;
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    _secureStorage = const FlutterSecureStorage(
-      aOptions: AndroidOptions(
-        encryptedSharedPreferences: true,
-      ),
-      iOptions: IOSOptions(
-        accessibility: KeychainAccessibility.first_unlock,
-      ),
-    );
 
     // Initialize encryption for sensitive data
     await _initializeEncryption();
@@ -35,18 +25,18 @@ class StorageService {
   /// Initialize encryption key for analysis data
   Future<void> _initializeEncryption() async {
     try {
-      // Try to retrieve existing encryption key
-      String? keyString = await _secureStorage.read(key: 'encryption_key');
-      String? ivString = await _secureStorage.read(key: 'encryption_iv');
+      // Try to retrieve existing encryption key from SharedPreferences
+      String? keyString = _prefs.getString('encryption_key');
+      String? ivString = _prefs.getString('encryption_iv');
 
       if (keyString == null || ivString == null) {
         // Generate new encryption key and IV
         final key = encrypt.Key.fromSecureRandom(32); // 256-bit key
         final iv = encrypt.IV.fromSecureRandom(16); // 128-bit IV
 
-        // Store securely
-        await _secureStorage.write(key: 'encryption_key', value: base64Encode(key.bytes));
-        await _secureStorage.write(key: 'encryption_iv', value: base64Encode(iv.bytes));
+        // Store in SharedPreferences
+        await _prefs.setString('encryption_key', base64Encode(key.bytes));
+        await _prefs.setString('encryption_iv', base64Encode(iv.bytes));
 
         _encrypter = encrypt.Encrypter(encrypt.AES(key));
         _iv = iv;
