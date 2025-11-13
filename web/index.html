@@ -32,8 +32,114 @@
 
   <title>VibeCheck - AI Code Analyzer</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0F0F1A;
+      overflow: hidden;
+    }
+
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #1A1F2E 0%, #0F0F1A 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 9999;
+    }
+
+    #loading-logo {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    #loading-logo svg {
+      width: 64px;
+      height: 64px;
+      fill: white;
+    }
+
+    #loading-bar {
+      width: 200px;
+      height: 4px;
+      background-color: #252535;
+      border-radius: 4px;
+      margin-top: 48px;
+      overflow: hidden;
+    }
+
+    #loading-bar-fill {
+      height: 100%;
+      background-color: #6366F1;
+      border-radius: 4px;
+      animation: loading 1.5s ease-in-out infinite;
+    }
+
+    #loading-text {
+      margin-top: 24px;
+      color: rgba(165, 180, 252, 0.8);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(0.8);
+      }
+      50% {
+        transform: scale(1.0);
+      }
+    }
+
+    @keyframes loading {
+      0% {
+        width: 0%;
+      }
+      50% {
+        width: 70%;
+      }
+      100% {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div id="loading">
+    <div id="loading-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+      </svg>
+    </div>
+    <div id="loading-bar">
+      <div id="loading-bar-fill"></div>
+    </div>
+    <div id="loading-text">Initializing...</div>
+  </div>
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      const loading = document.getElementById('loading');
+      if (loading) {
+        loading.style.display = 'none';
+      }
+    });
+  </script>
 </body>
 </html>
