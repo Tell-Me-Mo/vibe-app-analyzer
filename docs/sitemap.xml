@@ -74,4 +74,25 @@
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
+
+    <url>
+        <loc>https://vibe-checker.dev/blog/database-schema-design-mistakes.html</loc>
+        <lastmod>2025-01-13</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://vibe-checker.dev/blog/localhost-vs-production-bugs.html</loc>
+        <lastmod>2025-01-13</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://vibe-checker.dev/blog/cloud-hosting-cost-surprises.html</loc>
+        <lastmod>2025-01-13</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
 </urlset>

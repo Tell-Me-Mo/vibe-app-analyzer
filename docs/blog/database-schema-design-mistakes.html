@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>ChatGPT Built My Database Schema. Here's What It Got Wrong - VibeCheck</title>
+    <meta name="description" content="AI-generated database schemas work... until they don't. Here's what ChatGPT and Claude get wrong about databases and how to fix it before you lose data.">
+    <meta name="keywords" content="database schema design, ChatGPT database, AI database design, database indexes, N+1 queries, foreign keys, database performance, SQL schema mistakes">
+    <meta name="author" content="VibeCheck">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://vibe-checker.dev/blog/database-schema-design-mistakes.html">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://vibe-checker.dev/blog/database-schema-design-mistakes.html">
+    <meta property="og:title" content="ChatGPT Built My Database Schema. Here's What It Got Wrong">
+    <meta property="og:description" content="AI-generated database schemas work... until they don't. Here's what ChatGPT gets wrong about databases and how to fix it.">
+    <meta property="og:image" content="https://vibe-checker.dev/og-image.png">
+    <meta property="article:published_time" content="2025-01-13T00:00:00Z">
+    <meta property="article:modified_time" content="2025-01-13T00:00:00Z">
+    <meta property="article:author" content="VibeCheck">
+    <meta property="article:section" content="Database">
+    <meta property="article:tag" content="Database Design">
+    <meta property="article:tag" content="Schema">
+    <meta property="article:tag" content="Performance">
+    <meta property="article:tag" content="ChatGPT">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://vibe-checker.dev/blog/database-schema-design-mistakes.html">
+    <meta property="twitter:title" content="ChatGPT Built My Database Schema. Here's What It Got Wrong">
+    <meta property="twitter:description" content="AI database schemas work until they don't. Here's what ChatGPT gets wrong and how to fix it.">
+    <meta property="twitter:image" content="https://vibe-checker.dev/og-image.png">
+
+    <!-- Breadcrumb Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://vibe-checker.dev/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://vibe-checker.dev/blog/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "ChatGPT Built My Database Schema. Here's What It Got Wrong",
+          "item": "https://vibe-checker.dev/blog/database-schema-design-mistakes.html"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Article Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "ChatGPT Built My Database Schema. Here's What It Got Wrong",
+      "description": "AI-generated database schemas work... until they don't. Here's what ChatGPT and Claude get wrong about databases and how to fix it before you lose data.",
+      "image": "https://vibe-checker.dev/og-image.png",
+      "author": {
+        "@type": "Organization",
+        "name": "VibeCheck",
+        "url": "https://vibe-checker.dev"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "VibeCheck",
+        "url": "https://vibe-checker.dev",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://vibe-checker.dev/logo.png"
+        }
+      },
+      "datePublished": "2025-01-13",
+      "dateModified": "2025-01-13",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://vibe-checker.dev/blog/database-schema-design-mistakes.html"
+      },
+      "articleSection": "Database",
+      "keywords": ["database schema", "database design", "ChatGPT database", "indexes", "foreign keys", "N+1 queries", "database performance"],
+      "articleBody": "A practical guide to common database schema mistakes in AI-generated code. Covers missing indexes, improper foreign keys, N+1 query problems, lack of constraints, and poor data type choices that cause performance issues and data loss."
+    }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #13141f;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+        header {
+            padding: 20px 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+        .back-link {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .back-link:hover { color: var(--text-primary); }
+        article { padding: 80px 0; }
+        .article-header { text-align: center; margin-bottom: 60px; }
+        .article-meta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+        .category {
+            padding: 6px 16px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+        .subtitle {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .content { font-size: 18px; line-height: 1.8; }
+        .content h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 60px 0 24px;
+            color: var(--text-primary);
+        }
+        .content h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 40px 0 16px;
+            color: var(--text-secondary);
+        }
+        .content p {
+            margin-bottom: 24px;
+            color: var(--text-tertiary);
+        }
+        .content ul, .content ol {
+            margin: 24px 0;
+            padding-left: 32px;
+            color: var(--text-tertiary);
+        }
+        .content li { margin-bottom: 12px; }
+        .content strong { color: var(--text-secondary); font-weight: 600; }
+        .mistake-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--error);
+            padding: 32px;
+            margin: 32px 0;
+            border-radius: 12px;
+        }
+        .mistake-box h3 {
+            margin-top: 0;
+            color: var(--error);
+        }
+        .fix-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success);
+            padding: 24px;
+            margin: 24px 0;
+            border-radius: 8px;
+        }
+        .fix-box h4 {
+            color: var(--success);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cta-section {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 48px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 60px 0;
+        }
+        .cta-section h3 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+        .cta-section p {
+            color: var(--text-tertiary);
+            margin-bottom: 32px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+        .cta-button:hover { transform: translateY(-2px); }
+        footer {
+            padding: 48px 0;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="../" class="logo">VibeCheck</a>
+                <a href="./" class="back-link">← Back to Blog</a>
+            </nav>
+        </div>
+    </header>
+
+    <article>
+        <div class="container">
+            <div class="article-header">
+                <div class="article-meta">
+                    <span class="category">Database</span>
+                    <span>7 min read</span>
+                </div>
+                <h1>ChatGPT Built My Database Schema. Here's What It Got Wrong</h1>
+                <p class="subtitle">AI-generated database schemas work... until they don't. Here's what ChatGPT and Claude get wrong about databases and how to fix it before you lose data.</p>
+            </div>
+
+            <div class="content">
+                <p>You asked ChatGPT to design your database. It gave you a schema. You ran the migrations. Everything works!</p>
+
+                <p>Then you launch. 100 users sign up. 1,000 users. 10,000 users.</p>
+
+                <p><strong>And your app slows to a crawl.</strong></p>
+
+                <p>Pages that loaded in 100ms now take 5 seconds. Users complain. You check the database. It's on fire.</p>
+
+                <p>Here's what AI gets wrong about database design—and how to fix it.</p>
+
+                <h2>Mistake #1: No Indexes on Foreign Keys</h2>
+
+                <div class="mistake-box">
+                    <h3>❌ What AI Generates</h3>
+                    <div class="code-block">
+CREATE TABLE posts (
+  id INT PRIMARY KEY,
+  user_id INT,
+  title VARCHAR(255),
+  content TEXT,
+  created_at TIMESTAMP
+);
+                    </div>
+                    <p><strong>The problem:</strong> When you query <code>SELECT * FROM posts WHERE user_id = 123</code>, the database scans every single row. With 100,000 posts, this takes forever.</p>
+                </div>
+
+                <div class="fix-box">
+                    <h4>✅ The Fix: Add Indexes</h4>
+                    <div class="code-block">
+CREATE TABLE posts (
+  id INT PRIMARY KEY,
+  user_id INT,
+  title VARCHAR(255),
+  content TEXT,
+  created_at TIMESTAMP,
+  INDEX idx_user_id (user_id)
+);
+                    </div>
+                    <p>Now lookups by user_id are instant. Queries that took 3 seconds now take 10ms.</p>
+                </div>
+
+                <p><strong>Rule of thumb:</strong> If you're filtering or joining on a column, it needs an index.</p>
+
+                <h2>Mistake #2: Missing Foreign Key Constraints</h2>
+
+                <p>AI will create relationships between tables but forget to enforce them.</p>
+
+                <div class="mistake-box">
+                    <h3>❌ What Happens</h3>
+                    <p>User deletes their account. But their 500 posts are still in the database, pointing to a user_id that doesn't exist.</p>
+                    <p>Now when you try to display those posts with user info, your app crashes with "user not found."</p>
+                </div>
+
+                <div class="fix-box">
+                    <h4>✅ The Fix: Use Foreign Keys with Cascade</h4>
+                    <div class="code-block">
+CREATE TABLE posts (
+  id INT PRIMARY KEY,
+  user_id INT,
+  title VARCHAR(255),
+  content TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+                    </div>
+                    <p><code>ON DELETE CASCADE</code> means when a user is deleted, all their posts get deleted too. No orphaned data.</p>
+                </div>
+
+                <h2>Mistake #3: Wrong Data Types</h2>
+
+                <p>ChatGPT loves using VARCHAR(255) for everything. But this causes problems:</p>
+
+                <ul>
+                    <li><strong>Emails:</strong> Use <code>VARCHAR(320)</code> not <code>VARCHAR(255)</code>. Email addresses can be up to 320 characters.</li>
+                    <li><strong>Phone numbers:</strong> Use <code>VARCHAR(20)</code> not <code>INT</code>. Phone numbers have + and - characters.</li>
+                    <li><strong>Prices:</strong> Use <code>DECIMAL(10,2)</code> not <code>FLOAT</code>. Floats cause rounding errors. $19.99 might become $19.990000001.</li>
+                    <li><strong>Status flags:</strong> Use <code>ENUM('active', 'inactive', 'banned')</code> not <code>VARCHAR(50)</code>. This prevents typos and invalid values.</li>
+                </ul>
+
+                <h2>Mistake #4: No Unique Constraints</h2>
+
+                <p>AI will let you create duplicate emails, duplicate usernames, duplicate order IDs.</p>
+
+                <div class="mistake-box">
+                    <h3>❌ The Problem</h3>
+                    <p>Two users sign up with the same email. Now when one tries to log in, which account do you use?</p>
+                    <p>Your app crashes, or worse—logs them into someone else's account.</p>
+                </div>
+
+                <div class="fix-box">
+                    <h4>✅ The Fix: Add UNIQUE Constraints</h4>
+                    <div class="code-block">
+CREATE TABLE users (
+  id INT PRIMARY KEY,
+  email VARCHAR(320) UNIQUE NOT NULL,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL
+);
+                    </div>
+                    <p>Now the database prevents duplicates. If someone tries to sign up with an existing email, you get an error instead of corrupted data.</p>
+                </div>
+
+                <h2>Mistake #5: N+1 Query Hell</h2>
+
+                <p>This is the sneakiest performance killer.</p>
+
+                <p><strong>Scenario:</strong> You want to display a list of 50 blog posts with author names.</p>
+
+                <p>AI-generated code does this:</p>
+                <div class="code-block">
+// Get all posts
+posts = db.query("SELECT * FROM posts LIMIT 50")
+
+// For each post, get the author
+for post in posts:
+    author = db.query("SELECT * FROM users WHERE id = ?", post.user_id)
+    print(post.title, "by", author.name)
+                </div>
+
+                <p><strong>What just happened:</strong> 1 query to get posts + 50 queries to get authors = 51 database queries.</p>
+
+                <p>With 1,000 users online, that's 51,000 database queries. Your database melts.</p>
+
+                <div class="fix-box">
+                    <h4>✅ The Fix: Use Joins</h4>
+                    <div class="code-block">
+// One query gets everything
+posts = db.query(`
+  SELECT posts.*, users.name as author_name
+  FROM posts
+  JOIN users ON posts.user_id = users.id
+  LIMIT 50
+`)
+
+for post in posts:
+    print(post.title, "by", post.author_name)
+                    </div>
+                    <p>1 query instead of 51. Your database breathes easy.</p>
+                </div>
+
+                <h2>Mistake #6: No Default Values or Constraints</h2>
+
+                <p>AI forgets to set defaults. This causes bugs.</p>
+
+                <ul>
+                    <li><strong>created_at:</strong> Should default to <code>CURRENT_TIMESTAMP</code></li>
+                    <li><strong>is_active:</strong> Should default to <code>TRUE</code></li>
+                    <li><strong>role:</strong> Should default to <code>'user'</code></li>
+                </ul>
+
+                <div class="code-block">
+CREATE TABLE users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(320) UNIQUE NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  role ENUM('user', 'admin') DEFAULT 'user',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+                </div>
+
+                <h2>Mistake #7: Missing Timestamps</h2>
+
+                <p>You'll want to know when things were created and updated. Always add these:</p>
+
+                <div class="code-block">
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                </div>
+
+                <p><strong>Why this matters:</strong></p>
+                <ul>
+                    <li>Debug issues: "When did this bug start happening?"</li>
+                    <li>User support: "Show me all orders from last week."</li>
+                    <li>Analytics: "How many signups per day?"</li>
+                    <li>Compliance: GDPR requires tracking when user data changes.</li>
+                </ul>
+
+                <div class="cta-section">
+                    <h3>Check Your Database Schema</h3>
+                    <p>VibeCheck scans your schema for missing indexes, constraints, and performance issues. Get a free analysis in 60 seconds.</p>
+                    <a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="cta-button">Scan My Database Free →</a>
+                </div>
+
+                <h2>Quick Database Checklist</h2>
+
+                <p>Before you launch, verify:</p>
+
+                <ol>
+                    <li><strong>Indexes:</strong> Every foreign key has an index</li>
+                    <li><strong>Foreign keys:</strong> All relationships have constraints with ON DELETE CASCADE or SET NULL</li>
+                    <li><strong>Unique constraints:</strong> Email, username, and other unique fields are marked UNIQUE</li>
+                    <li><strong>Data types:</strong> Emails are VARCHAR(320), prices are DECIMAL, booleans are BOOLEAN</li>
+                    <li><strong>Defaults:</strong> created_at, is_active, role all have sensible defaults</li>
+                    <li><strong>NOT NULL:</strong> Required fields like email, password_hash are NOT NULL</li>
+                    <li><strong>Timestamps:</strong> created_at and updated_at on every table</li>
+                </ol>
+
+                <h2>The Bottom Line</h2>
+
+                <p>AI can generate a working database schema in seconds. But "working" doesn't mean "production-ready."</p>
+
+                <p>Add indexes. Add constraints. Choose the right data types. Use joins instead of loops.</p>
+
+                <p>Your database will thank you. Your users will thank you. And you won't wake up to a crashed app at 3 AM.</p>
+            </div>
+        </div>
+    </article>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 VibeCheck. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
