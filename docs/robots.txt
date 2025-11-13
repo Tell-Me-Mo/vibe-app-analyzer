@@ -27,4 +27,4 @@ User-agent: Applebot
 Allow: /
 
 # Sitemap
-Sitemap: https://yourdomain.github.io/vibe-app-analyzer/sitemap.xml
+Sitemap: https://vibe-checker.dev/sitemap.xml

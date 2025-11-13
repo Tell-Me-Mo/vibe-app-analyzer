@@ -3,46 +3,75 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
     <!-- Homepage -->
     <url>
-        <loc>https://yourdomain.github.io/vibe-app-analyzer/</loc>
-        <lastmod>2025-01-15</lastmod>
+        <loc>https://vibe-checker.dev/</loc>
+        <lastmod>2025-01-13</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
     </url>
 
+    <!-- Privacy & Legal -->
+    <url>
+        <loc>https://vibe-checker.dev/privacy.html</loc>
+        <lastmod>2025-01-13</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+
+    <url>
+        <loc>https://vibe-checker.dev/terms.html</loc>
+        <lastmod>2025-01-13</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+
     <!-- Blog Index -->
     <url>
-        <loc>https://yourdomain.github.io/vibe-app-analyzer/blog/</loc>
-        <lastmod>2025-01-15</lastmod>
+        <loc>https://vibe-checker.dev/blog/</loc>
+        <lastmod>2025-01-13</lastmod>
         <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
+        <priority>0.9</priority>
     </url>
 
     <!-- Blog Posts -->
     <url>
-        <loc>https://yourdomain.github.io/vibe-app-analyzer/blog/preventing-sql-injection-vulnerabilities.html</loc>
-        <lastmod>2025-01-15</lastmod>
+        <loc>https://vibe-checker.dev/blog/preventing-sql-injection-vulnerabilities.html</loc>
+        <lastmod>2025-01-13</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
+        <priority>0.8</priority>
     </url>
 
     <url>
-        <loc>https://yourdomain.github.io/vibe-app-analyzer/blog/web-application-security-checklist.html</loc>
-        <lastmod>2025-01-15</lastmod>
+        <loc>https://vibe-checker.dev/blog/web-application-security-checklist.html</loc>
+        <lastmod>2025-01-13</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
+        <priority>0.8</priority>
     </url>
 
     <url>
-        <loc>https://yourdomain.github.io/vibe-app-analyzer/blog/ai-powered-code-analysis.html</loc>
-        <lastmod>2025-01-15</lastmod>
+        <loc>https://vibe-checker.dev/blog/ai-powered-code-analysis.html</loc>
+        <lastmod>2025-01-13</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
+        <priority>0.8</priority>
     </url>
 
     <url>
-        <loc>https://yourdomain.github.io/vibe-app-analyzer/blog/monitoring-observability-guide.html</loc>
-        <lastmod>2025-01-15</lastmod>
+        <loc>https://vibe-checker.dev/blog/monitoring-observability-guide.html</loc>
+        <lastmod>2025-01-13</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://vibe-checker.dev/blog/password-security-mistakes.html</loc>
+        <lastmod>2025-01-13</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://vibe-checker.dev/blog/api-keys-security.html</loc>
+        <lastmod>2025-01-13</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
     </url>
 </urlset>
