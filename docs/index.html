@@ -1818,11 +1818,15 @@
             });
         });
 
-        // Demo Animation - Make functions global
+        // Demo Animation - Automatic looping
         window.currentDemoStep = 1;
         window.totalDemoSteps = 4;
+        window.demoAutoPlay = true;
+        window.demoInterval = null;
 
         window.updateDemoUI = function() {
+            console.log('Updating UI to step:', window.currentDemoStep);
+
             // Hide all steps
             for (let i = 1; i <= window.totalDemoSteps; i++) {
                 const step = document.getElementById(`demo-step-${i}`);
@@ -1831,7 +1835,10 @@
 
             // Show current step
             const currentStep = document.getElementById(`demo-step-${window.currentDemoStep}`);
-            if (currentStep) currentStep.classList.add('active');
+            if (currentStep) {
+                currentStep.classList.add('active');
+                console.log('Activated step:', window.currentDemoStep);
+            }
 
             // Update progress dots
             document.querySelectorAll('.demo-progress-dot').forEach((dot, index) => {
@@ -1851,25 +1858,21 @@
         }
 
         window.nextDemoStep = function() {
-            console.log('Next step clicked, current:', window.currentDemoStep);
             if (window.currentDemoStep < window.totalDemoSteps) {
                 window.currentDemoStep++;
-
-                // Auto-advance from analyzing step after 2 seconds
-                if (window.currentDemoStep === 2) {
-                    setTimeout(() => {
-                        if (window.currentDemoStep === 2) {
-                            window.nextDemoStep();
-                        }
-                    }, 2000);
-                }
-
-                window.updateDemoUI();
+            } else {
+                // Loop back to start
+                window.currentDemoStep = 1;
             }
+            window.updateDemoUI();
         }
 
         window.prevDemoStep = function() {
-            console.log('Previous step clicked, current:', window.currentDemoStep);
+            window.demoAutoPlay = false;
+            if (window.demoInterval) {
+                clearInterval(window.demoInterval);
+            }
+
             if (window.currentDemoStep > 1) {
                 window.currentDemoStep--;
                 window.updateDemoUI();
@@ -1877,33 +1880,59 @@
         }
 
         window.goToDemoStep = function(step) {
-            console.log('Go to step:', step);
+            window.demoAutoPlay = false;
+            if (window.demoInterval) {
+                clearInterval(window.demoInterval);
+            }
+
             if (step >= 1 && step <= window.totalDemoSteps) {
                 window.currentDemoStep = step;
-
-                // Auto-advance from analyzing step
-                if (window.currentDemoStep === 2) {
-                    setTimeout(() => {
-                        if (window.currentDemoStep === 2) {
-                            window.nextDemoStep();
-                        }
-                    }, 2000);
-                }
-
                 window.updateDemoUI();
             }
         }
 
+        window.startAutoPlay = function() {
+            console.log('Starting auto-play');
+            window.demoAutoPlay = true;
+
+            if (window.demoInterval) {
+                clearInterval(window.demoInterval);
+            }
+
+            // Auto-advance every 3 seconds (step 2 analyzing stays for 2 seconds)
+            window.demoInterval = setInterval(() => {
+                if (window.demoAutoPlay) {
+                    const delay = window.currentDemoStep === 2 ? 2000 : 3000;
+
+                    // Use setTimeout for step 2 to have different timing
+                    if (window.currentDemoStep === 2) {
+                        setTimeout(() => {
+                            if (window.demoAutoPlay && window.currentDemoStep === 2) {
+                                window.nextDemoStep();
+                            }
+                        }, 2000);
+                    } else {
+                        window.nextDemoStep();
+                    }
+                }
+            }, 3000);
+        }
+
         window.resetDemo = function() {
-            console.log('Reset demo');
             window.currentDemoStep = 1;
             window.updateDemoUI();
+            window.startAutoPlay();
         }
 
         // Initialize demo on page load
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Demo initialized');
+            console.log('Demo initialized - starting auto-play');
             window.updateDemoUI();
+
+            // Start auto-play after 1 second
+            setTimeout(() => {
+                window.startAutoPlay();
+            }, 1000);
         });
     </script>
 </body>
