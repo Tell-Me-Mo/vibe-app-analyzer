@@ -24,42 +24,13 @@ class LandingPage extends StatefulWidget {
   State<LandingPage> createState() => _LandingPageState();
 }
 
-class _LandingPageState extends State<LandingPage>
-    with SingleTickerProviderStateMixin {
+class _LandingPageState extends State<LandingPage> {
   final _urlController = TextEditingController();
   String? _errorText;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
-
-    // Setup animations
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-      ),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.2, 0.8, curve: Curves.easeOut),
-      ),
-    );
-
-    _animationController.forward();
 
     // Show welcome popup on first launch
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -77,7 +48,6 @@ class _LandingPageState extends State<LandingPage>
   @override
   void dispose() {
     _urlController.dispose();
-    _animationController.dispose();
     super.dispose();
   }
 
@@ -147,7 +117,11 @@ class _LandingPageState extends State<LandingPage>
   Widget build(BuildContext context) {
     debugPrint('🟣 [LANDING PAGE] Building LandingPage widget (hashCode: $hashCode)');
 
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
+      // Mobile drawer with credits and auth
+      endDrawer: isMobile ? _buildMobileDrawer() : null,
       body: Stack(
         children: [
           // Animated gradient background
@@ -155,38 +129,103 @@ class _LandingPageState extends State<LandingPage>
 
           // Main content
           SafeArea(
-            child: Stack(
-              children: [
-                _MainContent(
-                  key: const ValueKey('main_content'),
-                  fadeAnimation: _fadeAnimation,
-                  slideAnimation: _slideAnimation,
-                  onAnalyze: _onAnalyze,
-                  urlController: _urlController,
-                  errorText: _errorText,
-                  onUrlChanged: () {
-                    if (_errorText != null) {
-                      setState(() => _errorText = null);
-                    }
-                    setState(() {});
-                  },
-                  onClearUrl: () {
-                    _urlController.clear();
-                    setState(() {});
-                  },
-                ),
+            child: isMobile
+                ? _MainContent(
+                    key: const ValueKey('main_content'),
+                    onAnalyze: _onAnalyze,
+                    urlController: _urlController,
+                    errorText: _errorText,
+                    onUrlChanged: () {
+                      if (_errorText != null) {
+                        setState(() => _errorText = null);
+                      }
+                      setState(() {});
+                    },
+                    onClearUrl: () {
+                      _urlController.clear();
+                      setState(() {});
+                    },
+                  )
+                : Stack(
+                    children: [
+                      _MainContent(
+                        key: const ValueKey('main_content'),
+                        onAnalyze: _onAnalyze,
+                        urlController: _urlController,
+                        errorText: _errorText,
+                        onUrlChanged: () {
+                          if (_errorText != null) {
+                            setState(() => _errorText = null);
+                          }
+                          setState(() {});
+                        },
+                        onClearUrl: () {
+                          _urlController.clear();
+                          setState(() {});
+                        },
+                      ),
 
-                // Top-right corner: credits and auth button (isolated to prevent page rebuilds)
-                const Positioned(
-                  key: ValueKey('top_right_indicators'),
-                  top: AppSpacing.lg,
-                  right: AppSpacing.lg,
-                  child: _TopRightIndicators(),
-                ),
-              ],
-            ),
+                      // Top-right corner: credits and auth button (desktop only - isolated to prevent page rebuilds)
+                      const Positioned(
+                        key: ValueKey('top_right_indicators'),
+                        top: AppSpacing.lg,
+                        right: AppSpacing.lg,
+                        child: _TopRightIndicators(),
+                      ),
+                    ],
+                  ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Mobile slide-out drawer with credits and auth
+  Widget _buildMobileDrawer() {
+    return Drawer(
+      backgroundColor: AppColors.backgroundPrimary,
+      child: SafeArea(
+        child: Padding(
+          padding: AppSpacing.paddingXXL,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header with close button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Menu',
+                    style: AppTypography.headlineSmall,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              AppSpacing.verticalGapXXL,
+
+              // Credits indicator
+              const CreditsIndicator(),
+              AppSpacing.verticalGapLG,
+
+              // Auth button
+              const AuthButton(),
+
+              const Spacer(),
+
+              // Footer with app version or info
+              Text(
+                'VibeCheck v1.0',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textMuted,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -211,8 +250,6 @@ class _LandingPageState extends State<LandingPage>
 
 /// Main content widget isolated from top-right indicators
 class _MainContent extends StatefulWidget {
-  final Animation<double> fadeAnimation;
-  final Animation<Offset> slideAnimation;
   final Function(AnalysisType) onAnalyze;
   final TextEditingController urlController;
   final String? errorText;
@@ -221,8 +258,6 @@ class _MainContent extends StatefulWidget {
 
   const _MainContent({
     super.key,
-    required this.fadeAnimation,
-    required this.slideAnimation,
     required this.onAnalyze,
     required this.urlController,
     required this.errorText,
@@ -243,19 +278,13 @@ class _MainContentState extends State<_MainContent> {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xxl,
-          vertical: AppSpacing.huge,
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 0 : AppSpacing.xxl, // No horizontal padding on mobile
+          vertical: isMobile ? 0 : AppSpacing.huge, // No vertical padding on mobile
         ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
-          child: FadeTransition(
-            opacity: widget.fadeAnimation,
-            child: SlideTransition(
-              position: widget.slideAnimation,
-              child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
-            ),
-          ),
+          child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
         ),
       ),
     );
@@ -273,20 +302,67 @@ class _MainContentState extends State<_MainContent> {
         return SingleChildScrollView(
           child: Column(
             children: [
-              // Hero Section
-              _buildModernHeroSection(),
-              AppSpacing.verticalGapGiant,
+              // Mobile header with menu icon
+              _buildMobileHeader(),
 
-              // Input Section
-              _buildModernInputSection(),
-              const SizedBox(height: 100),
+              // Content with horizontal padding
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: Column(
+                  children: [
+                    AppSpacing.verticalGapXL,
 
-              // History Section
-              if (allResults.isNotEmpty) _buildMobileHistorySection(allResults),
+                    // Hero Section
+                    _buildModernHeroSection(),
+                    AppSpacing.verticalGapGiant,
+
+                    // Input Section
+                    _buildModernInputSection(),
+                    const SizedBox(height: 100),
+
+                    // History Section
+                    if (allResults.isNotEmpty) _buildMobileHistorySection(allResults),
+                  ],
+                ),
+              ),
             ],
           ),
         );
       },
+    );
+  }
+
+  // Modern mobile header - minimalistic menu icon
+  Widget _buildMobileHeader() {
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: AppSpacing.md,
+        right: AppSpacing.md,
+      ),
+      child: Align(
+        alignment: Alignment.topRight,
+        child: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceGlass.withValues(alpha: 0.5),
+              borderRadius: AppRadius.radiusMD,
+              border: Border.all(
+                color: AppColors.borderSubtle,
+                width: 1,
+              ),
+            ),
+            child: const Icon(
+              Icons.menu_rounded,
+              color: AppColors.textSecondary,
+              size: 20,
+            ),
+          ),
+          onPressed: () {
+            Scaffold.of(context).openEndDrawer();
+          },
+        ),
+      ),
     );
   }
 
@@ -326,15 +402,12 @@ class _MainContentState extends State<_MainContent> {
   Widget _buildModernHeroSection() {
     return Column(
       children: [
-        // Animated gradient icon with glow
-        Hero(
-          tag: 'app_icon',
-          child: GradientIcon(
-            icon: Icons.analytics_rounded,
-            size: 56,
-            gradient: AppColors.gradientPrimary,
-            padding: AppSpacing.paddingXXL,
-          ),
+        // Gradient icon with glow
+        GradientIcon(
+          icon: Icons.analytics_rounded,
+          size: 56,
+          gradient: AppColors.gradientPrimary,
+          padding: AppSpacing.paddingXXL,
         ),
         AppSpacing.verticalGapXXL,
 
@@ -577,7 +650,10 @@ class _TopRightIndicatorsState extends State<_TopRightIndicators> {
   @override
   Widget build(BuildContext context) {
     debugPrint('🟤 [TOP RIGHT INDICATORS] Building _TopRightIndicators widget');
+
+    // Desktop only - horizontal layout
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         const CreditsIndicator(),
         AppSpacing.horizontalGapMD,
