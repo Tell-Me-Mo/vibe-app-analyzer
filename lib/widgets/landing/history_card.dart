@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/analysis_result.dart';
+import '../../models/analysis_mode.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_typography.dart';
+import '../../theme/app_spacing.dart';
+import '../common/animated_card.dart';
 
 class HistoryCard extends StatelessWidget {
   final AnalysisResult result;
@@ -16,157 +21,209 @@ class HistoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM dd, HH:mm');
     final isSecurityAnalysis = result.analysisType.displayName == 'Security';
+    final gradient = isSecurityAnalysis
+        ? AppColors.gradientSecurity
+        : AppColors.gradientMonitoring;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF1E293B),
-          width: 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return AnimatedCard(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                // Icon with gradient background
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: isSecurityAnalysis
-                          ? [const Color(0xFF60A5FA), const Color(0xFF3B82F6)]
-                          : [const Color(0xFF34D399), const Color(0xFF10B981)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 14 : 16,
+            vertical: isMobile ? 12 : 10,
+          ),
+          child: Row(
+            children: [
+              // Compact gradient icon
+              Container(
+                width: isMobile ? 44 : 40,
+                height: isMobile ? 44 : 40,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: gradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  child: Icon(
-                    isSecurityAnalysis ? Icons.security : Icons.show_chart,
-                    color: const Color(0xFF0F172A),
-                    size: 24,
-                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: AppElevation.glowSM(gradient.first),
                 ),
-                const SizedBox(width: 16),
+                child: Icon(
+                  isSecurityAnalysis
+                      ? Icons.security_rounded
+                      : Icons.show_chart_rounded,
+                  color: AppColors.textPrimary,
+                  size: isMobile ? 22 : 20,
+                ),
+              ),
+              SizedBox(width: isMobile ? 12 : 14),
 
-                // Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          if (result.isDemo)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFBBF24).withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: const Color(0xFFFBBF24).withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: const Text(
-                                'DEMO',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFBBF24),
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          if (result.isDemo) const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              result.repositoryName,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFFF1F5F9),
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title row with badges
+                    Row(
+                      children: [
+                        if (result.isDemo) ...[
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                              horizontal: 6,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: isSecurityAnalysis
-                                  ? const Color(0xFF60A5FA).withValues(alpha: 0.15)
-                                  : const Color(0xFF34D399).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
+                              color: AppColors.warning.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: AppColors.warning.withValues(alpha: 0.3),
+                              ),
                             ),
                             child: Text(
-                              result.analysisType.displayName,
+                              'DEMO',
                               style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: isSecurityAnalysis
-                                    ? const Color(0xFF60A5FA)
-                                    : const Color(0xFF34D399),
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.warning,
+                                fontSize: 9,
+                                letterSpacing: 0.5,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${result.summary.total} items',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '•',
-                            style: const TextStyle(
-                              color: Color(0xFF475569),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            dateFormat.format(result.timestamp),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
+                          const SizedBox(width: 6),
                         ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            result.repositoryName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
 
-                // Arrow icon
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Color(0xFF475569),
+                    // Badges and metadata row
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        // Analysis Type Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: gradient.map((c) => c.withValues(alpha: 0.15)).toList(),
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: gradient.first.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            result.analysisType.displayName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: gradient.first,
+                              fontSize: 10,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+
+                        // Analysis Mode Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: (result.analysisMode == AnalysisMode.staticCode
+                                    ? AppColors.primaryPurple
+                                    : AppColors.success)
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: (result.analysisMode == AnalysisMode.staticCode
+                                      ? AppColors.primaryPurple
+                                      : AppColors.success)
+                                  .withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                result.analysisMode.icon,
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                result.analysisMode.shortLabel,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: result.analysisMode == AnalysisMode.staticCode
+                                      ? AppColors.primaryPurple
+                                      : AppColors.success,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Item count
+                        Text(
+                          '${result.summary.total} items',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 11,
+                          ),
+                        ),
+
+                        // Separator
+                        Text(
+                          '•',
+                          style: TextStyle(
+                            color: AppColors.textDisabled,
+                            fontSize: 11,
+                          ),
+                        ),
+
+                        // Date
+                        Text(
+                          dateFormat.format(result.timestamp),
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+
+              // Compact arrow icon
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: AppColors.textMuted,
+              ),
+            ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../models/analysis_result.dart';
 import '../models/analysis_type.dart';
+import '../models/analysis_mode.dart';
 import '../models/security_issue.dart';
 import '../models/monitoring_recommendation.dart';
 import '../models/severity.dart';
@@ -16,6 +17,7 @@ class DemoData {
     repositoryUrl: 'https://github.com/demo/ecommerce-app',
     repositoryName: 'ecommerce-app',
     analysisType: AnalysisType.security,
+    analysisMode: AnalysisMode.staticCode,
     timestamp: DateTime.now().subtract(const Duration(days: 2)),
     summary: AnalysisSummary(
       total: 5,
@@ -96,6 +98,7 @@ class DemoData {
     repositoryUrl: 'https://github.com/demo/todo-flutter-app',
     repositoryName: 'todo-flutter-app',
     analysisType: AnalysisType.monitoring,
+    analysisMode: AnalysisMode.staticCode,
     timestamp: DateTime.now().subtract(const Duration(days: 1)),
     summary: AnalysisSummary(
       total: 4,
@@ -110,6 +113,7 @@ class DemoData {
         id: const Uuid().v4(),
         title: 'Track Task Completion Metrics',
         category: 'business_metrics',
+        severity: Severity.high,
         description:
             'Missing tracking for key task completion metrics such as completion rate, time to complete, and task abandonment.',
         businessValue:
@@ -121,6 +125,7 @@ class DemoData {
         id: const Uuid().v4(),
         title: 'Implement User Journey Analytics',
         category: 'analytics',
+        severity: Severity.medium,
         description:
             'No tracking of user navigation patterns or feature usage across the app.',
         businessValue:
@@ -132,6 +137,7 @@ class DemoData {
         id: const Uuid().v4(),
         title: 'Add Crash Reporting and Error Tracking',
         category: 'error_tracking',
+        severity: Severity.critical,
         description:
             'Application lacks crash reporting and error tracking capabilities.',
         businessValue:
@@ -143,6 +149,7 @@ class DemoData {
         id: const Uuid().v4(),
         title: 'Monitor API Response Times',
         category: 'analytics',
+        severity: Severity.medium,
         description:
             'No monitoring of API performance or response times that could indicate backend issues.',
         businessValue:

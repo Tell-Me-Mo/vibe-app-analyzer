@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'severity.dart';
+import 'validation_status.dart';
+import 'validation_result.dart';
 
 part 'security_issue.g.dart';
 
@@ -18,6 +20,12 @@ class SecurityIssue {
   final String claudeCodePrompt;
   final String? filePath;
   final int? lineNumber;
+  @JsonKey(
+    fromJson: _validationStatusFromJson,
+    toJson: _validationStatusToJson,
+  )
+  final ValidationStatus validationStatus;
+  final ValidationResult? validationResult;
 
   SecurityIssue({
     required this.id,
@@ -29,6 +37,8 @@ class SecurityIssue {
     required this.claudeCodePrompt,
     this.filePath,
     this.lineNumber,
+    this.validationStatus = ValidationStatus.notStarted,
+    this.validationResult,
   });
 
   factory SecurityIssue.fromJson(Map<String, dynamic> json) =>
@@ -36,6 +46,56 @@ class SecurityIssue {
 
   Map<String, dynamic> toJson() => _$SecurityIssueToJson(this);
 
+  SecurityIssue copyWith({
+    String? id,
+    String? title,
+    String? category,
+    Severity? severity,
+    String? description,
+    String? aiGenerationRisk,
+    String? claudeCodePrompt,
+    String? filePath,
+    int? lineNumber,
+    ValidationStatus? validationStatus,
+    ValidationResult? validationResult,
+  }) {
+    return SecurityIssue(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      category: category ?? this.category,
+      severity: severity ?? this.severity,
+      description: description ?? this.description,
+      aiGenerationRisk: aiGenerationRisk ?? this.aiGenerationRisk,
+      claudeCodePrompt: claudeCodePrompt ?? this.claudeCodePrompt,
+      filePath: filePath ?? this.filePath,
+      lineNumber: lineNumber ?? this.lineNumber,
+      validationStatus: validationStatus ?? this.validationStatus,
+      validationResult: validationResult ?? this.validationResult,
+    );
+  }
+
   static Severity _severityFromJson(String value) => Severity.fromString(value);
   static String _severityToJson(Severity severity) => severity.value;
+
+  static ValidationStatus _validationStatusFromJson(String? value) {
+    if (value == null) return ValidationStatus.notStarted;
+    switch (value) {
+      case 'notStarted':
+        return ValidationStatus.notStarted;
+      case 'validating':
+        return ValidationStatus.validating;
+      case 'passed':
+        return ValidationStatus.passed;
+      case 'failed':
+        return ValidationStatus.failed;
+      case 'error':
+        return ValidationStatus.error;
+      default:
+        return ValidationStatus.notStarted;
+    }
+  }
+
+  static String _validationStatusToJson(ValidationStatus status) {
+    return status.toString().split('.').last;
+  }
 }

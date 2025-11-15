@@ -44,3 +44,8 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 .env
+
+# Claude Code MCP configuration (contains sensitive tokens)
+.mcp.json
+
+sentry.properties

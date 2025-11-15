@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Primary Meta Tags -->
+    <title>Before You Ship: 7 Things That Could Ruin Your Launch - VibeCheck</title>
+    <meta name="description" content="ChatGPT built your app, but did it remember security? This checklist covers the most common issues that let hackers in or leak user data.">
+    <meta name="keywords" content="web app security checklist, launch day security, HTTPS setup, CSRF protection, rate limiting, security headers, AI generated app security, ChatGPT app security">
+    <meta name="author" content="VibeCheck">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://vibe-checker.dev/blog/web-application-security-checklist.html">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://vibe-checker.dev/blog/web-application-security-checklist.html">
+    <meta property="og:title" content="Before You Ship: 7 Things That Could Ruin Your Launch">
+    <meta property="og:description" content="ChatGPT built your app, but did it remember security? This checklist covers the most common issues that let hackers in or leak user data. Check these before going live.">
+    <meta property="og:image" content="https://vibe-checker.dev/og-image.png">
+    <meta property="article:published_time" content="2025-01-13T00:00:00Z">
+    <meta property="article:modified_time" content="2025-01-13T00:00:00Z">
+    <meta property="article:author" content="VibeCheck">
+    <meta property="article:section" content="Security">
+    <meta property="article:tag" content="Web Security">
+    <meta property="article:tag" content="Launch Checklist">
+    <meta property="article:tag" content="HTTPS">
+    <meta property="article:tag" content="CSRF">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://vibe-checker.dev/blog/web-application-security-checklist.html">
+    <meta property="twitter:title" content="Before You Ship: 7 Things That Could Ruin Your Launch">
+    <meta property="twitter:description" content="ChatGPT built your app, but did it remember security? This checklist covers 7 common issues that let hackers in.">
+    <meta property="twitter:image" content="https://vibe-checker.dev/og-image.png">
+
+    <!-- Breadcrumb Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://vibe-checker.dev/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://vibe-checker.dev/blog/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Before You Ship: 7 Things That Could Ruin Your Launch",
+          "item": "https://vibe-checker.dev/blog/web-application-security-checklist.html"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Article Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Before You Ship: 7 Things That Could Ruin Your Launch",
+      "description": "ChatGPT built your app, but did it remember security? This checklist covers the most common issues that let hackers in or leak user data.",
+      "image": "https://vibe-checker.dev/og-image.png",
+      "author": {
+        "@type": "Organization",
+        "name": "VibeCheck",
+        "url": "https://vibe-checker.dev"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "VibeCheck",
+        "url": "https://vibe-checker.dev",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://vibe-checker.dev/logo.png"
+        }
+      },
+      "datePublished": "2025-01-13",
+      "dateModified": "2025-01-13",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://vibe-checker.dev/blog/web-application-security-checklist.html"
+      },
+      "articleSection": "Security",
+      "keywords": ["web security", "HTTPS", "CSRF protection", "rate limiting", "security headers", "ChatGPT security", "AI app security", "launch checklist"],
+      "articleBody": "A comprehensive security checklist for launching AI-generated web applications, covering HTTPS setup, password hashing, CSRF protection, API key security, rate limiting, input sanitization, and security headers."
+    }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #13141f;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+        header {
+            padding: 20px 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+        .back-link {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .back-link:hover { color: var(--text-primary); }
+        article { padding: 80px 0; }
+        .article-header { text-align: center; margin-bottom: 60px; }
+        .article-meta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+        .category {
+            padding: 6px 16px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+        .subtitle {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .content { font-size: 18px; line-height: 1.8; }
+        .content h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 60px 0 24px;
+            color: var(--text-primary);
+        }
+        .content h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 40px 0 16px;
+            color: var(--text-secondary);
+        }
+        .content p {
+            margin-bottom: 24px;
+            color: var(--text-tertiary);
+        }
+        .content ul, .content ol {
+            margin: 24px 0;
+            padding-left: 32px;
+            color: var(--text-tertiary);
+        }
+        .content li { margin-bottom: 16px; }
+        .content strong { color: var(--text-secondary); font-weight: 600; }
+        .checklist-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 32px;
+            margin: 32px 0;
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-primary);
+        }
+        .checklist-item h3 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .checklist-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+        }
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--error);
+            padding: 24px;
+            margin: 32px 0;
+            border-radius: 8px;
+        }
+        .warning-box h4 {
+            color: var(--error);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cta-section {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 48px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 60px 0;
+        }
+        .cta-section h3 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+        .cta-section p {
+            color: var(--text-tertiary);
+            margin-bottom: 32px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+        .cta-button:hover { transform: translateY(-2px); }
+        footer {
+            padding: 48px 0;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="../" class="logo">VibeCheck</a>
+                <a href="./" class="back-link">← Back to Blog</a>
+            </nav>
+        </div>
+    </header>
+
+    <article>
+        <div class="container">
+            <div class="article-header">
+                <div class="article-meta">
+                    <span class="category">Launch Ready</span>
+                    <span>8 min read</span>
+                </div>
+                <h1>Before You Ship: 7 Things That Could Ruin Your Launch</h1>
+                <p class="subtitle">ChatGPT built your app, but did it remember security? Check these before going live—or risk data breaches, crashes, and angry users.</p>
+            </div>
+
+            <div class="content">
+                <p>You're about to launch. The app works. Features are done. Design looks great. You're ready to tweet about it and get users.</p>
+
+                <p><strong>But wait.</strong></p>
+
+                <p>Did ChatGPT or Claude remember to add HTTPS? Protect against cross-site attacks? Set up error tracking?</p>
+
+                <p>Probably not. And if you launch without checking, you're gambling with your users' data and your app's reputation.</p>
+
+                <p>Here are the 7 most common security issues in AI-generated apps—and how to fix them before launch day.</p>
+
+                <div class="checklist-item">
+                    <h3><span class="checklist-number">1</span> You're Using HTTP Instead of HTTPS</h3>
+                    <p><strong>What this means:</strong> Every bit of data between your users and your server travels in plain text. Passwords, emails, credit cards—anyone on the same WiFi can see it all.</p>
+                    <p><strong>Why it's bad:</strong> A hacker at Starbucks can steal login credentials in seconds. Browsers show a "Not Secure" warning that scares users away. Google ranks you lower in search.</p>
+                    <p><strong>How to fix it:</strong></p>
+                    <ul>
+                        <li>Get a free SSL certificate from Let's Encrypt (takes 5 minutes)</li>
+                        <li>If you're on Vercel, Netlify, or Railway, HTTPS is automatic</li>
+                        <li>Force all HTTP traffic to redirect to HTTPS</li>
+                    </ul>
+                    <p><strong>Test it:</strong> Go to your site. Does the URL start with <code>https://</code>? If not, fix it now.</p>
+                </div>
+
+                <div class="checklist-item">
+                    <h3><span class="checklist-number">2</span> Passwords Are Stored in Plain Text</h3>
+                    <p><strong>What this means:</strong> If someone gets into your database (and hackers do, all the time), they can see every user's password. Not encrypted. Just sitting there.</p>
+                    <p><strong>Why it's bad:</strong> When users find out, they'll never trust you again. It's also illegal in many places (GDPR, CCPA). You could be fined thousands of dollars per user.</p>
+                    <p><strong>How to fix it:</strong></p>
+                    <ul>
+                        <li>Use bcrypt, argon2, or scrypt to hash passwords before storing them</li>
+                        <li>Never, ever store passwords in plain text or with simple encryption</li>
+                        <li>If you're using Firebase Auth or Auth0, this is handled for you</li>
+                    </ul>
+                    <div class="code-block">
+// ❌ Never do this
+db.save({ email, password: req.body.password })
+
+// ✅ Always hash passwords
+const hashedPassword = await bcrypt.hash(req.body.password, 10)
+db.save({ email, password: hashedPassword })
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <h3><span class="checklist-number">3</span> No CSRF Protection on Forms</h3>
+                    <p><strong>What this means:</strong> CSRF (Cross-Site Request Forgery) lets hackers trick your users into doing things on your site without knowing. Like changing their email, deleting their account, or sending money.</p>
+                    <p><strong>Why it's bad:</strong> A hacker sends your user a link. They click it. Suddenly their account is compromised and they blame you.</p>
+                    <p><strong>How to fix it:</strong></p>
+                    <ul>
+                        <li>Add CSRF tokens to all forms (most frameworks have built-in support)</li>
+                        <li>For APIs, use proper authentication headers instead of cookies</li>
+                        <li>Set <code>SameSite=Strict</code> on cookies</li>
+                    </ul>
+                    <p><strong>Easy check:</strong> If you're using Express, add the <code>csurf</code> middleware. For Django, CSRF protection is built in. For Next.js, use <code>next-csrf</code>.</p>
+                </div>
+
+                <div class="checklist-item">
+                    <h3><span class="checklist-number">4</span> API Keys in Your Frontend Code</h3>
+                    <p><strong>What this means:</strong> Your secret API keys (Stripe, OpenAI, Firebase admin) are sitting in your JavaScript code where anyone can see them.</p>
+                    <p><strong>Why it's bad:</strong> Someone opens their browser's dev tools, finds your keys, and racks up a $10,000 bill on your OpenAI account. Or steals user data. Or shuts down your entire app.</p>
+                    <p><strong>How to fix it:</strong></p>
+                    <ul>
+                        <li>Move all sensitive API calls to your backend/serverless functions</li>
+                        <li>Never put secret keys in frontend code or .env files that get bundled</li>
+                        <li>Use environment variables on your server only</li>
+                        <li>Rotate any keys that were exposed (they're already compromised)</li>
+                    </ul>
+                    <div class="warning-box">
+                        <h4>🚨 Check GitHub Now</h4>
+                        <p>Did you commit your .env file? Bots scan GitHub 24/7 for exposed keys. If you accidentally pushed secrets, assume they're already stolen. Rotate them immediately.</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <h3><span class="checklist-number">5</span> No Rate Limiting on Login/Signup</h3>
+                    <p><strong>What this means:</strong> Someone can try to log in 10,000 times per second to guess passwords. Or spam your signup form with bots.</p>
+                    <p><strong>Why it's bad:</strong> Hackers will brute-force user accounts. Your server crashes from spam. Your hosting bill explodes. Real users can't sign up.</p>
+                    <p><strong>How to fix it:</strong></p>
+                    <ul>
+                        <li>Limit login attempts to 5 per minute per IP address</li>
+                        <li>Add a CAPTCHA on signup forms (Google reCAPTCHA is free)</li>
+                        <li>Lock accounts after 5 failed login attempts</li>
+                        <li>Use services like Cloudflare or Vercel's rate limiting</li>
+                    </ul>
+                </div>
+
+                <div class="checklist-item">
+                    <h3><span class="checklist-number">6</span> User Input Isn't Sanitized</h3>
+                    <p><strong>What this means:</strong> When users type into forms, their input goes straight into your database or gets displayed on your site—without checking if it contains malicious code.</p>
+                    <p><strong>Why it's bad:</strong> XSS (Cross-Site Scripting) attacks. A hacker types <code>&lt;script&gt;stealPasswords()&lt;/script&gt;</code> into a comment form, and now everyone who views that page gets hacked.</p>
+                    <p><strong>How to fix it:</strong></p>
+                    <ul>
+                        <li>Escape all user input before displaying it (React does this automatically)</li>
+                        <li>Validate input on the backend: email format, max length, allowed characters</li>
+                        <li>Never use <code>dangerouslySetInnerHTML</code> with user content</li>
+                        <li>Use a library like DOMPurify to sanitize HTML if you need to allow it</li>
+                    </ul>
+                </div>
+
+                <div class="checklist-item">
+                    <h3><span class="checklist-number">7</span> No Security Headers</h3>
+                    <p><strong>What this means:</strong> Your server isn't telling browsers how to protect your users. Things like "don't allow this site to be embedded in iframes" or "block mixed HTTP/HTTPS content."</p>
+                    <p><strong>Why it's bad:</strong> Your site is more vulnerable to clickjacking, XSS, and other attacks. You're missing easy protection that takes 2 minutes to add.</p>
+                    <p><strong>How to fix it:</strong> Add these headers to your server config:</p>
+                    <div class="code-block">
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Strict-Transport-Security: max-age=31536000
+Content-Security-Policy: default-src 'self'
+                    </div>
+                    <p>Or use a library like <code>helmet</code> for Express or <code>django-csp</code> for Django—they add all the important headers automatically.</p>
+                </div>
+
+                <div class="cta-section">
+                    <h3>Want All 7 Checked Automatically?</h3>
+                    <p>VibeCheck scans your app for these issues and 20+ more in under 60 seconds. Know exactly what to fix before launch.</p>
+                    <a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="cta-button">Check My App Free →</a>
+                </div>
+
+                <h2>One More Thing: Test Before Launch</h2>
+
+                <p>Even if you fix all 7 issues, things can break. Here's a quick pre-launch test:</p>
+
+                <ol>
+                    <li><strong>Try to break your own app:</strong> Type weird characters into forms. Try SQL injection. Spam the signup button.</li>
+                    <li><strong>Check browser console:</strong> No errors? Good. Seeing warnings about mixed content or insecure cookies? Fix them.</li>
+                    <li><strong>Test on mobile:</strong> Does HTTPS work? Can users log in? Forms submit correctly?</li>
+                    <li><strong>Run a security scan:</strong> Use VibeCheck or another scanner to catch what you missed.</li>
+                </ol>
+
+                <h2>The Bottom Line</h2>
+
+                <p>AI code assistants are incredible, but they skip the boring security stuff. That's fine—as long as you catch it before launch.</p>
+
+                <p><strong>Check these 7 things now:</strong></p>
+                <ol>
+                    <li>HTTPS everywhere</li>
+                    <li>Hashed passwords (never plain text)</li>
+                    <li>CSRF protection on forms</li>
+                    <li>No API keys in frontend code</li>
+                    <li>Rate limiting on auth endpoints</li>
+                    <li>Sanitized user input</li>
+                    <li>Security headers enabled</li>
+                </ol>
+
+                <p>Fix these, and you'll avoid 95% of the security disasters that kill new apps.</p>
+
+                <p><strong>Ship with confidence.</strong></p>
+            </div>
+        </div>
+    </article>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 VibeCheck. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

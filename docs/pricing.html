@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SXKR5GV9J6"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-SXKR5GV9J6');
+    </script>
+
+    <!-- Primary Meta Tags -->
+    <title>Pricing - VibeCheck | Simple, Fair Pricing for AI Code Security</title>
+    <meta name="title" content="Pricing - VibeCheck | Simple, Fair Pricing for AI Code Security">
+    <meta name="description" content="Try VibeCheck free with 10 credits. Pay-as-you-go pricing starting at $4.99. No subscriptions, credits never expire. Secure your AI-generated code today.">
+    <meta name="author" content="VibeCheck">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://vibe-checker.dev/pricing.html">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vibe-checker.dev/pricing.html">
+    <meta property="og:title" content="Pricing - VibeCheck">
+    <meta property="og:description" content="Try VibeCheck free. Pay-as-you-go pricing starting at $4.99. No subscriptions, credits never expire.">
+
+    <style>
+        /* Import base styles from index */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #151623;
+            --bg-tertiary: #1c1d2e;
+            --surface-glass: rgba(255, 255, 255, 0.05);
+            --border-default: rgba(255, 255, 255, 0.1);
+            --primary-blue: #6366F1;
+            --primary-purple: #8B5CF6;
+            --text-primary: #F9FAFB;
+            --text-secondary: #D1D5DB;
+            --text-tertiary: #9CA3AF;
+            --text-muted: #6B7280;
+            --gradient-primary: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+            --spacing-xl: 24px;
+            --spacing-xxl: 32px;
+            --spacing-huge: 48px;
+            --spacing-giant: 64px;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .glass-card {
+            background: var(--surface-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xxl);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-xl);
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: var(--spacing-lg) 0;
+            background: rgba(15, 15, 26, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: var(--spacing-xxl);
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .gradient-btn {
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.4);
+        }
+
+        .glass-btn {
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            background: var(--surface-glass);
+            color: var(--text-primary);
+            border: 1.5px solid var(--border-default);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            backdrop-filter: blur(10px);
+        }
+
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Mobile menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: var(--spacing-md);
+        }
+
+        /* Mobile menu overlay */
+        .mobile-menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mobile-menu-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Pricing Hero */
+        .pricing-hero {
+            padding: 140px var(--spacing-xl) 60px;
+            text-align: center;
+        }
+
+        .pricing-hero h1 {
+            font-size: clamp(42px, 6vw, 56px);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: var(--spacing-lg);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -2px;
+        }
+
+        .pricing-hero p {
+            font-size: clamp(18px, 2.5vw, 20px);
+            color: var(--text-secondary);
+            margin-bottom: 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: var(--spacing-xxl) var(--spacing-xl) var(--spacing-giant);
+            background: var(--bg-primary);
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-xl);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card.popular {
+            border: 2px solid var(--primary-blue);
+            transform: scale(1.05);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-8px) scale(1.02);
+        }
+
+        .pricing-card.popular:hover {
+            transform: translateY(-8px) scale(1.07);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gradient-primary);
+            color: white;
+            padding: 6px 20px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .pricing-card h3 {
+            font-size: 24px;
+            margin-bottom: var(--spacing-lg);
+            font-weight: 700;
+        }
+
+        .price {
+            font-size: 56px;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--spacing-sm);
+            letter-spacing: -2px;
+        }
+
+        .price-period {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .credits-amount {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .pricing-note {
+            text-align: center;
+            margin-top: var(--spacing-huge);
+            color: var(--text-tertiary);
+            font-size: 16px;
+        }
+
+        /* Footer */
+        footer {
+            padding: var(--spacing-giant) var(--spacing-xl) var(--spacing-xxl);
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-default);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-huge);
+            margin-bottom: var(--spacing-huge);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        .footer-section h4 {
+            margin-bottom: var(--spacing-lg);
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: var(--spacing-md);
+            transition: color 0.3s ease;
+            font-size: 15px;
+        }
+
+        .footer-section a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: var(--spacing-xl);
+            border-top: 1px solid var(--border-default);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .nav-links {
+                display: flex;
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 280px;
+                height: 100vh;
+                background: var(--bg-secondary);
+                border-left: 1px solid var(--border-default);
+                flex-direction: column;
+                align-items: stretch;
+                padding: 80px var(--spacing-xl) var(--spacing-xl);
+                gap: 0;
+                z-index: 1001;
+                transition: right 0.3s ease;
+            }
+
+            .nav-links.mobile-open {
+                right: 0;
+            }
+
+            .nav-links li {
+                margin: 0;
+                border-bottom: 1px solid var(--border-default);
+            }
+
+            .nav-links li:last-child {
+                border-bottom: none;
+                margin-top: var(--spacing-lg);
+            }
+
+            .nav-links a {
+                display: block;
+                padding: var(--spacing-lg) 0;
+                color: var(--text-primary);
+                font-size: 16px;
+            }
+
+            .nav-links .gradient-btn {
+                margin-top: 0;
+                padding: var(--spacing-md) var(--spacing-lg) !important;
+                justify-content: center;
+            }
+
+            .mobile-menu-btn.active {
+                color: var(--primary-blue);
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-lg);
+            }
+
+            .pricing-card {
+                padding: var(--spacing-xl);
+            }
+
+            .pricing-card.popular {
+                transform: scale(1);
+            }
+
+            .pricing-hero {
+                padding-top: 100px;
+                padding-bottom: var(--spacing-xl);
+            }
+
+            .pricing-hero h1 {
+                font-size: 36px;
+                margin-bottom: var(--spacing-md);
+            }
+
+            .pricing-hero p {
+                font-size: 16px;
+            }
+
+            .pricing {
+                padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-xxl);
+            }
+
+            .price {
+                font-size: 44px;
+            }
+
+            .pricing-card h3 {
+                font-size: 20px;
+                margin-bottom: var(--spacing-md);
+            }
+
+            .credits-amount {
+                font-size: 18px;
+                margin-bottom: var(--spacing-md);
+            }
+
+            .pricing-note {
+                margin-top: var(--spacing-xl);
+                font-size: 14px;
+                line-height: 1.6;
+            }
+
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--spacing-md) var(--spacing-lg);
+                text-align: left;
+            }
+
+            .footer-section h4 {
+                font-size: 14px;
+                margin-bottom: var(--spacing-sm);
+            }
+
+            .footer-section a {
+                font-size: 13px;
+                margin-bottom: var(--spacing-xs);
+            }
+
+
+            footer {
+                padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-md);
+            }
+
+            .footer-bottom {
+                padding-top: var(--spacing-md);
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo">VibeCheck</a>
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#features">Features</a></li>
+                    <li><a href="index.html#how-it-works">How It Works</a></li>
+                    <li><a href="pricing.html">Pricing</a></li>
+                    <li><a href="blog/">Blog</a></li>
+                    <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="gradient-btn" style="padding: 10px 24px; font-size: 14px; color: white; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Get Started</a></li>
+                </ul>
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Pricing Hero -->
+    <section class="pricing-hero">
+        <h1>Try it free. Upgrade when you ship more.</h1>
+        <p>10 free credits to check your first project. No credit card required.</p>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing">
+        <div class="container">
+            <div class="pricing-grid">
+                <div class="pricing-card glass-card">
+                    <h3>Starter</h3>
+                    <div class="price">$4.99</div>
+                    <div class="price-period">one-time</div>
+                    <div class="credits-amount">20 credits</div>
+                    <p style="color: var(--text-tertiary); margin-bottom: var(--spacing-xl);">Perfect for side projects</p>
+                    <a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="glass-btn" style="width: 100%; justify-content: center;">Get Started</a>
+                </div>
+
+                <div class="pricing-card glass-card popular">
+                    <div class="popular-badge">POPULAR</div>
+                    <h3>Professional</h3>
+                    <div class="price">$9.99</div>
+                    <div class="price-period">one-time</div>
+                    <div class="credits-amount">50 credits</div>
+                    <p style="color: var(--text-tertiary); margin-bottom: var(--spacing-xl);">Great for active builders</p>
+                    <a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="gradient-btn" style="width: 100%; justify-content: center;">Get Started</a>
+                </div>
+
+                <div class="pricing-card glass-card">
+                    <h3>Enterprise</h3>
+                    <div class="price">$39.99</div>
+                    <div class="price-period">one-time</div>
+                    <div class="credits-amount">300 credits</div>
+                    <p style="color: var(--text-tertiary); margin-bottom: var(--spacing-xl);">For teams and agencies</p>
+                    <a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="glass-btn" style="width: 100%; justify-content: center;">Get Started</a>
+                </div>
+            </div>
+
+            <p class="pricing-note">
+                Each scan uses 5 credits • Checking fixes uses 1 credit • Credits never expire • Cancel anytime
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="index.html#features">Features</a></li>
+                        <li><a href="pricing.html">Pricing</a></li>
+                        <li><a href="index.html#how-it-works">How It Works</a></li>
+                        <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer">Launch App</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="blog/">Blog</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 VibeCheck. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const navLinks = document.getElementById('nav-links');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+
+        function openMobileMenu() {
+            navLinks.classList.add('mobile-open');
+            mobileOverlay.classList.add('active');
+            mobileMenuBtn.classList.add('active');
+            mobileMenuBtn.textContent = '✕';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            navLinks.classList.remove('mobile-open');
+            mobileOverlay.classList.remove('active');
+            mobileMenuBtn.classList.remove('active');
+            mobileMenuBtn.textContent = '☰';
+            document.body.style.overflow = '';
+        }
+
+        mobileMenuBtn.addEventListener('click', () => {
+            if (navLinks.classList.contains('mobile-open')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+
+        // Close mobile menu when clicking overlay
+        mobileOverlay.addEventListener('click', closeMobileMenu);
+
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+
+        // Google Analytics - Track all button and link clicks
+        document.addEventListener('DOMContentLoaded', function() {
+            // Track all CTA buttons
+            document.querySelectorAll('.gradient-btn, .glass-btn, a[href*="app.vibe-checker.dev"]').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const buttonText = this.textContent.trim();
+                    const buttonHref = this.href || 'N/A';
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'button_click', {
+                            'event_category': 'engagement',
+                            'event_label': buttonText,
+                            'value': buttonHref,
+                            'page': 'pricing'
+                        });
+                    }
+                });
+            });
+
+            // Track navigation links
+            document.querySelectorAll('.nav-links a, footer a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const linkText = this.textContent.trim();
+                    const linkHref = this.href || 'N/A';
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'navigation_click', {
+                            'event_category': 'navigation',
+                            'event_label': linkText,
+                            'value': linkHref,
+                            'page': 'pricing'
+                        });
+                    }
+                });
+            });
+
+            // Track pricing card buttons
+            document.querySelectorAll('.pricing-card .gradient-btn, .pricing-card .glass-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const card = this.closest('.pricing-card');
+                    const planName = card.querySelector('h3').textContent.trim();
+                    const price = card.querySelector('.price').textContent.trim();
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'pricing_plan_click', {
+                            'event_category': 'conversion',
+                            'event_label': planName,
+                            'value': price
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

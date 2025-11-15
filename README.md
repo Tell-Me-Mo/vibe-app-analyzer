@@ -1,19 +1,22 @@
 # VibeCheck
 
-Check the vibe of your AI-generated code. An intelligent analyzer that scans GitHub repositories for security vulnerabilities and monitoring opportunities in AI-generated applications.
+Don't Get Hacked. Don't Go Blind.
+
+Check the vibe of your AI-generated code. An intelligent analyzer that scans GitHub repositories for security vulnerabilities and monitoring gaps that AI coding assistants miss - before your users find them.
 
 ## Features
 
-- 🔒 **Security Analysis**: Detects vulnerabilities in AI-generated code (hardcoded secrets, SQL injection, XSS, etc.)
-- 📊 **Monitoring Analysis**: Identifies missing business metrics and observability opportunities
-- 🤖 **AI-Powered**: Uses OpenAI GPT-4o-mini for intelligent code analysis
+- 🔍 **Scans Your Code**: Paste your GitHub link and check every file ChatGPT or Claude generated for hidden problems
+- 🚨 **Finds What AI Missed**: Security holes that let hackers in, missing error tracking that leaves you blind when crashes happen
+- 💬 **Plain English Fixes**: No confusing tech jargon. Get copy-paste prompts that fix issues in minutes, not hours
 - 🔗 **GitHub Integration**: Direct links to code locations on GitHub with line numbers
 - 💾 **Analysis History**: Saves previous analysis results locally
 - 🎨 **Modern UI**: Clean, dark-themed interface with gradient accents
 
 ## Live Demo
 
-🌐 **https://analyzer.tellmemo.io**
+🌐 **Website**: https://vibe-checker.dev
+🚀 **Web App**: https://app.vibe-checker.dev
 
 ## Setup
 
@@ -68,13 +71,21 @@ flutter build web --release --wasm
 
 ## How It Works
 
-1. User enters a public GitHub repository URL
-2. App fetches the repository code via GitHub API
-3. Code is sent to OpenAI GPT-4o-mini with specialized prompts
-4. AI analyzes the code and returns structured findings with exact file locations
-5. Results are displayed with clickable file paths and line numbers
-6. Users can click links to view the vulnerable code on GitHub
-7. Each issue includes a Claude Code prompt to fix it
+1. **Paste GitHub URL**: Enter your public GitHub repository URL or live app URL
+2. **AI Scans Code**: App fetches repository code via GitHub API and sends to OpenAI GPT-4o-mini
+3. **Get Results in 60 Seconds**: AI analyzes code and returns structured findings with exact file locations
+4. **Review Issues**: Results displayed with severity levels, descriptions, and clickable GitHub links
+5. **Copy-Paste Fixes**: Each issue includes a plain English Claude Code prompt to fix it
+6. **Launch Confidently**: Know your code is safe before users find the problems
+
+## Pricing
+
+- **Free**: 10 credits on signup (no credit card required)
+- **Starter**: $4.99 for 20 credits
+- **Professional**: $9.99 for 50 credits (Popular)
+- **Enterprise**: $39.99 for 300 credits
+
+Each scan uses 5 credits • Checking fixes uses 1 credit • Credits never expire
 
 ## Security Notes
 
@@ -85,12 +96,34 @@ flutter build web --release --wasm
 
 ## Technologies Used
 
-- **Flutter Web** with WASM support
+- **Flutter Web** with WASM support for high performance
 - **Riverpod** for state management
-- **OpenAI GPT-4o-mini** for AI analysis
+- **OpenAI GPT-4o-mini** for AI-powered code analysis
 - **GitHub API** for repository access
+- **Firebase Analytics** for usage tracking and insights
+- **Supabase** for backend and database
 - **Nginx** with SSL/TLS for production hosting
 - **Let's Encrypt** for SSL certificates
+- **Google Analytics** for website analytics
+
+## Project Structure
+
+```
+├── lib/                    # Flutter application code
+│   ├── features/          # Feature modules (analysis, history, etc.)
+│   ├── providers/         # Riverpod state providers
+│   └── services/          # API services (OpenAI, GitHub)
+├── docs/                  # Marketing website
+│   ├── index.html        # Main landing page
+│   └── blog/             # Blog articles
+└── web/                   # Flutter web build output
+```
+
+## SEO & Analytics
+
+- **Sitemap**: https://vibe-checker.dev/sitemap.xml
+- **Google Analytics**: Configured for website traffic tracking
+- **Firebase Analytics**: Integrated in Flutter app for user behavior analysis
 
 ## Contributing
 
@@ -102,4 +135,5 @@ MIT
 
 ---
 
-Made with ❤️ by [Tell-Me-Mo](https://github.com/Tell-Me-Mo)
+Made with ❤️ for vibe coders everywhere
+🤖 Built with Claude Code

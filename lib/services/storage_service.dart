@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:uuid/uuid.dart';
 import '../models/analysis_result.dart';
@@ -14,22 +12,11 @@ class StorageService {
   StorageService._internal();
 
   late SharedPreferences _prefs;
-  late FlutterSecureStorage _secureStorage;
   encrypt.Encrypter? _encrypter;
   encrypt.IV? _iv;
 
   Future<void> initialize() async {
-    await Hive.initFlutter();
-
     _prefs = await SharedPreferences.getInstance();
-    _secureStorage = const FlutterSecureStorage(
-      aOptions: AndroidOptions(
-        encryptedSharedPreferences: true,
-      ),
-      iOptions: IOSOptions(
-        accessibility: KeychainAccessibility.first_unlock,
-      ),
-    );
 
     // Initialize encryption for sensitive data
     await _initializeEncryption();
@@ -38,18 +25,18 @@ class StorageService {
   /// Initialize encryption key for analysis data
   Future<void> _initializeEncryption() async {
     try {
-      // Try to retrieve existing encryption key
-      String? keyString = await _secureStorage.read(key: 'encryption_key');
-      String? ivString = await _secureStorage.read(key: 'encryption_iv');
+      // Try to retrieve existing encryption key from SharedPreferences
+      String? keyString = _prefs.getString('encryption_key');
+      String? ivString = _prefs.getString('encryption_iv');
 
       if (keyString == null || ivString == null) {
         // Generate new encryption key and IV
         final key = encrypt.Key.fromSecureRandom(32); // 256-bit key
         final iv = encrypt.IV.fromSecureRandom(16); // 128-bit IV
 
-        // Store securely
-        await _secureStorage.write(key: 'encryption_key', value: base64Encode(key.bytes));
-        await _secureStorage.write(key: 'encryption_iv', value: base64Encode(iv.bytes));
+        // Store in SharedPreferences
+        await _prefs.setString('encryption_key', base64Encode(key.bytes));
+        await _prefs.setString('encryption_iv', base64Encode(iv.bytes));
 
         _encrypter = encrypt.Encrypter(encrypt.AES(key));
         _iv = iv;
@@ -116,8 +103,11 @@ class StorageService {
 
   // History Management with encryption for sensitive data
   Future<void> saveAnalysis(AnalysisResult result) async {
+    print('💾 [STORAGE] saveAnalysis called for ID: ${result.id}');
     final history = getHistory();
+    print('💾 [STORAGE] Current history size: ${history.length}');
     history.insert(0, result);
+    print('💾 [STORAGE] Inserted result, new size: ${history.length}');
 
     // Keep only the latest items
     if (history.length > AppConfig.maxHistoryItems) {
@@ -137,8 +127,11 @@ class StorageService {
       final encryptedStrings = jsonStrings.map((str) => _encrypt(str)).toList();
 
       // Save encrypted data
+      print('💾 [STORAGE] Writing ${encryptedStrings.length} items to SharedPreferences');
       await _prefs.setStringList('history', encryptedStrings);
+      print('💾 [STORAGE] ✅ Successfully saved to SharedPreferences');
     } catch (e) {
+      print('💾 [STORAGE] ❌ Error saving: $e');
       throw Exception('Failed to save analysis history: $e');
     }
   }
@@ -165,6 +158,29 @@ class StorageService {
   AnalysisResult? getAnalysisById(String id) {
     final history = getHistory();
     return history.where((r) => r.id == id).firstOrNull;
+  }
+
+  Future<void> updateAnalysis(AnalysisResult updatedResult) async {
+    final history = getHistory();
+    final index = history.indexWhere((r) => r.id == updatedResult.id);
+
+    if (index != -1) {
+      history[index] = updatedResult;
+
+      try {
+        // Serialize to JSON
+        final jsonList = history.map((r) => r.toJson()).toList();
+        final jsonStrings = jsonList.map((json) => jsonEncode(json)).toList();
+
+        // Encrypt each analysis result
+        final encryptedStrings = jsonStrings.map((str) => _encrypt(str)).toList();
+
+        // Save encrypted data
+        await _prefs.setStringList('history', encryptedStrings);
+      } catch (e) {
+        throw Exception('Failed to update analysis: $e');
+      }
+    }
   }
 
   Future<void> clearHistory() async {

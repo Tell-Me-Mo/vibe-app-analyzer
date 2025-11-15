@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>VibeCheck Blog - Keep Your AI-Generated Apps Safe</title>
+    <meta name="title" content="VibeCheck Blog - Keep Your AI-Generated Apps Safe">
+    <meta name="description" content="Simple guides for vibe coders: avoid data breaches, prevent crashes, and launch confidently. No jargon, just what you need to know about AI-generated code safety.">
+    <meta name="keywords" content="AI code safety, ChatGPT app security, vibe coding tips, prevent data breaches, AI generated code problems, keep my app safe, launch day disasters, coding with AI safely">
+    <meta name="author" content="VibeCheck">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://vibe-checker.dev/blog/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vibe-checker.dev/blog/">
+    <meta property="og:title" content="VibeCheck Blog - Keep Your AI-Generated Apps Safe">
+    <meta property="og:description" content="Simple guides for vibe coders: avoid data breaches, prevent crashes, launch confidently. No jargon.">
+    <meta property="og:image" content="https://vibe-checker.dev/og-image.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://vibe-checker.dev/blog/">
+    <meta property="twitter:title" content="VibeCheck Blog - Keep Your AI Apps Safe">
+    <meta property="twitter:description" content="Simple guides for vibe coders: avoid data breaches, prevent crashes, launch confidently.">
+    <meta property="twitter:image" content="https://vibe-checker.dev/og-image.png">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #13141f;
+            --bg-tertiary: #1a1b2e;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            padding: 20px 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .gradient-btn {
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 12px;
+            text-decoration: none;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+
+        /* Mobile menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 12px;
+        }
+
+        /* Mobile menu overlay */
+        .mobile-menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mobile-menu-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Hero */
+        .blog-hero {
+            padding: 80px 24px 60px;
+            text-align: center;
+        }
+
+        .blog-hero h1 {
+            font-size: clamp(36px, 6vw, 56px);
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .blog-hero p {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Blog Grid */
+        .blog-grid {
+            padding: 60px 24px 120px;
+        }
+
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 32px;
+        }
+
+        .post-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+        }
+
+        .post-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .post-meta {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .post-category {
+            padding: 4px 12px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .post-card h2 {
+            font-size: 24px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .post-card p {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .read-more {
+            color: var(--accent-primary);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .read-more::after {
+            content: '→';
+            transition: transform 0.3s ease;
+        }
+
+        .post-card:hover .read-more::after {
+            transform: translateX(4px);
+        }
+
+        /* Footer */
+        footer {
+            padding: 64px 24px 32px;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 48px;
+            margin-bottom: 48px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 12px;
+            transition: color 0.3s ease;
+            font-size: 15px;
+        }
+
+        .footer-section a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            font-size: 14px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .nav-links {
+                display: flex;
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 280px;
+                height: 100vh;
+                background: var(--bg-secondary);
+                border-left: 1px solid var(--glass-border);
+                flex-direction: column;
+                align-items: stretch;
+                padding: 80px 24px 24px;
+                gap: 0;
+                z-index: 1001;
+                transition: right 0.3s ease;
+            }
+
+            .nav-links.mobile-open {
+                right: 0;
+            }
+
+            .nav-links li {
+                margin: 0;
+                border-bottom: 1px solid var(--glass-border);
+            }
+
+            .nav-links li:last-child {
+                border-bottom: none;
+                margin-top: 16px;
+            }
+
+            .nav-links a {
+                display: block;
+                padding: 16px 0;
+                font-size: 18px;
+                color: var(--text-secondary);
+                transition: all 0.3s ease;
+                position: relative;
+            }
+
+            .nav-links a:hover {
+                color: var(--text-primary);
+            }
+
+            .nav-links .gradient-btn {
+                margin-top: 0;
+                padding: 12px 16px !important;
+                justify-content: center;
+                width: 100%;
+            }
+
+            .mobile-menu-btn.active {
+                color: #6366F1;
+            }
+
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .blog-hero {
+                padding: 60px 24px 40px;
+            }
+
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--spacing-md) var(--spacing-lg);
+                text-align: left;
+            }
+
+            .footer-section h4 {
+                font-size: 14px;
+                margin-bottom: var(--spacing-sm);
+            }
+
+            .footer-section a {
+                font-size: 13px;
+                margin-bottom: var(--spacing-xs);
+            }
+
+            footer {
+                padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-md);
+            }
+
+            .footer-bottom {
+                padding-top: var(--spacing-md);
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="../" class="logo">VibeCheck</a>
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="../">Home</a></li>
+                    <li><a href="../#features">Features</a></li>
+                    <li><a href="../pricing.html">Pricing</a></li>
+                    <li><a href="./">Blog</a></li>
+                    <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="gradient-btn" style="padding: 10px 24px; font-size: 14px; color: white; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Get Started</a></li>
+                </ul>
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
+            </nav>
+        </div>
+    </header>
+
+    <section class="blog-hero">
+        <div class="container">
+            <h1>Don't Get Hacked. Don't Go Blind.</h1>
+            <p>Simple guides to keep your AI-generated apps safe and working. Written for builders, not experts.</p>
+        </div>
+    </section>
+
+    <section class="blog-grid">
+        <div class="container">
+            <div class="posts-grid">
+                <!-- Post 1 -->
+                <a href="preventing-sql-injection-vulnerabilities.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">Must Read</span>
+                        <span>5 min read</span>
+                    </div>
+                    <h2>Why Hackers Love Your Login Form (And How to Stop Them)</h2>
+                    <p>SQL injection sounds scary because it is. It's how hackers steal entire databases through a simple login form. Here's how to protect your app in plain English.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+
+                <!-- Post 2 -->
+                <a href="web-application-security-checklist.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">Launch Ready</span>
+                        <span>8 min read</span>
+                    </div>
+                    <h2>Before You Ship: 7 Things That Could Ruin Your Launch</h2>
+                    <p>ChatGPT built your app, but did it remember security? This checklist covers the most common issues that let hackers in or leak user data. Check these before going live.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+
+                <!-- Post 3 -->
+                <a href="ai-powered-code-analysis.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">AI Coding</span>
+                        <span>6 min read</span>
+                    </div>
+                    <h2>What ChatGPT Doesn't Tell You About the Code It Writes</h2>
+                    <p>AI code assistants are amazing, but they skip the boring stuff like security and monitoring. Here's what they miss and why it matters for your launch.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+
+                <!-- Post 4 -->
+                <a href="monitoring-observability-guide.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">Stay Sane</span>
+                        <span>7 min read</span>
+                    </div>
+                    <h2>Your App is Live. Now What If It Breaks?</h2>
+                    <p>Without monitoring, you won't know when your app crashes, who's affected, or how to fix it. Here's how to set up error tracking so you're not flying blind.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+
+                <!-- Post 5 -->
+                <a href="password-security-mistakes.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">Security</span>
+                        <span>6 min read</span>
+                    </div>
+                    <h2>5 Ways You're Storing Passwords Wrong (And How Hackers Exploit It)</h2>
+                    <p>Most AI-generated apps store passwords insecurely. If hackers get your database, they'll have every user's password in seconds. Here's what you need to fix.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+
+                <!-- Post 6 -->
+                <a href="api-keys-security.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">Critical</span>
+                        <span>7 min read</span>
+                    </div>
+                    <h2>You Just Pushed Your API Keys to GitHub. Now What?</h2>
+                    <p>Accidentally committed your API keys? Bots are already scanning for them. Here's what to do in the next 5 minutes to avoid a $10,000 surprise bill.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+
+                <!-- Post 7 -->
+                <a href="database-schema-design-mistakes.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">Database</span>
+                        <span>7 min read</span>
+                    </div>
+                    <h2>ChatGPT Built My Database Schema. Here's What It Got Wrong</h2>
+                    <p>AI-generated database schemas work... until they don't. Here's what ChatGPT gets wrong about databases and how to fix it before you lose data.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+
+                <!-- Post 8 -->
+                <a href="localhost-vs-production-bugs.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">Production</span>
+                        <span>8 min read</span>
+                    </div>
+                    <h2>Your App Works On Your Laptop. Why Does It Crash In Production?</h2>
+                    <p>It works on localhost but crashes in production. Here's why your AI-generated app behaves differently when real users touch it—and how to fix it.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+
+                <!-- Post 9 -->
+                <a href="cloud-hosting-cost-surprises.html" class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">Costs</span>
+                        <span>9 min read</span>
+                    </div>
+                    <h2>Free Hosting Sounds Great Until Your Bill Is $500/Month</h2>
+                    <p>That 'free tier' turned into a $500 monthly bill. Here's how cloud hosting costs spiral out of control and how to keep them under $20/month.</p>
+                    <span class="read-more">Read article</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="../#features">Features</a></li>
+                        <li><a href="../pricing.html">Pricing</a></li>
+                        <li><a href="../#how-it-works">How It Works</a></li>
+                        <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer">Launch App</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="./">Blog</a></li>
+                        <li><a href="../privacy.html">Privacy Policy</a></li>
+                        <li><a href="../terms.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 VibeCheck. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const navLinks = document.getElementById('nav-links');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+
+        function openMobileMenu() {
+            navLinks.classList.add('mobile-open');
+            mobileOverlay.classList.add('active');
+            mobileMenuBtn.classList.add('active');
+            mobileMenuBtn.textContent = '✕';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            navLinks.classList.remove('mobile-open');
+            mobileOverlay.classList.remove('active');
+            mobileMenuBtn.classList.remove('active');
+            mobileMenuBtn.textContent = '☰';
+            document.body.style.overflow = '';
+        }
+
+        mobileMenuBtn.addEventListener('click', () => {
+            if (navLinks.classList.contains('mobile-open')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+
+        // Close mobile menu when clicking overlay
+        mobileOverlay.addEventListener('click', closeMobileMenu);
+
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+
+        // Google Analytics - Track all button and link clicks
+        document.addEventListener('DOMContentLoaded', function() {
+            // Track all CTA buttons
+            document.querySelectorAll('.gradient-btn, .cta-button, a[href*="app.vibe-checker.dev"]').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const buttonText = this.textContent.trim();
+                    const buttonHref = this.href || 'N/A';
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'button_click', {
+                            'event_category': 'engagement',
+                            'event_label': buttonText,
+                            'value': buttonHref,
+                            'page': 'blog'
+                        });
+                    }
+                });
+            });
+
+            // Track navigation links
+            document.querySelectorAll('.nav-links a, footer a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const linkText = this.textContent.trim();
+                    const linkHref = this.href || 'N/A';
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'navigation_click', {
+                            'event_category': 'navigation',
+                            'event_label': linkText,
+                            'value': linkHref,
+                            'page': 'blog'
+                        });
+                    }
+                });
+            });
+
+            // Track blog post clicks
+            document.querySelectorAll('.post-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    const postTitle = this.querySelector('h2').textContent.trim();
+                    const postLink = this.querySelector('a').href;
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'blog_post_click', {
+                            'event_category': 'content',
+                            'event_label': postTitle,
+                            'value': postLink
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

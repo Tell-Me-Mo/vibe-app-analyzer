@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Primary Meta Tags -->
+    <title>You Just Pushed Your API Keys to GitHub. Now What? - VibeCheck</title>
+    <meta name="description" content="Accidentally committed your API keys? Bots are already using them. Here's what to do in the next 5 minutes to save yourself from a $10,000 bill.">
+    <meta name="keywords" content="API keys leaked, GitHub secrets exposed, rotate API keys, .env file security, API key exposure, AWS key leaked, OpenAI key compromised, prevent API key leaks">
+    <meta name="author" content="VibeCheck">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://vibe-checker.dev/blog/api-keys-security.html">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://vibe-checker.dev/blog/api-keys-security.html">
+    <meta property="og:title" content="You Just Pushed Your API Keys to GitHub. Now What?">
+    <meta property="og:description" content="Accidentally committed your API keys? Bots are already scanning for them. Here's what to do in the next 5 minutes to avoid a $10,000 surprise bill.">
+    <meta property="og:image" content="https://vibe-checker.dev/og-image.png">
+    <meta property="article:published_time" content="2025-01-13T00:00:00Z">
+    <meta property="article:modified_time" content="2025-01-13T00:00:00Z">
+    <meta property="article:author" content="VibeCheck">
+    <meta property="article:section" content="Security">
+    <meta property="article:tag" content="API Keys">
+    <meta property="article:tag" content="GitHub Security">
+    <meta property="article:tag" content="Secrets Management">
+    <meta property="article:tag" content="Emergency Response">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://vibe-checker.dev/blog/api-keys-security.html">
+    <meta property="twitter:title" content="You Just Pushed Your API Keys to GitHub. Now What?">
+    <meta property="twitter:description" content="Accidentally committed API keys? Here's your emergency damage control guide. Act in the next 5 minutes.">
+    <meta property="twitter:image" content="https://vibe-checker.dev/og-image.png">
+
+    <!-- Breadcrumb Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://vibe-checker.dev/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://vibe-checker.dev/blog/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "You Just Pushed Your API Keys to GitHub. Now What?",
+          "item": "https://vibe-checker.dev/blog/api-keys-security.html"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Article Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "You Just Pushed Your API Keys to GitHub. Now What?",
+      "description": "Accidentally committed your API keys? Bots are already using them. Here's what to do in the next 5 minutes to save yourself from a $10,000 bill.",
+      "image": "https://vibe-checker.dev/og-image.png",
+      "author": {
+        "@type": "Organization",
+        "name": "VibeCheck",
+        "url": "https://vibe-checker.dev"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "VibeCheck",
+        "url": "https://vibe-checker.dev",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://vibe-checker.dev/logo.png"
+        }
+      },
+      "datePublished": "2025-01-13",
+      "dateModified": "2025-01-13",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://vibe-checker.dev/blog/api-keys-security.html"
+      },
+      "articleSection": "Security",
+      "keywords": ["API keys", "GitHub secrets", "leaked credentials", "rotate API keys", "AWS security", "OpenAI keys", "secrets management"],
+      "articleBody": "An emergency response guide for developers who accidentally committed API keys to GitHub. Covers immediate damage control steps, key rotation procedures, and preventive measures to avoid future leaks."
+    }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #13141f;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+        header {
+            padding: 20px 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+        .back-link {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .back-link:hover { color: var(--text-primary); }
+        article { padding: 80px 0; }
+        .article-header { text-align: center; margin-bottom: 60px; }
+        .article-meta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+        .category {
+            padding: 6px 16px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+        .subtitle {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .content { font-size: 18px; line-height: 1.8; }
+        .content h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 60px 0 24px;
+            color: var(--text-primary);
+        }
+        .content h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 40px 0 16px;
+            color: var(--text-secondary);
+        }
+        .content p {
+            margin-bottom: 24px;
+            color: var(--text-tertiary);
+        }
+        .content ul, .content ol {
+            margin: 24px 0;
+            padding-left: 32px;
+            color: var(--text-tertiary);
+        }
+        .content li { margin-bottom: 12px; }
+        .content strong { color: var(--text-secondary); font-weight: 600; }
+        .emergency-box {
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid var(--error);
+            padding: 32px;
+            margin: 32px 0;
+            border-radius: 12px;
+        }
+        .emergency-box h3 {
+            color: var(--error);
+            font-size: 24px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning);
+            padding: 24px;
+            margin: 32px 0;
+            border-radius: 8px;
+        }
+        .warning-box h4 {
+            color: var(--warning);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success);
+            padding: 24px;
+            margin: 32px 0;
+            border-radius: 8px;
+        }
+        .success-box h4 {
+            color: var(--success);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .step-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--accent-primary);
+            padding: 24px;
+            margin: 24px 0;
+            border-radius: 8px;
+        }
+        .step-box h4 {
+            color: var(--accent-primary);
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        .cta-section {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 48px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 60px 0;
+        }
+        .cta-section h3 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+        .cta-section p {
+            color: var(--text-tertiary);
+            margin-bottom: 32px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+        .cta-button:hover { transform: translateY(-2px); }
+        footer {
+            padding: 48px 0;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="../" class="logo">VibeCheck</a>
+                <a href="./" class="back-link">← Back to Blog</a>
+            </nav>
+        </div>
+    </header>
+
+    <article>
+        <div class="container">
+            <div class="article-header">
+                <div class="article-meta">
+                    <span class="category">Critical</span>
+                    <span>7 min read</span>
+                </div>
+                <h1>You Just Pushed Your API Keys to GitHub. Now What?</h1>
+                <p class="subtitle">Accidentally committed your API keys? Bots are already scanning for them. Here's what to do in the next 5 minutes to avoid a $10,000 surprise bill.</p>
+            </div>
+
+            <div class="content">
+                <p>You were coding fast. Built a cool feature with ChatGPT. Added your OpenAI API key to test it. Committed the code. Pushed to GitHub.</p>
+
+                <p><strong>Then you realized: Your API key is now public.</strong></p>
+
+                <p>Here's what's happening right now:</p>
+
+                <ul>
+                    <li>Bots scan every GitHub commit within seconds of being pushed</li>
+                    <li>They automatically find API keys, tokens, and passwords</li>
+                    <li>They start using them immediately—mining crypto, generating spam, or racking up your bill</li>
+                </ul>
+
+                <p>This isn't hypothetical. It happens hundreds of times per day.</p>
+
+                <div class="emergency-box">
+                    <h3>🚨 If You Just Exposed Keys: Do This NOW</h3>
+                    <ol>
+                        <li><strong>Stop reading and rotate the key immediately</strong> (go to the service's dashboard → regenerate/delete)</li>
+                        <li><strong>Check your usage/billing</strong> to see if bots already hit it</li>
+                        <li><strong>Remove the key from GitHub history</strong> (instructions below)</li>
+                        <li><strong>Never commit secrets again</strong> (also below)</li>
+                    </ol>
+                    <p><strong>Do this before you finish reading this article.</strong> Every minute counts.</p>
+                </div>
+
+                <h2>Real Stories (This Actually Happens)</h2>
+
+                <h3>Story 1: The $72,000 AWS Bill</h3>
+                <p>A developer accidentally committed AWS credentials to a public GitHub repo. Within 20 minutes, bots spun up 500+ EC2 instances to mine cryptocurrency. By the time he noticed, the bill was $72,000.</p>
+
+                <p>AWS didn't waive the charges. He had to pay.</p>
+
+                <h3>Story 2: The OpenAI Account Suspension</h3>
+                <p>A student put their OpenAI API key in frontend code. Bots found it and made 10,000+ requests in an hour. OpenAI suspended the account for abuse. Months of project work lost.</p>
+
+                <h3>Story 3: The Twilio Scam</h3>
+                <p>Exposed Twilio credentials were used to send 50,000 SMS messages to premium numbers the attacker controlled. Cost: $15,000. The app was still in development—it didn't even have users yet.</p>
+
+                <p><strong>These people all thought: "I'll fix it later." Later came with a massive bill.</strong></p>
+
+                <h2>How Bots Find Your Keys (In Seconds)</h2>
+
+                <p>Here's what happens when you push code to GitHub:</p>
+
+                <ol>
+                    <li><strong>Second 0:</strong> You push code with an API key</li>
+                    <li><strong>Second 1-3:</strong> Bots scanning GitHub find your commit</li>
+                    <li><strong>Second 4-10:</strong> Automated scripts extract the key and test if it works</li>
+                    <li><strong>Second 11+:</strong> If valid, bots start using it (or sell it on dark web forums)</li>
+                </ol>
+
+                <p>They look for patterns like:</p>
+                <ul>
+                    <li><code>sk_live_</code> (Stripe keys)</li>
+                    <li><code>AKIA</code> (AWS access keys)</li>
+                    <li><code>sk-proj-</code> or <code>sk-</code> (OpenAI keys)</li>
+                    <li><code>ghp_</code> (GitHub tokens)</li>
+                    <li><code>xox</code> (Slack tokens)</li>
+                    <li>And hundreds more patterns for every popular service</li>
+                </ul>
+
+                <h2>Immediate Damage Control (Do This First)</h2>
+
+                <h3>Step 1: Rotate/Delete the Exposed Key</h3>
+
+                <div class="step-box">
+                    <h4>For OpenAI:</h4>
+                    <ol>
+                        <li>Go to platform.openai.com/api-keys</li>
+                        <li>Find the exposed key</li>
+                        <li>Click "Delete" or "Revoke"</li>
+                        <li>Create a new key</li>
+                        <li>Update your local .env file with the new key</li>
+                    </ol>
+                </div>
+
+                <div class="step-box">
+                    <h4>For Stripe:</h4>
+                    <ol>
+                        <li>Go to dashboard.stripe.com/apikeys</li>
+                        <li>Click "Delete" on the exposed key</li>
+                        <li>Generate a new key</li>
+                        <li>Check Recent Activity for suspicious charges</li>
+                    </ol>
+                </div>
+
+                <div class="step-box">
+                    <h4>For AWS:</h4>
+                    <ol>
+                        <li>Go to IAM console → Users → Security credentials</li>
+                        <li>Delete the exposed access key</li>
+                        <li>Create new credentials</li>
+                        <li>Check CloudTrail for suspicious activity</li>
+                        <li>Review billing dashboard immediately</li>
+                    </ol>
+                </div>
+
+                <h3>Step 2: Check If Damage Already Happened</h3>
+
+                <p>Go to your service's usage/billing dashboard and look for:</p>
+                <ul>
+                    <li>Unusual spikes in API calls</li>
+                    <li>Requests from countries you don't operate in</li>
+                    <li>Resources created that you didn't make</li>
+                    <li>Sudden increase in costs</li>
+                </ul>
+
+                <p>If you see suspicious activity: Contact support immediately and explain what happened. Some providers waive charges for first-time incidents.</p>
+
+                <h3>Step 3: Remove Keys from Git History</h3>
+
+                <p>Deleting the file or commit isn't enough—the key is still in your repo's history. You need to purge it completely.</p>
+
+                <div class="code-block">
+# Use BFG Repo-Cleaner (easiest method)
+# Download from: https://rtyley.github.io/bfg-repo-cleaner/
+
+# Replace 'YOUR_API_KEY' with the actual exposed key
+bfg --replace-text passwords.txt your-repo
+
+# Or use git filter-repo (more powerful)
+git filter-repo --path .env --invert-paths
+
+# Force push to overwrite history
+git push --force --all
+                </div>
+
+                <div class="warning-box">
+                    <h4>⚠️ Warning: Force Push Breaks Collaborators</h4>
+                    <p>If others are working on the repo, coordinate with them first. They'll need to re-clone after you force push.</p>
+                </div>
+
+                <h2>How to NEVER Make This Mistake Again</h2>
+
+                <h3>1. Use Environment Variables (The Right Way)</h3>
+
+                <p>Create a <code>.env</code> file in your project root:</p>
+
+                <div class="code-block">
+# .env
+OPENAI_API_KEY=sk-proj-your-secret-key-here
+STRIPE_SECRET_KEY=sk_live_your-stripe-key
+DATABASE_URL=postgresql://user:password@host/db
+                </div>
+
+                <p>Add <code>.env</code> to your <code>.gitignore</code>:</p>
+
+                <div class="code-block">
+# .gitignore
+.env
+.env.local
+.env.production
+*.key
+*.pem
+secrets/
+                </div>
+
+                <p>Load them in your code:</p>
+
+                <div class="code-block">
+// Node.js
+require('dotenv').config();
+const apiKey = process.env.OPENAI_API_KEY;
+
+// Python
+import os
+from dotenv import load_dotenv
+load_dotenv()
+api_key = os.getenv('OPENAI_API_KEY')
+                </div>
+
+                <h3>2. Create an .env.example File</h3>
+
+                <p>This helps other devs know what environment variables they need—without exposing the real values:</p>
+
+                <div class="code-block">
+# .env.example (safe to commit)
+OPENAI_API_KEY=sk-proj-your-key-here
+STRIPE_SECRET_KEY=sk_live_your-key-here
+DATABASE_URL=postgresql://localhost/myapp
+                </div>
+
+                <h3>3. Use Git Hooks to Block Commits</h3>
+
+                <p>Install a pre-commit hook that scans for secrets before you commit:</p>
+
+                <div class="code-block">
+# Install detect-secrets
+pip install detect-secrets
+
+# Set up pre-commit hook
+detect-secrets scan > .secrets.baseline
+detect-secrets audit .secrets.baseline
+
+# Add to .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/Yelp/detect-secrets
+    hooks:
+      - id: detect-secrets
+                </div>
+
+                <p>Now if you try to commit a secret, it'll block you with a warning.</p>
+
+                <h3>4. Different Keys for Different Environments</h3>
+
+                <p>Never use production keys in development. Create separate keys for:</p>
+                <ul>
+                    <li><strong>Development:</strong> Local testing, low rate limits</li>
+                    <li><strong>Staging:</strong> Pre-production testing</li>
+                    <li><strong>Production:</strong> Real users, restricted permissions</li>
+                </ul>
+
+                <p>If you leak a dev key, it's less catastrophic than leaking production credentials.</p>
+
+                <h3>5. Use Secret Management Services</h3>
+
+                <p>For production apps, use dedicated secret managers:</p>
+                <ul>
+                    <li><strong>Vercel/Netlify:</strong> Built-in environment variable management</li>
+                    <li><strong>AWS Secrets Manager:</strong> For AWS deployments</li>
+                    <li><strong>HashiCorp Vault:</strong> For complex setups</li>
+                    <li><strong>Doppler:</strong> Works with any platform</li>
+                </ul>
+
+                <h2>Red Flags That Scream "You're Doing It Wrong"</h2>
+
+                <p>If you see any of these in your code, fix them NOW:</p>
+
+                <ul>
+                    <li>❌ <code>const API_KEY = "sk-proj-abc123..."</code> in your JavaScript files</li>
+                    <li>❌ Committing <code>.env</code> files to git</li>
+                    <li>❌ Hardcoded passwords or tokens anywhere in code</li>
+                    <li>❌ Sharing API keys in Slack/Discord/email</li>
+                    <li>❌ Using the same key across multiple projects</li>
+                    <li>❌ Production keys in screenshot or video tutorials</li>
+                </ul>
+
+                <div class="success-box">
+                    <h4>✅ Quick Test: Can You Answer These?</h4>
+                    <ul>
+                        <li>If your laptop gets stolen, are your production API keys safe?</li>
+                        <li>If you share your code with someone, will they have your secrets?</li>
+                        <li>If a bot scans your GitHub, will it find valid keys?</li>
+                    </ul>
+                    <p>If the answer to any is "no", fix it today.</p>
+                </div>
+
+                <div class="cta-section">
+                    <h3>Scan Your Code for Exposed Secrets</h3>
+                    <p>VibeCheck automatically scans your GitHub repos and finds hardcoded API keys, passwords, and tokens before bots do.</p>
+                    <a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="cta-button">Check My Repo Free →</a>
+                </div>
+
+                <h2>The Bottom Line</h2>
+
+                <p>Exposed API keys aren't "just a mistake"—they're a financial and security disaster waiting to happen.</p>
+
+                <p><strong>If you exposed keys:</strong></p>
+                <ol>
+                    <li>Rotate them immediately</li>
+                    <li>Check billing for suspicious activity</li>
+                    <li>Purge them from git history</li>
+                    <li>Set up environment variables properly</li>
+                </ol>
+
+                <p><strong>To prevent it forever:</strong></p>
+                <ul>
+                    <li>Never commit .env files</li>
+                    <li>Use environment variables for ALL secrets</li>
+                    <li>Install pre-commit hooks to catch mistakes</li>
+                    <li>Use different keys for dev and production</li>
+                </ul>
+
+                <p>Your future self will thank you when you're not dealing with a $10,000 bill from bots abusing your keys.</p>
+            </div>
+        </div>
+    </article>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 VibeCheck. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
