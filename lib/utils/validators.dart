@@ -114,14 +114,23 @@ class Validators {
   /// - Removes trailing slashes
   /// - Upgrades HTTP to HTTPS
   /// - Removes www subdomain for consistency
+  /// - Adds https:// scheme if missing
   /// - Returns null if URL is invalid
   static String? sanitizeGitHubUrl(String url) {
-    if (!isValidGitHubUrl(url)) {
+    final trimmedUrl = url.trim();
+
+    // Try to add scheme if missing
+    String urlToValidate = trimmedUrl;
+    if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+      urlToValidate = 'https://$trimmedUrl';
+    }
+
+    if (!isValidGitHubUrl(urlToValidate)) {
       return null;
     }
 
     try {
-      final uri = Uri.parse(url.trim());
+      final uri = Uri.parse(urlToValidate);
       final segments = uri.pathSegments;
 
       if (segments.length < 2) {
@@ -247,10 +256,22 @@ class Validators {
       return null;
     }
 
+    // Try with original URL first
     if (isValidGitHubUrl(trimmedUrl)) {
       return AnalysisMode.staticCode;
     } else if (isValidAppUrl(trimmedUrl)) {
       return AnalysisMode.runtime;
+    }
+
+    // If URL doesn't have a scheme, try adding https://
+    if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+      final urlWithScheme = 'https://$trimmedUrl';
+
+      if (isValidGitHubUrl(urlWithScheme)) {
+        return AnalysisMode.staticCode;
+      } else if (isValidAppUrl(urlWithScheme)) {
+        return AnalysisMode.runtime;
+      }
     }
 
     return null;
@@ -261,14 +282,23 @@ class Validators {
   /// - Removes trailing slashes
   /// - Upgrades HTTP to HTTPS
   /// - Normalizes the URL format
+  /// - Adds https:// scheme if missing
   /// - Returns null if URL is invalid
   static String? sanitizeAppUrl(String url) {
-    if (!isValidAppUrl(url)) {
+    final trimmedUrl = url.trim();
+
+    // Try to add scheme if missing
+    String urlToValidate = trimmedUrl;
+    if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+      urlToValidate = 'https://$trimmedUrl';
+    }
+
+    if (!isValidAppUrl(urlToValidate)) {
       return null;
     }
 
     try {
-      final uri = Uri.parse(url.trim());
+      final uri = Uri.parse(urlToValidate);
 
       // Upgrade to HTTPS (except localhost)
       final scheme = uri.host == 'localhost' || uri.host == '127.0.0.1'

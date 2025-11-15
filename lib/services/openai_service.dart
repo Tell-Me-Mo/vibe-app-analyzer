@@ -371,6 +371,32 @@ class OpenAIService {
       }
     }
 
+    // Recalculate summary based on actual parsed data to ensure accuracy
+    final actualTotal = analysisType == AnalysisType.security
+        ? (securityIssues?.length ?? 0)
+        : (monitoringRecommendations?.length ?? 0);
+
+    // Recalculate severity counts
+    final Map<String, int> actualSeverityCounts = {};
+    if (analysisType == AnalysisType.security && securityIssues != null) {
+      for (final issue in securityIssues) {
+        final severity = issue.severity.value;
+        actualSeverityCounts[severity] = (actualSeverityCounts[severity] ?? 0) + 1;
+      }
+    } else if (analysisType == AnalysisType.monitoring && monitoringRecommendations != null) {
+      for (final rec in monitoringRecommendations) {
+        final severity = rec.severity.value;
+        actualSeverityCounts[severity] = (actualSeverityCounts[severity] ?? 0) + 1;
+      }
+    }
+
+    // Create corrected summary
+    final correctedSummary = AnalysisSummary(
+      total: actualTotal,
+      bySeverity: actualSeverityCounts,
+      byCategory: summary.byCategory, // Keep category counts from AI
+    );
+
     return AnalysisResult(
       id: const Uuid().v4(),
       repositoryUrl: repositoryUrl,
@@ -378,7 +404,7 @@ class OpenAIService {
       analysisType: analysisType,
       analysisMode: analysisMode,
       timestamp: DateTime.now(),
-      summary: summary,
+      summary: correctedSummary,
       securityIssues: securityIssues,
       monitoringRecommendations: monitoringRecommendations,
     );

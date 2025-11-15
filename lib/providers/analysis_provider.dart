@@ -129,9 +129,11 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
     required String repositoryUrl,
     required AnalysisType analysisType,
   }) async {
-    if (!Validators.isValidGitHubUrl(repositoryUrl)) {
+    // Sanitize URL (adds https:// if missing)
+    final sanitizedUrl = Validators.sanitizeGitHubUrl(repositoryUrl);
+    if (sanitizedUrl == null) {
       state = state.copyWith(
-        error: 'Please enter a valid GitHub repository URL',
+        error: 'Enter a valid GitHub repository URL',
       );
       return;
     }
@@ -160,8 +162,8 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
         progressMessage: 'Validating repository...',
       );
 
-      // Get repository info
-      final repoInfo = await _githubService.getRepository(repositoryUrl);
+      // Get repository info (use sanitized URL)
+      final repoInfo = await _githubService.getRepository(sanitizedUrl);
       if (!ref.mounted) return;
 
       final repositoryName = repoInfo['name'];
@@ -171,8 +173,8 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
         progressMessage: 'Fetching repository code...',
       );
 
-      // Aggregate code
-      final code = await _githubService.aggregateCode(repositoryUrl);
+      // Aggregate code (use sanitized URL)
+      final code = await _githubService.aggregateCode(sanitizedUrl);
       if (!ref.mounted) return;
 
       state = state.copyWith(
@@ -180,9 +182,9 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
         progressMessage: 'Running AI code analysis...',
       );
 
-      // Analyze with OpenAI
+      // Analyze with OpenAI (use sanitized URL)
       final result = await _openaiService.analyzeCode(
-        repositoryUrl: repositoryUrl,
+        repositoryUrl: sanitizedUrl,
         repositoryName: repositoryName,
         code: code,
         analysisType: analysisType,
@@ -255,9 +257,11 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
     required String appUrl,
     required AnalysisType analysisType,
   }) async {
-    if (!Validators.isValidAppUrl(appUrl)) {
+    // Sanitize URL (adds https:// if missing)
+    final sanitizedUrl = Validators.sanitizeAppUrl(appUrl);
+    if (sanitizedUrl == null) {
       state = state.copyWith(
-        error: 'Please enter a valid application URL',
+        error: 'Enter a valid application URL',
       );
       return;
     }
@@ -286,12 +290,12 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
         progressMessage: 'Connecting to application...',
       );
 
-      // Fetch and analyze runtime data
-      final runtimeData = await _appRuntimeService.analyzeApp(appUrl);
+      // Fetch and analyze runtime data (use sanitized URL)
+      final runtimeData = await _appRuntimeService.analyzeApp(sanitizedUrl);
       if (!ref.mounted) return;
 
       // Extract app name from URL
-      final uri = Uri.parse(appUrl);
+      final uri = Uri.parse(sanitizedUrl);
       final appName = uri.host;
 
       state = state.copyWith(
@@ -307,9 +311,9 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
         progressMessage: 'Running AI runtime analysis...',
       );
 
-      // Analyze with OpenAI
+      // Analyze with OpenAI (use sanitized URL)
       final result = await _openaiService.analyzeRuntimeApp(
-        appUrl: appUrl,
+        appUrl: sanitizedUrl,
         appName: appName,
         runtimeData: runtimeData,
         analysisType: analysisType,

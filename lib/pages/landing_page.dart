@@ -64,7 +64,7 @@ class _LandingPageState extends ConsumerState<LandingPage> {
 
     if (urlMode == null) {
       setState(() {
-        _errorText = 'Please enter a valid GitHub repository or live app URL';
+        _errorText = 'Enter a valid GitHub repository or live app URL';
       });
       // Track validation failure
       await AnalyticsService().logEvent(
@@ -496,7 +496,7 @@ class _MainContentState extends State<_MainContent> {
             controller: widget.urlController,
             style: AppTypography.bodyLarge,
             decoration: InputDecoration(
-              hintText: 'https://github.com/user/repo or https://yourapp.com',
+              hintText: 'GitHub repo or live app URL',
               errorText: widget.errorText,
               prefixIcon: Icon(
                 Icons.link_rounded,
