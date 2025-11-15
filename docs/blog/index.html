@@ -106,6 +106,60 @@
             color: var(--text-primary);
         }
 
+        .gradient-btn {
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 12px;
+            text-decoration: none;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+
+        /* Mobile menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 12px;
+        }
+
+        /* Mobile menu overlay */
+        .mobile-menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mobile-menu-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
         /* Hero */
         .blog-hero {
             padding: 80px 24px 60px;
@@ -213,7 +267,7 @@
 
         .footer-content {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 48px;
             margin-bottom: 48px;
             max-width: 900px;
@@ -259,8 +313,63 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+
             .nav-links {
-                display: none;
+                display: flex;
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 280px;
+                height: 100vh;
+                background: var(--bg-secondary);
+                border-left: 1px solid var(--glass-border);
+                flex-direction: column;
+                align-items: stretch;
+                padding: 80px 24px 24px;
+                gap: 0;
+                z-index: 1001;
+                transition: right 0.3s ease;
+            }
+
+            .nav-links.mobile-open {
+                right: 0;
+            }
+
+            .nav-links li {
+                margin: 0;
+                border-bottom: 1px solid var(--glass-border);
+            }
+
+            .nav-links li:last-child {
+                border-bottom: none;
+                margin-top: 16px;
+            }
+
+            .nav-links a {
+                display: block;
+                padding: 16px 0;
+                font-size: 18px;
+                color: var(--text-secondary);
+                transition: all 0.3s ease;
+                position: relative;
+            }
+
+            .nav-links a:hover {
+                color: var(--text-primary);
+            }
+
+            .nav-links .gradient-btn {
+                margin-top: 0;
+                padding: 12px 16px !important;
+                justify-content: center;
+                width: 100%;
+            }
+
+            .mobile-menu-btn.active {
+                color: #6366F1;
             }
 
             .posts-grid {
@@ -270,6 +379,31 @@
             .blog-hero {
                 padding: 60px 24px 40px;
             }
+
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--spacing-md) var(--spacing-lg);
+                text-align: left;
+            }
+
+            .footer-section h4 {
+                font-size: 14px;
+                margin-bottom: var(--spacing-sm);
+            }
+
+            .footer-section a {
+                font-size: 13px;
+                margin-bottom: var(--spacing-xs);
+            }
+
+            footer {
+                padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-md);
+            }
+
+            .footer-bottom {
+                padding-top: var(--spacing-md);
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -278,12 +412,14 @@
         <div class="container">
             <nav>
                 <a href="../" class="logo">VibeCheck</a>
-                <ul class="nav-links">
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="../">Home</a></li>
                     <li><a href="../#features">Features</a></li>
-                    <li><a href="../#pricing">Pricing</a></li>
+                    <li><a href="../pricing.html">Pricing</a></li>
                     <li><a href="./">Blog</a></li>
-                    <li><a href="../#cta">Get Started</a></li>
+                    <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="gradient-btn" style="padding: 10px 24px; font-size: 14px; color: white; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Get Started</a></li>
                 </ul>
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
             </nav>
         </div>
     </header>
@@ -407,22 +543,16 @@
                     <h4>Product</h4>
                     <ul>
                         <li><a href="../#features">Features</a></li>
-                        <li><a href="../#pricing">Pricing</a></li>
+                        <li><a href="../pricing.html">Pricing</a></li>
                         <li><a href="../#how-it-works">How It Works</a></li>
                         <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer">Launch App</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-section">
-                    <h4>Resources</h4>
-                    <ul>
-                        <li><a href="./">Blog</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-section">
                     <h4>Company</h4>
                     <ul>
+                        <li><a href="./">Blog</a></li>
                         <li><a href="../privacy.html">Privacy Policy</a></li>
                         <li><a href="../terms.html">Terms of Service</a></li>
                     </ul>
@@ -434,5 +564,100 @@
             </div>
         </div>
     </footer>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const navLinks = document.getElementById('nav-links');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+
+        function openMobileMenu() {
+            navLinks.classList.add('mobile-open');
+            mobileOverlay.classList.add('active');
+            mobileMenuBtn.classList.add('active');
+            mobileMenuBtn.textContent = '✕';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            navLinks.classList.remove('mobile-open');
+            mobileOverlay.classList.remove('active');
+            mobileMenuBtn.classList.remove('active');
+            mobileMenuBtn.textContent = '☰';
+            document.body.style.overflow = '';
+        }
+
+        mobileMenuBtn.addEventListener('click', () => {
+            if (navLinks.classList.contains('mobile-open')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+
+        // Close mobile menu when clicking overlay
+        mobileOverlay.addEventListener('click', closeMobileMenu);
+
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+
+        // Google Analytics - Track all button and link clicks
+        document.addEventListener('DOMContentLoaded', function() {
+            // Track all CTA buttons
+            document.querySelectorAll('.gradient-btn, .cta-button, a[href*="app.vibe-checker.dev"]').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const buttonText = this.textContent.trim();
+                    const buttonHref = this.href || 'N/A';
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'button_click', {
+                            'event_category': 'engagement',
+                            'event_label': buttonText,
+                            'value': buttonHref,
+                            'page': 'blog'
+                        });
+                    }
+                });
+            });
+
+            // Track navigation links
+            document.querySelectorAll('.nav-links a, footer a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const linkText = this.textContent.trim();
+                    const linkHref = this.href || 'N/A';
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'navigation_click', {
+                            'event_category': 'navigation',
+                            'event_label': linkText,
+                            'value': linkHref,
+                            'page': 'blog'
+                        });
+                    }
+                });
+            });
+
+            // Track blog post clicks
+            document.querySelectorAll('.post-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    const postTitle = this.querySelector('h2').textContent.trim();
+                    const postLink = this.querySelector('a').href;
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'blog_post_click', {
+                            'event_category': 'content',
+                            'event_label': postTitle,
+                            'value': postLink
+                        });
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

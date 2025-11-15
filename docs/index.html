@@ -855,30 +855,37 @@
         .demo-dot.green { background: #10B981; }
 
         .demo-content {
-            padding: var(--spacing-xxl);
-            min-height: 400px;
+            padding: 0;
+            height: 480px;
             position: relative;
+            overflow: hidden;
         }
 
         .demo-step {
             opacity: 0;
+            visibility: hidden;
             position: absolute;
-            top: var(--spacing-xxl);
-            left: var(--spacing-xxl);
-            right: var(--spacing-xxl);
-            transition: opacity 0.5s ease;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: var(--spacing-xxl);
+            padding-bottom: 100px;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow-y: auto;
         }
 
         .demo-step.active {
             opacity: 1;
-            position: relative;
-            top: 0;
-            left: 0;
-            right: 0;
+            visibility: visible;
         }
 
         .demo-input-group {
             margin-bottom: var(--spacing-xl);
+            margin-top: var(--spacing-giant);
         }
 
         .demo-label {
@@ -886,7 +893,7 @@
             font-size: 14px;
             font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
         }
 
         .demo-input {
@@ -930,7 +937,12 @@
 
         .demo-analyzing {
             text-align: center;
-            padding: var(--spacing-huge) 0;
+            padding: var(--spacing-giant) 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
         }
 
         .demo-spinner {
@@ -962,8 +974,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: var(--spacing-xl);
-            padding-bottom: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
             border-bottom: 1px solid var(--border-default);
         }
 
@@ -990,7 +1002,7 @@
             border: 1px solid var(--border-default);
             border-radius: var(--radius-md);
             padding: var(--spacing-lg);
-            margin-bottom: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
             position: relative;
             overflow: hidden;
             animation: slideInUp 0.5s ease forwards;
@@ -1000,6 +1012,7 @@
         .demo-issue-card:nth-child(2) { animation-delay: 0.1s; }
         .demo-issue-card:nth-child(3) { animation-delay: 0.2s; }
         .demo-issue-card:nth-child(4) { animation-delay: 0.3s; }
+        .demo-issue-card:last-child { margin-bottom: 0; }
 
         @keyframes slideInUp {
             from {
@@ -1106,9 +1119,14 @@
         .demo-nav {
             display: flex;
             justify-content: space-between;
-            margin-top: var(--spacing-xl);
-            padding-top: var(--spacing-xl);
+            padding: var(--spacing-xl) var(--spacing-xxl);
             border-top: 1px solid var(--border-default);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            z-index: 10;
         }
 
         .demo-nav-btn {
@@ -1270,7 +1288,7 @@
 
         .footer-content {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: var(--spacing-huge);
             margin-bottom: var(--spacing-huge);
             max-width: 900px;
@@ -1574,10 +1592,54 @@
 
             .pricing-grid {
                 grid-template-columns: 1fr;
+                gap: var(--spacing-md);
+                max-width: 100%;
+            }
+
+            .pricing-card {
+                padding: var(--spacing-lg);
             }
 
             .pricing-card.popular {
                 transform: scale(1);
+                border: 2px solid var(--primary-blue);
+            }
+
+            .popular-badge {
+                top: -10px;
+                padding: 4px 16px;
+                font-size: 10px;
+            }
+
+            .pricing-card h3 {
+                font-size: 18px;
+                margin-bottom: var(--spacing-md);
+            }
+
+            .price {
+                font-size: 40px;
+                margin-bottom: var(--spacing-xs);
+            }
+
+            .price-period {
+                font-size: 12px;
+                margin-bottom: var(--spacing-md);
+            }
+
+            .credits-amount {
+                font-size: 16px;
+                margin-bottom: var(--spacing-md);
+            }
+
+            .pricing-card p {
+                font-size: 13px;
+                margin-bottom: var(--spacing-md) !important;
+            }
+
+            .pricing-card .glass-btn,
+            .pricing-card .gradient-btn {
+                padding: var(--spacing-md) var(--spacing-lg);
+                font-size: 14px;
             }
 
             .hero {
@@ -1585,8 +1647,29 @@
             }
 
             .footer-content {
-                grid-template-columns: 1fr;
-                gap: var(--spacing-xxl);
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--spacing-md) var(--spacing-lg);
+                text-align: left;
+            }
+
+            .footer-section h4 {
+                font-size: 14px;
+                margin-bottom: var(--spacing-sm);
+            }
+
+            .footer-section a {
+                font-size: 13px;
+                margin-bottom: var(--spacing-xs);
+            }
+
+
+            footer {
+                padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-md);
+            }
+
+            .footer-bottom {
+                padding-top: var(--spacing-md);
+                font-size: 12px;
             }
 
             .mockup-wrapper {
@@ -1622,6 +1705,133 @@
             .feature-card p {
                 font-size: 15px;
             }
+
+            .demo-content {
+                height: 480px;
+            }
+
+            .demo-step {
+                padding: var(--spacing-lg);
+                padding-bottom: 85px;
+            }
+
+            .demo-input-group {
+                margin-top: var(--spacing-xl);
+            }
+
+            .demo-results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-sm);
+                margin-bottom: var(--spacing-md);
+            }
+
+            .demo-results-title {
+                font-size: 16px;
+            }
+
+            .demo-results-stats {
+                font-size: 12px;
+            }
+
+            .demo-issue-card {
+                padding: var(--spacing-md);
+                margin-bottom: var(--spacing-xs);
+            }
+
+            .demo-issue-title {
+                font-size: 13px;
+            }
+
+            .demo-issue-desc {
+                font-size: 11px;
+                line-height: 1.4;
+            }
+
+            .demo-badge {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+
+            .demo-fix-button {
+                padding: 5px 12px;
+                font-size: 11px;
+            }
+
+            .demo-analyzing-text {
+                font-size: 16px;
+            }
+
+            .demo-analyzing-sub {
+                font-size: 12px;
+            }
+
+            .demo-analyzing {
+                padding: var(--spacing-xl) 0;
+                min-height: 200px;
+            }
+
+            .demo-spinner {
+                width: 50px;
+                height: 50px;
+            }
+
+            .demo-nav {
+                padding: var(--spacing-md) var(--spacing-lg);
+            }
+
+            .demo-nav-btn {
+                padding: var(--spacing-sm) var(--spacing-md);
+                font-size: 13px;
+            }
+
+            .demo-progress-dot {
+                width: 7px;
+                height: 7px;
+            }
+
+            /* Hero mockup specific mobile adjustments */
+            .hero-mockup .demo-content {
+                padding: var(--spacing-lg) !important;
+            }
+
+            .hero-mockup .demo-results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-xs);
+                margin-bottom: var(--spacing-md) !important;
+            }
+
+            .hero-mockup .demo-results-title {
+                font-size: 16px;
+            }
+
+            .hero-mockup .demo-results-stats {
+                font-size: 12px;
+            }
+
+            .hero-mockup .demo-issue-card {
+                padding: var(--spacing-md);
+                margin-bottom: var(--spacing-sm);
+            }
+
+            .hero-mockup .demo-issue-title {
+                font-size: 13px;
+            }
+
+            .hero-mockup .demo-issue-desc {
+                font-size: 11px;
+            }
+
+            .hero-mockup .demo-badge {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+
+            .hero-mockup .demo-fix-button {
+                padding: 5px 12px;
+                font-size: 11px;
+            }
         }
     </style>
 </head>
@@ -1637,7 +1847,7 @@
                 <ul class="nav-links" id="nav-links">
                     <li><a href="#features">Features</a></li>
                     <li><a href="#how-it-works">How It Works</a></li>
-                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="pricing.html">Pricing</a></li>
                     <li><a href="blog/">Blog</a></li>
                     <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="gradient-btn" style="padding: 10px 24px; font-size: 14px; color: white; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Get Started</a></li>
                 </ul>
@@ -1664,13 +1874,13 @@
                         <div class="demo-dot yellow"></div>
                         <div class="demo-dot green"></div>
                     </div>
-                    <div class="demo-content" style="min-height: auto;">
-                        <div class="demo-results-header">
+                    <div class="demo-content" style="height: auto; padding: var(--spacing-xxl);">
+                        <div class="demo-results-header" style="margin-bottom: var(--spacing-lg);">
                             <div class="demo-results-title">Analysis Complete</div>
                             <div class="demo-results-stats">
                                 <div class="demo-stat-item">
                                     <span>⚠️</span>
-                                    <span>3 Issues Found</span>
+                                    <span>2 Issues Found</span>
                                 </div>
                             </div>
                         </div>
@@ -1684,18 +1894,6 @@
                                 <span class="demo-badge critical">Critical</span>
                             </div>
                             <div class="demo-issue-desc">Hackers can steal your database data through login forms</div>
-                            <button class="demo-fix-button">Get Fix →</button>
-                        </div>
-
-                        <div class="demo-issue-card warning" style="animation: none; opacity: 1;">
-                            <div class="demo-issue-header">
-                                <div class="demo-issue-title">
-                                    <span>🟡</span>
-                                    <span>Missing CSRF Protection</span>
-                                </div>
-                                <span class="demo-badge warning">Medium</span>
-                            </div>
-                            <div class="demo-issue-desc">Attackers can trick users into taking actions on your site</div>
                             <button class="demo-fix-button">Get Fix →</button>
                         </div>
 
@@ -1760,7 +1958,7 @@
                                 <div class="demo-results-stats">
                                     <div class="demo-stat-item">
                                         <span>⚠️</span>
-                                        <span>3 Issues Found</span>
+                                        <span>2 Issues Found</span>
                                     </div>
                                 </div>
                             </div>
@@ -1775,18 +1973,6 @@
                                 </div>
                                 <div class="demo-issue-desc">Hackers can steal your database data through login forms</div>
                                 <button class="demo-fix-button" onclick="nextDemoStep()">Get Fix →</button>
-                            </div>
-
-                            <div class="demo-issue-card warning">
-                                <div class="demo-issue-header">
-                                    <div class="demo-issue-title">
-                                        <span>🟡</span>
-                                        <span>Missing CSRF Protection</span>
-                                    </div>
-                                    <span class="demo-badge warning">Medium</span>
-                                </div>
-                                <div class="demo-issue-desc">Attackers can trick users into taking actions on your site</div>
-                                <button class="demo-fix-button">Get Fix →</button>
                             </div>
 
                             <div class="demo-issue-card warning">
@@ -1872,50 +2058,6 @@
         </div>
     </section>
 
-    <!-- Pricing -->
-    <section id="pricing" class="pricing">
-        <div class="container">
-            <div class="section-header scroll-reveal">
-                <h2 class="section-title">Try it free. Upgrade when you ship more.</h2>
-                <p class="section-description">10 free credits to check your first project. No credit card required.</p>
-            </div>
-
-            <div class="pricing-grid">
-                <div class="pricing-card glass-card scroll-reveal">
-                    <h3>Starter</h3>
-                    <div class="price">$4.99</div>
-                    <div class="price-period">one-time</div>
-                    <div class="credits-amount">20 credits</div>
-                    <p style="color: var(--text-tertiary); margin-bottom: var(--spacing-xl);">Perfect for side projects</p>
-                    <a href="#cta" class="glass-btn" style="width: 100%; justify-content: center;">Get Started</a>
-                </div>
-
-                <div class="pricing-card glass-card popular scroll-reveal">
-                    <div class="popular-badge">POPULAR</div>
-                    <h3>Professional</h3>
-                    <div class="price">$9.99</div>
-                    <div class="price-period">one-time</div>
-                    <div class="credits-amount">50 credits</div>
-                    <p style="color: var(--text-tertiary); margin-bottom: var(--spacing-xl);">Great for active builders</p>
-                    <a href="#cta" class="gradient-btn" style="width: 100%; justify-content: center;">Get Started</a>
-                </div>
-
-                <div class="pricing-card glass-card scroll-reveal">
-                    <h3>Enterprise</h3>
-                    <div class="price">$39.99</div>
-                    <div class="price-period">one-time</div>
-                    <div class="credits-amount">300 credits</div>
-                    <p style="color: var(--text-tertiary); margin-bottom: var(--spacing-xl);">For teams and agencies</p>
-                    <a href="#cta" class="glass-btn" style="width: 100%; justify-content: center;">Get Started</a>
-                </div>
-            </div>
-
-            <p class="pricing-note">
-                Each scan uses 5 credits • Checking fixes uses 1 credit • Credits never expire • Cancel anytime
-            </p>
-        </div>
-    </section>
-
     <!-- CTA Section -->
     <section id="cta" class="cta-section">
         <div class="cta-content scroll-reveal">
@@ -1935,22 +2077,16 @@
                     <h4>Product</h4>
                     <ul>
                         <li><a href="#features">Features</a></li>
-                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="pricing.html">Pricing</a></li>
                         <li><a href="#how-it-works">How It Works</a></li>
                         <li><a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer">Launch App</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-section">
-                    <h4>Resources</h4>
-                    <ul>
-                        <li><a href="blog/">Blog</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-section">
                     <h4>Company</h4>
                     <ul>
+                        <li><a href="blog/">Blog</a></li>
                         <li><a href="privacy.html">Privacy Policy</a></li>
                         <li><a href="terms.html">Terms of Service</a></li>
                     </ul>
@@ -2000,6 +2136,55 @@
         // Close mobile menu when clicking a link
         document.querySelectorAll('.nav-links a').forEach(link => {
             link.addEventListener('click', closeMobileMenu);
+        });
+
+        // Google Analytics - Track all button and link clicks
+        document.addEventListener('DOMContentLoaded', function() {
+            // Track all CTA buttons
+            document.querySelectorAll('.gradient-btn, .glass-btn, .cta-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const buttonText = this.textContent.trim();
+                    const buttonHref = this.href || 'N/A';
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'button_click', {
+                            'event_category': 'engagement',
+                            'event_label': buttonText,
+                            'value': buttonHref
+                        });
+                    }
+                });
+            });
+
+            // Track navigation links
+            document.querySelectorAll('.nav-links a, footer a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const linkText = this.textContent.trim();
+                    const linkHref = this.href || 'N/A';
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'navigation_click', {
+                            'event_category': 'navigation',
+                            'event_label': linkText,
+                            'value': linkHref
+                        });
+                    }
+                });
+            });
+
+            // Track demo navigation buttons
+            document.querySelectorAll('.demo-nav-btn, .demo-fix-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const buttonText = this.textContent.trim();
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'demo_interaction', {
+                            'event_category': 'engagement',
+                            'event_label': buttonText
+                        });
+                    }
+                });
+            });
         });
 
         // Close menu on escape key
@@ -2134,23 +2319,28 @@
                 clearInterval(window.demoInterval);
             }
 
-            // Auto-advance every 3 seconds (step 2 analyzing stays for 2 seconds)
-            window.demoInterval = setInterval(() => {
-                if (window.demoAutoPlay) {
-                    const delay = window.currentDemoStep === 2 ? 2000 : 3000;
+            window.advanceDemo = function() {
+                if (!window.demoAutoPlay) return;
 
-                    // Use setTimeout for step 2 to have different timing
-                    if (window.currentDemoStep === 2) {
-                        setTimeout(() => {
-                            if (window.demoAutoPlay && window.currentDemoStep === 2) {
-                                window.nextDemoStep();
-                            }
-                        }, 2000);
-                    } else {
-                        window.nextDemoStep();
-                    }
+                // Different timing for each step
+                let delay;
+                switch (window.currentDemoStep) {
+                    case 1: delay = 3000; break; // URL input - 3 seconds
+                    case 2: delay = 2000; break; // Analyzing - 2 seconds
+                    case 3: delay = 4000; break; // Results - 4 seconds (more content to read)
+                    case 4: delay = 3000; break; // Fix prompt - 3 seconds
+                    default: delay = 3000;
                 }
-            }, 3000);
+
+                setTimeout(() => {
+                    if (window.demoAutoPlay) {
+                        window.nextDemoStep();
+                        window.advanceDemo();
+                    }
+                }, delay);
+            };
+
+            window.advanceDemo();
         }
 
         window.resetDemo = function() {
