@@ -1,15 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../models/security_issue.dart';
+import '../../models/validation_status.dart';
+import '../../services/notification_service.dart';
 import '../common/severity_badge.dart';
 import '../common/category_badge.dart';
+import '../common/validation_status_badge.dart';
+import '../common/validation_result_display.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_typography.dart';
+import '../../theme/app_spacing.dart';
 
 class IssueCard extends StatefulWidget {
   final SecurityIssue issue;
   final String? repositoryUrl;
+  final Function(SecurityIssue)? onValidate;
 
-  const IssueCard({super.key, required this.issue, this.repositoryUrl});
+  const IssueCard({
+    super.key,
+    required this.issue,
+    this.repositoryUrl,
+    this.onValidate,
+  });
 
   @override
   State<IssueCard> createState() => _IssueCardState();
@@ -20,193 +32,353 @@ class _IssueCardState extends State<IssueCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF1E293B),
-          width: 1,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            InkWell(
-              onTap: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Icon(
-                      _isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    SeverityBadge(severity: widget.issue.severity),
-                    const SizedBox(width: 8),
-                    CategoryBadge(category: widget.issue.category),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        widget.issue.title,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    ),
-                  ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Container(
+          margin: EdgeInsets.only(bottom: isMobile ? 12 : 16),
+          decoration: BoxDecoration(
+            color: AppColors.backgroundTertiary,
+            borderRadius: AppRadius.radiusLG,
+            border: Border.all(color: AppColors.borderSubtle, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.lg),
+                  bottom: Radius.circular(_isExpanded ? 0 : AppRadius.lg),
+                ),
+                child: Padding(
+                  padding: AppSpacing.paddingLG,
+                  child: isMobile
+                      ? _buildMobileHeader(context)
+                      : _buildDesktopHeader(context),
                 ),
               ),
-            ),
               if (_isExpanded) ...[
-                const SizedBox(height: 12),
+                const Divider(height: 1, color: AppColors.borderSubtle),
                 Padding(
-                  padding: const EdgeInsets.only(left: 28),
+                  padding: AppSpacing.paddingLG,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (widget.issue.filePath != null) ...[
-                        InkWell(
-                          onTap: widget.repositoryUrl != null
-                              ? () async {
-                                  final url = '${widget.repositoryUrl}/blob/main/${widget.issue.filePath}${widget.issue.lineNumber != null ? '#L${widget.issue.lineNumber}' : ''}';
-                                  final uri = Uri.parse(url);
-                                  if (await canLaunchUrl(uri)) {
-                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                  }
-                                }
-                              : null,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.code, size: 14, color: Theme.of(context).colorScheme.primary),
-                                const SizedBox(width: 6),
-                                Flexible(
-                                  child: Text(
-                                    '${widget.issue.filePath}${widget.issue.lineNumber != null ? ':${widget.issue.lineNumber}' : ''}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Theme.of(context).colorScheme.primary,
-                                      fontFamily: 'monospace',
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(Icons.open_in_new, size: 12, color: Theme.of(context).colorScheme.primary),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
+                      // Description
                       Text(
                         widget.issue.description,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                          height: 1.6,
+                        ),
                       ),
-                      const SizedBox(height: 12),
+                      AppSpacing.verticalGapLG,
+
+                      // AI Risk Warning
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: AppSpacing.paddingMD,
                         decoration: BoxDecoration(
-                          color: Colors.amber.shade900.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.3)),
+                          color: AppColors.severityHigh.withValues(alpha: 0.08),
+                          borderRadius: AppRadius.radiusMD,
+                          border: Border.all(
+                            color: AppColors.severityHigh.withValues(
+                              alpha: 0.2,
+                            ),
+                          ),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.warning_amber, color: Colors.amber.shade400, size: 18),
-                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: AppColors.severityHigh,
+                              size: 20,
+                            ),
+                            AppSpacing.horizontalGapMD,
                             Expanded(
-                              child: Text(
-                                widget.issue.aiGenerationRisk,
-                                style: TextStyle(
-                                  color: Colors.amber.shade200,
-                                  fontSize: 13,
-                                ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'AI Generation Risk',
+                                    style: AppTypography.labelSmall.copyWith(
+                                      color: AppColors.severityHigh,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    widget.issue.aiGenerationRisk,
+                                    style: AppTypography.bodySmall.copyWith(
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      AppSpacing.verticalGapLG,
+
+                      // Claude Code Prompt
                       Container(
-                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(6),
+                          color: AppColors.backgroundSecondary,
+                          borderRadius: AppRadius.radiusMD,
+                          border: Border.all(color: AppColors.borderSubtle),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Claude Code Prompt',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: Theme.of(context).colorScheme.primary,
-                                      ),
+                            // Header
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.backgroundPrimary,
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(7),
                                 ),
-                                TextButton.icon(
-                                  onPressed: () {
-                                    Clipboard.setData(ClipboardData(text: widget.issue.claudeCodePrompt));
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Prompt copied to clipboard!'),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  },
-                                  icon: const Icon(Icons.copy, size: 14),
-                                  label: const Text('Copy', style: TextStyle(fontSize: 12)),
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    minimumSize: Size.zero,
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                border: const Border(
+                                  bottom: BorderSide(
+                                    color: AppColors.borderSubtle,
                                   ),
                                 ),
-                              ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.terminal_rounded,
+                                        size: 16,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Claude Code Prompt',
+                                        style: AppTypography.labelSmall
+                                            .copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      Clipboard.setData(
+                                        ClipboardData(
+                                          text: widget.issue.claudeCodePrompt,
+                                        ),
+                                      );
+                                      NotificationService.showSuccess(
+                                        context,
+                                        message: 'Prompt copied!',
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(4),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.copy_rounded,
+                                            size: 14,
+                                            color: AppColors.primaryBlue,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Copy',
+                                            style: AppTypography.labelSmall
+                                                .copyWith(
+                                                  color: AppColors.primaryBlue,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              widget.issue.claudeCodePrompt,
-                              style: const TextStyle(
-                                fontFamily: 'monospace',
-                                fontSize: 12,
+                            // Content
+                            Padding(
+                              padding: AppSpacing.paddingMD,
+                              child: Text(
+                                widget.issue.claudeCodePrompt,
+                                style: AppTypography.monoMedium.copyWith(
+                                  fontSize: 13,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
+
+                      // Validation
+                      if (widget.issue.validationResult != null) ...[
+                        AppSpacing.verticalGapLG,
+                        ValidationResultDisplay(
+                          result: widget.issue.validationResult!,
+                          onRevalidate: widget.onValidate != null
+                              ? () => widget.onValidate!(widget.issue)
+                              : null,
+                          isValidating:
+                              widget.issue.validationStatus ==
+                              ValidationStatus.validating,
+                        ),
+                      ] else if (widget.onValidate != null) ...[
+                        AppSpacing.verticalGapLG,
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton.icon(
+                            onPressed:
+                                widget.issue.validationStatus ==
+                                    ValidationStatus.validating
+                                ? null
+                                : () => widget.onValidate!(widget.issue),
+                            icon:
+                                widget.issue.validationStatus ==
+                                    ValidationStatus.validating
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.check_circle_outline_rounded,
+                                    size: 18,
+                                  ),
+                            label: Text(
+                              widget.issue.validationStatus ==
+                                      ValidationStatus.validating
+                                  ? 'Validating...'
+                                  : 'Validate Fix (1 credit)',
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryBlue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileHeader(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                widget.issue.title,
+                style: AppTypography.titleMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              _isExpanded
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
+              color: AppColors.textTertiary,
+            ),
           ],
         ),
-      ),
+        AppSpacing.verticalGapSM,
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            SeverityBadge(severity: widget.issue.severity),
+            CategoryBadge(category: widget.issue.category),
+            if (widget.issue.validationStatus != ValidationStatus.notStarted)
+              ValidationStatusBadge(status: widget.issue.validationStatus),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopHeader(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.issue.title,
+                style: AppTypography.titleMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  SeverityBadge(severity: widget.issue.severity),
+                  AppSpacing.horizontalGapSM,
+                  CategoryBadge(category: widget.issue.category),
+                  if (widget.issue.validationStatus !=
+                      ValidationStatus.notStarted) ...[
+                    AppSpacing.horizontalGapSM,
+                    ValidationStatusBadge(
+                      status: widget.issue.validationStatus,
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        Icon(
+          _isExpanded
+              ? Icons.keyboard_arrow_up_rounded
+              : Icons.keyboard_arrow_down_rounded,
+          color: AppColors.textTertiary,
+        ),
+      ],
     );
   }
 }

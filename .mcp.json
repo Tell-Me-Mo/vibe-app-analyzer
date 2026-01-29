@@ -1,0 +1,19 @@
+{
+"mcpServers": {
+    "flutter-docs": {
+        "command": "python3",
+        "args": ["-m", "flutter_mcp", "--transport", "stdio"]
+        },
+    "supabase": {
+        "command": "npx",
+        "args": [
+            "-y",
+            "@supabase/mcp-server-supabase@latest",
+            "--project-ref=hrkuqnepbwczsmzvthwb"
+        ],
+        "env": {
+            "SUPABASE_ACCESS_TOKEN": "sbp_c78410dbbc86b81b959b55447268918282257322"
+        }
+        }
+  }
+}

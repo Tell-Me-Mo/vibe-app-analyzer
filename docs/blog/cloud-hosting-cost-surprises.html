@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Free Hosting Sounds Great Until Your Bill Is $500/Month - VibeCheck</title>
+    <meta name="description" content="That 'free tier' turned into a $500 monthly bill. Here's how cloud hosting costs spiral out of control and how to keep them under $20/month.">
+    <meta name="keywords" content="cloud hosting costs, AWS pricing, Vercel pricing, free tier limits, cloud cost optimization, reduce hosting costs, unexpected hosting bills, serverless costs">
+    <meta name="author" content="VibeCheck">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://vibe-checker.dev/blog/cloud-hosting-cost-surprises.html">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://vibe-checker.dev/blog/cloud-hosting-cost-surprises.html">
+    <meta property="og:title" content="Free Hosting Sounds Great Until Your Bill Is $500/Month">
+    <meta property="og:description" content="That 'free tier' turned into a $500 monthly bill. Here's how cloud hosting costs spiral out of control and how to keep them under $20/month.">
+    <meta property="og:image" content="https://vibe-checker.dev/og-image.png">
+    <meta property="article:published_time" content="2025-01-13T00:00:00Z">
+    <meta property="article:modified_time" content="2025-01-13T00:00:00Z">
+    <meta property="article:author" content="VibeCheck">
+    <meta property="article:section" content="Cost Optimization">
+    <meta property="article:tag" content="Hosting Costs">
+    <meta property="article:tag" content="Cloud Pricing">
+    <meta property="article:tag" content="Cost Optimization">
+    <meta property="article:tag" content="Budget">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://vibe-checker.dev/blog/cloud-hosting-cost-surprises.html">
+    <meta property="twitter:title" content="Free Hosting Sounds Great Until Your Bill Is $500/Month">
+    <meta property="twitter:description" content="Free tier turned into a $500 bill. Here's how to keep cloud hosting under $20/month.">
+    <meta property="twitter:image" content="https://vibe-checker.dev/og-image.png">
+
+    <!-- Breadcrumb Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://vibe-checker.dev/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://vibe-checker.dev/blog/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Free Hosting Sounds Great Until Your Bill Is $500/Month",
+          "item": "https://vibe-checker.dev/blog/cloud-hosting-cost-surprises.html"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Article Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Free Hosting Sounds Great Until Your Bill Is $500/Month",
+      "description": "That 'free tier' turned into a $500 monthly bill. Here's how cloud hosting costs spiral out of control and how to keep them under $20/month.",
+      "image": "https://vibe-checker.dev/og-image.png",
+      "author": {
+        "@type": "Organization",
+        "name": "VibeCheck",
+        "url": "https://vibe-checker.dev"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "VibeCheck",
+        "url": "https://vibe-checker.dev",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://vibe-checker.dev/logo.png"
+        }
+      },
+      "datePublished": "2025-01-13",
+      "dateModified": "2025-01-13",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://vibe-checker.dev/blog/cloud-hosting-cost-surprises.html"
+      },
+      "articleSection": "Cost Optimization",
+      "keywords": ["cloud hosting costs", "AWS pricing", "Vercel costs", "free tier", "cost optimization", "reduce hosting", "serverless pricing"],
+      "articleBody": "A guide to understanding and controlling cloud hosting costs. Covers common cost traps like bandwidth charges, serverless function invocations, database storage, and API requests. Includes budget-friendly alternatives and cost optimization strategies."
+    }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #13141f;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+        header {
+            padding: 20px 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+        .back-link {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .back-link:hover { color: var(--text-primary); }
+        article { padding: 80px 0; }
+        .article-header { text-align: center; margin-bottom: 60px; }
+        .article-meta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+        .category {
+            padding: 6px 16px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+        .subtitle {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .content { font-size: 18px; line-height: 1.8; }
+        .content h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 60px 0 24px;
+            color: var(--text-primary);
+        }
+        .content h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 40px 0 16px;
+            color: var(--text-secondary);
+        }
+        .content p {
+            margin-bottom: 24px;
+            color: var(--text-tertiary);
+        }
+        .content ul, .content ol {
+            margin: 24px 0;
+            padding-left: 32px;
+            color: var(--text-tertiary);
+        }
+        .content li { margin-bottom: 12px; }
+        .content strong { color: var(--text-secondary); font-weight: 600; }
+        .cost-trap {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning);
+            padding: 24px;
+            margin: 32px 0;
+            border-radius: 8px;
+        }
+        .cost-trap h4 {
+            color: var(--warning);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .savings-tip {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success);
+            padding: 24px;
+            margin: 24px 0;
+            border-radius: 8px;
+        }
+        .savings-tip h4 {
+            color: var(--success);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .pricing-table {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 24px;
+            margin: 32px 0;
+            border-radius: 12px;
+        }
+        .pricing-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .pricing-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--glass-border);
+            color: var(--text-primary);
+        }
+        .pricing-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--text-tertiary);
+        }
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cta-section {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 48px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 60px 0;
+        }
+        .cta-section h3 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+        .cta-section p {
+            color: var(--text-tertiary);
+            margin-bottom: 32px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+        .cta-button:hover { transform: translateY(-2px); }
+        footer {
+            padding: 48px 0;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="../" class="logo">VibeCheck</a>
+                <a href="./" class="back-link">← Back to Blog</a>
+            </nav>
+        </div>
+    </header>
+
+    <article>
+        <div class="container">
+            <div class="article-header">
+                <div class="article-meta">
+                    <span class="category">Costs</span>
+                    <span>9 min read</span>
+                </div>
+                <h1>Free Hosting Sounds Great Until Your Bill Is $500/Month</h1>
+                <p class="subtitle">That 'free tier' turned into a $500 monthly bill. Here's how cloud hosting costs spiral out of control and how to keep them under $20/month.</p>
+            </div>
+
+            <div class="content">
+                <p>"Generous free tier!" "Pay only for what you use!" "No upfront costs!"</p>
+
+                <p>You launch on a free tier. A week later, you get an email:</p>
+
+                <p><strong>"Your AWS bill is $487.32"</strong></p>
+
+                <p>What happened?</p>
+
+                <p>Here are the 6 hidden costs that catch vibe coders off guard—and how to avoid a surprise bill.</p>
+
+                <h2>Cost Trap #1: Bandwidth (Data Transfer)</h2>
+
+                <div class="cost-trap">
+                    <h4>⚠️ How You Get Charged</h4>
+                    <p>You serve a 2MB image. User loads it. You pay $0.09 per GB transferred.</p>
+                    <p>1,000 users × 2MB = 2GB = $0.18. Not bad.</p>
+                    <p>100,000 users × 2MB = 200GB = <strong>$18.</strong></p>
+                    <p>A bot scrapes your site 1 million times = 2,000GB = <strong>$180.</strong></p>
+                </div>
+
+                <div class="savings-tip">
+                    <h4>💰 How to Save Money</h4>
+                    <ul>
+                        <li><strong>Optimize images:</strong> Compress PNGs and JPGs. Use WebP format. That 2MB image can be 200KB.</li>
+                        <li><strong>Use a CDN:</strong> Cloudflare is free and caches your images closer to users.</li>
+                        <li><strong>Lazy load images:</strong> Only load images when users scroll to them.</li>
+                        <li><strong>Block bots:</strong> Use robots.txt and rate limiting to stop scrapers.</li>
+                    </ul>
+                </div>
+
+                <h2>Cost Trap #2: Serverless Function Invocations</h2>
+
+                <p>Vercel, Netlify, and AWS Lambda charge per function call.</p>
+
+                <div class="cost-trap">
+                    <h4>⚠️ The Math</h4>
+                    <p><strong>Vercel Pro:</strong> First 1 million function calls free. Then $0.60 per million.</p>
+                    <p>Sounds cheap, right?</p>
+                    <p><strong>But:</strong> If your API gets hit by bots or has a bug that causes infinite loops, you hit 10 million calls.</p>
+                    <p>Cost: <strong>$6 × 9 extra million = $54</strong></p>
+                </div>
+
+                <div class="savings-tip">
+                    <h4>💰 How to Save Money</h4>
+                    <ul>
+                        <li><strong>Cache API responses:</strong> Don't hit the function every time. Cache for 60 seconds.</li>
+                        <li><strong>Rate limit:</strong> Limit each user to 100 requests per minute.</li>
+                        <li><strong>Monitor invocations:</strong> Set up alerts when you hit 500k calls in a day.</li>
+                        <li><strong>Use static generation:</strong> Pre-render pages at build time instead of on each request.</li>
+                    </ul>
+                </div>
+
+                <h2>Cost Trap #3: Database Storage and Queries</h2>
+
+                <p>Supabase, PlanetScale, and Neon have generous free tiers. Until you exceed them.</p>
+
+                <div class="pricing-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Free Tier</th>
+                                <th>What Happens After</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Supabase</strong></td>
+                                <td>500MB storage, 2GB bandwidth</td>
+                                <td>$25/month for Pro (8GB storage)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PlanetScale</strong></td>
+                                <td>5GB storage, 1B row reads</td>
+                                <td>$39/month for Scaler (10GB)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Railway</strong></td>
+                                <td>$5 free credit</td>
+                                <td>~$5-20/month after</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="savings-tip">
+                    <h4>💰 How to Save Money</h4>
+                    <ul>
+                        <li><strong>Clean up old data:</strong> Delete test accounts, expired sessions, old logs.</li>
+                        <li><strong>Use pagination:</strong> Don't load 10,000 rows at once. Load 50 at a time.</li>
+                        <li><strong>Add indexes:</strong> Slow queries = more compute time = higher costs.</li>
+                        <li><strong>Archive old records:</strong> Move data older than 6 months to cheaper storage.</li>
+                    </ul>
+                </div>
+
+                <h2>Cost Trap #4: API Requests (Third-Party Services)</h2>
+
+                <p>OpenAI, SendGrid, Stripe—they all charge per API call.</p>
+
+                <div class="cost-trap">
+                    <h4>⚠️ Real Example</h4>
+                    <p><strong>OpenAI GPT-4:</strong> $0.03 per 1K input tokens, $0.06 per 1K output tokens.</p>
+                    <p>You use GPT-4 to analyze user feedback. Each analysis uses ~2K tokens total.</p>
+                    <p>Cost per request: ~$0.12</p>
+                    <p>1,000 users = <strong>$120</strong></p>
+                    <p>10,000 users = <strong>$1,200</strong></p>
+                </div>
+
+                <div class="savings-tip">
+                    <h4>💰 How to Save Money</h4>
+                    <ul>
+                        <li><strong>Use GPT-4o mini:</strong> 15x cheaper than GPT-4. Works for most tasks.</li>
+                        <li><strong>Cache results:</strong> Same question asked twice? Return cached answer.</li>
+                        <li><strong>Limit usage:</strong> Free users get 3 AI requests/day. Paid users get unlimited.</li>
+                        <li><strong>Batch requests:</strong> Process 100 items at once instead of 100 separate calls.</li>
+                    </ul>
+                </div>
+
+                <h2>Cost Trap #5: Logging and Monitoring</h2>
+
+                <p>Services like Sentry, LogRocket, and Datadog charge based on events or sessions.</p>
+
+                <div class="cost-trap">
+                    <h4>⚠️ The Surprise</h4>
+                    <p><strong>Sentry Free:</strong> 5,000 errors/month.</p>
+                    <p>You have a bug that fires 100 errors per second. In one hour, you hit 360,000 errors.</p>
+                    <p>Sentry upgrades you to Team plan: <strong>$26/month per project.</strong></p>
+                </div>
+
+                <div class="savings-tip">
+                    <h4>💰 How to Save Money</h4>
+                    <ul>
+                        <li><strong>Sample errors:</strong> Log 10% of errors, not 100%.</li>
+                        <li><strong>Filter noise:</strong> Ignore errors from bots and dev environments.</li>
+                        <li><strong>Fix bugs fast:</strong> One bug can eat your entire error budget.</li>
+                        <li><strong>Set limits:</strong> Configure max events per month to cap costs.</li>
+                    </ul>
+                </div>
+
+                <h2>Cost Trap #6: "Free" Services That Auto-Upgrade</h2>
+
+                <p>Some services auto-upgrade you when you hit limits. No warning. Just a bigger bill.</p>
+
+                <div class="cost-trap">
+                    <h4>⚠️ Watch Out For</h4>
+                    <ul>
+                        <li><strong>Vercel:</strong> Exceeding function execution time automatically bumps you to Pro ($20/month)</li>
+                        <li><strong>Heroku:</strong> Free tier sleeps after 30 min. Want 24/7 uptime? $7/month per dyno</li>
+                        <li><strong>MongoDB Atlas:</strong> Free tier = 512MB. Hit limit? $57/month for next tier</li>
+                    </ul>
+                </div>
+
+                <div class="savings-tip">
+                    <h4>💰 How to Save Money</h4>
+                    <ul>
+                        <li><strong>Set billing alerts:</strong> Get notified when you hit $10, $25, $50</li>
+                        <li><strong>Set hard limits:</strong> Some services let you cap spending (AWS Budget, Vercel spend limits)</li>
+                        <li><strong>Review bills weekly:</strong> Catch cost spikes early</li>
+                    </ul>
+                </div>
+
+                <div class="cta-section">
+                    <h3>Avoid Surprise Hosting Bills</h3>
+                    <p>VibeCheck analyzes your app for expensive patterns like N+1 queries, missing caching, and unoptimized images that drive up costs.</p>
+                    <a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="cta-button">Check My App Free →</a>
+                </div>
+
+                <h2>Budget-Friendly Hosting for Side Projects</h2>
+
+                <p>If you want to stay under $20/month, here's a proven stack:</p>
+
+                <div class="pricing-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Cost</th>
+                                <th>What You Get</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Vercel (Hobby)</strong></td>
+                                <td>$0</td>
+                                <td>100GB bandwidth, unlimited sites</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Supabase (Free)</strong></td>
+                                <td>$0</td>
+                                <td>500MB database, 2GB bandwidth</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cloudflare (Free)</strong></td>
+                                <td>$0</td>
+                                <td>Unlimited bandwidth via CDN</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total</strong></td>
+                                <td><strong>$0/month</strong></td>
+                                <td>Good for 10k users/month</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p><strong>Alternative for more traffic:</strong></p>
+
+                <div class="pricing-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Cost</th>
+                                <th>What You Get</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Railway</strong></td>
+                                <td>$5-10</td>
+                                <td>App + database, 100k users</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cloudflare</strong></td>
+                                <td>$0</td>
+                                <td>CDN, DDoS protection</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total</strong></td>
+                                <td><strong>$10/month</strong></td>
+                                <td>Good for 100k users/month</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>Emergency: Your Bill Is Already High</h2>
+
+                <p>If you wake up to a $500 bill:</p>
+
+                <ol>
+                    <li><strong>Pause services immediately:</strong> Delete unused resources, pause deployments</li>
+                    <li><strong>Check bandwidth logs:</strong> Is a bot hitting your API 1 million times?</li>
+                    <li><strong>Add rate limiting:</strong> Stop the bleeding before investigating</li>
+                    <li><strong>Contact support:</strong> AWS, Vercel, and others often waive first-time overages</li>
+                    <li><strong>Set spending limits:</strong> Cap costs at $25/month to prevent future surprises</li>
+                </ol>
+
+                <h2>Prevention Checklist</h2>
+
+                <p>Before you launch:</p>
+
+                <ul>
+                    <li><strong>Optimize images:</strong> Compress, use WebP, lazy load</li>
+                    <li><strong>Enable caching:</strong> API responses, database queries, static assets</li>
+                    <li><strong>Add rate limiting:</strong> 100 requests per minute per user</li>
+                    <li><strong>Set billing alerts:</strong> $10, $25, $50 thresholds</li>
+                    <li><strong>Monitor usage weekly:</strong> Check dashboards every Monday</li>
+                    <li><strong>Use cheaper tiers:</strong> GPT-4o mini instead of GPT-4, Supabase free instead of Pro</li>
+                </ul>
+
+                <h2>The Bottom Line</h2>
+
+                <p>"Free tier" doesn't mean "free forever."</p>
+
+                <p>Cloud costs are designed to be low at first, then scale with usage. That's great for big companies. But for side projects and indie apps, you need to be smart.</p>
+
+                <p>Optimize images. Cache aggressively. Set spending limits. Monitor your usage.</p>
+
+                <p><strong>Stay under $20/month and keep your project profitable.</strong></p>
+            </div>
+        </div>
+    </article>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 VibeCheck. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

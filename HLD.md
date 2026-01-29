@@ -2,72 +2,112 @@
 
 ## 1. System Overview
 
-App Analyzer is a Flutter Web application that analyzes public GitHub repositories for security vulnerabilities and business monitoring opportunities in AI-generated codebases. The system uses OpenAI GPT-4o mini to perform intelligent code analysis and generate actionable Claude Code prompts.
+App Analyzer (VibeCheck) is a Flutter cross-platform application that analyzes both **GitHub repositories** (static code) and **live deployed applications** (runtime) for security vulnerabilities and business monitoring opportunities. The system uses OpenAI GPT-4o mini to perform intelligent analysis and generate actionable Claude Code prompts.
 
 ### 1.1 Key Features
-- Analyze public GitHub repositories (no authentication required)
-- Two analysis modes: Security & Monitoring
-- Synchronous analysis with real-time progress indication
-- Claude Code-compatible prompt generation
-- Cookie-based anonymous user session management
-- Responsive web UI (desktop & mobile)
-- Analysis history with demo examples
+- **Dual-mode analysis:**
+  - **📝 Static Code:** Analyze GitHub repositories for code-level vulnerabilities and monitoring gaps
+  - **🚀 Runtime:** Analyze live deployed applications for production security headers, cookies, monitoring tools, and performance
+- **Automatic URL detection:** Intelligently routes to static or runtime analysis based on URL type
+- **Credits-based system:** 10 free credits on first launch, 5 credits per analysis, 1 credit per validation
+- **Authentication:** Sign in with Email, Google, or Apple (Supabase)
+- **Payment integration:** Purchase credit packages via RevenueCat (iOS/Android/Web)
+- **User profiles:** Synced across devices with credit balance
+- **Two analysis types:** Security & Monitoring (available for both static and runtime modes)
+- **Synchronous analysis** with real-time progress indication
+- **Claude Code-compatible** prompt generation
+- **Fix validation:** AI-powered validation of security fixes and monitoring implementations (1 credit each, static code only)
+- **Guest mode:** Use app without authentication (local storage)
+- **Responsive UI:** Desktop, tablet, and mobile support
+- **Analysis history** with demo examples, validation results, and mode badges
+- **Cross-platform:** Web, iOS, Android, macOS, Linux, Windows
 
 ---
 
-## 2. Architecture Diagram (Flutter-Only, No Backend)
+## 2. Architecture Diagram (Flutter Multi-Platform + Cloud Services)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Flutter Web Client                       │
-│  ┌────────────┐  ┌──────────────┐  ┌──────────────────┐    │
-│  │  Landing   │  │   Analysis   │  │     Results      │    │
-│  │    Page    │─>│   Loading    │─>│    Dashboard     │    │
-│  └────────────┘  └──────────────┘  └──────────────────┘    │
-│        │                  │                   │              │
-│        └──────────────────┴───────────────────┘              │
-│                           │                                  │
-│                    ┌──────▼───────┐                          │
-│                    │  State Mgmt  │                          │
-│                    │   (Riverpod) │                          │
-│                    └──────┬───────┘                          │
-│                           │                                  │
-│        ┌──────────────────┼──────────────────┐               │
-│        │                  │                  │               │
-│  ┌─────▼──────┐    ┌──────▼──────┐   ┌──────▼───────┐      │
-│  │  GitHub    │    │   OpenAI    │   │  Local       │      │
-│  │  Service   │    │   Service   │   │  Storage     │      │
-│  └─────┬──────┘    └──────┬──────┘   │  (IndexedDB) │      │
-│        │                  │           └──────────────┘      │
-└────────┼──────────────────┼─────────────────────────────────┘
-         │ HTTPS            │ HTTPS
-         │                  │
- ┌───────▼────┐     ┌───────▼────────┐
- │  GitHub    │     │     OpenAI     │
- │    API     │     │   GPT-4o mini  │
- └────────────┘     └────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Flutter Client (All Platforms)                    │
+│  ┌──────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌──────────┐   │
+│  │ Landing  │ │ Analysis│ │ Results │ │  Auth   │ │ Profile/ │   │
+│  │   Page   │─>│ Loading │─>│Dashboard│ │  Page   │ │ Credits  │   │
+│  └──────────┘ └─────────┘ └─────────┘ └─────────┘ └──────────┘   │
+│       │              │           │           │            │         │
+│       └──────────────┴───────────┴───────────┴────────────┘         │
+│                                  │                                  │
+│                         ┌────────▼────────┐                         │
+│                         │   State Mgmt    │                         │
+│                         │   (Riverpod)    │                         │
+│                         └────────┬────────┘                         │
+│                                  │                                  │
+│     ┌────────────────────────────┼───────────────────────────────┐ │
+│     │            │               │               │       │       │ │
+│ ┌───▼────┐ ┌────▼────┐ ┌────────▼───────┐ ┌────▼────┐ ┌──▼───┐ │ │
+│ │ GitHub │ │ OpenAI  │ │ Auth Service   │ │ Credits │ │Valida│ │ │
+│ │Service │ │ Service │ │   (Supabase)   │ │ Service │ │-tion │ │ │
+│ └───┬────┘ └────┬────┘ └────────┬───────┘ └────┬────┘ └──┬───┘ │ │
+│     │           │               │               │         │     │ │
+│     │           │               │               │          │      │
+│     │           │          ┌────▼────┐          │          │      │
+│     │           │          │ Storage │          │          │      │
+│     │           │          │ Service │          │          │      │
+│     │           │          │(Encrypted)        │          │      │
+│     │           │          └─────────┘          │          │      │
+└─────┼───────────┼───────────────┼───────────────┼──────────┼──────┘
+      │           │               │               │          │
+      │ HTTPS     │ HTTPS         │ HTTPS         │ Local    │ HTTPS
+      │           │               │               │ Storage  │
+┌─────▼─────┐ ┌───▼──────┐ ┌──────▼──────┐ ┌─────▼─────┐ ┌─▼────────┐
+│  GitHub   │ │  OpenAI  │ │  Supabase   │ │SharedPrefs│ │RevenueCat│
+│    API    │ │GPT-4o min│ │ (Auth+DB)   │ │(Encrypted)│ │(Payments)│
+└───────────┘ └──────────┘ └─────────────┘ └───────────┘ └──────────┘
+                                   │
+                           ┌───────▼────────┐
+                           │   PostgreSQL   │
+                           │  (User Profiles│
+                           │   & Credits)   │
+                           └────────────────┘
 ```
 
-**Note:** All logic runs in Flutter Web client. No separate backend server.
+**Note:** All logic runs in Flutter client. Cloud services handle auth, database, and payments.
 
 ---
 
 ## 3. Technology Stack
 
-### 3.1 Frontend (Flutter Web)
-- **Framework:** Flutter 3.x (Web renderer: CanvasKit for better UI)
-- **State Management:** Riverpod 2.x
-- **HTTP Client:** dio (for API calls)
-- **Local Storage:** shared_preferences (cookie-based session)
+### 3.1 Frontend (Flutter)
+- **Framework:** Flutter 3.9.2+ (Web, iOS, Android, Desktop)
+- **State Management:** Riverpod 2.6.1+
+- **HTTP Client:** dio 5.7.0 (for API calls)
+- **Local Storage:**
+  - shared_preferences 2.5.3 (encrypted analysis history, session)
+  - flutter_secure_storage 9.2.2 (encryption keys)
+  - encrypt 5.0.3 (data encryption)
 - **UI Components:** Material 3 design system
 - **Animations:** Built-in Flutter animations
-- **Responsive:** flutter_responsive_framework or custom breakpoints
+- **Routing:** go_router 14.6.2
+- **Responsive:** Custom ConstrainedBox + LayoutBuilder patterns
 
-### 3.2 External Services
+### 3.2 Authentication & Payments
+- **Auth Provider:** Supabase Flutter 2.9.3
+  - Email/password authentication
+  - Google Sign In 6.2.2
+  - Apple Sign In 6.1.3
+- **Payment Provider:** RevenueCat (purchases_flutter 8.4.1)
+  - iOS/Android in-app purchases
+  - Web payments via Stripe integration
+- **Database:** Supabase PostgreSQL (user profiles, credits)
+
+### 3.3 External Services
 - **GitHub API:** Repository content retrieval
 - **OpenAI API:** GPT-4o mini for code analysis
-- **Hosting:** Firebase Hosting / Vercel / Netlify (for Flutter Web)
-- **Local Storage:** IndexedDB (via idb_shim or hive) for history persistence
+- **Supabase:** Authentication and user data
+- **RevenueCat:** Payment processing and subscription management
+- **Hosting:**
+  - Web: Firebase Hosting / Vercel / Netlify
+  - Mobile: App Store / Google Play
+  - Desktop: Direct distribution
 
 **Important:** OpenAI API key must be handled carefully in client-side apps. For MVP, it will be embedded, but should be moved to a proxy/backend in production.
 
@@ -80,12 +120,15 @@ App Analyzer is a Flutter Web application that analyzes public GitHub repositori
 #### 4.1.1 Pages/Screens
 ```
 lib/
-├── main.dart                    # App entry point
+├── main.dart                    # App entry point (with service initialization)
 ├── app.dart                     # Root app widget with routing
 ├── pages/
-│   ├── landing_page.dart        # Main landing screen
+│   ├── landing_page.dart        # Main landing screen (with credits/auth UI)
 │   ├── analysis_loading_page.dart # Analysis in progress
-│   └── results_page.dart        # Results dashboard
+│   ├── results_page.dart        # Results dashboard
+│   ├── auth_page.dart           # Sign in/sign up page
+│   ├── profile_page.dart        # User profile with credits
+│   └── credits_page.dart        # Credit packages purchase page
 ```
 
 #### 4.1.2 Widgets
@@ -95,42 +138,62 @@ lib/widgets/
 │   ├── app_button.dart          # Custom button component
 │   ├── app_text_field.dart      # Custom text input
 │   ├── loading_animation.dart   # Analysis loading animation
-│   └── severity_badge.dart      # Color-coded badges
+│   ├── severity_badge.dart      # Color-coded badges
+│   ├── category_badge.dart      # Category badges
+│   ├── validation_status_badge.dart # Validation status indicators
+│   ├── validation_result_display.dart # Validation result card
+│   ├── welcome_popup.dart       # First-launch free credits popup
+│   ├── credits_indicator.dart   # Credit balance indicator
+│   └── auth_button.dart         # Login/profile button
 ├── landing/
-│   ├── hero_section.dart        # URL input + CTA buttons
-│   └── history_section.dart     # Recent analyses list
+│   └── history_card.dart        # Analysis history card
 ├── results/
-│   ├── results_header.dart      # Repo info, timestamp, actions
-│   ├── summary_card.dart        # Analysis summary stats
-│   ├── issue_card.dart          # Security issue display
-│   └── recommendation_card.dart # Monitoring recommendation
+│   ├── issue_card.dart          # Security issue display (with validation button)
+│   └── recommendation_card.dart # Monitoring recommendation (with validation button)
 ```
 
 #### 4.1.3 State Management (Riverpod)
 ```
 lib/providers/
-├── session_provider.dart        # User session (cookie-based ID)
-├── analysis_provider.dart       # Current analysis state
-├── history_provider.dart        # Analysis history
-└── repository_provider.dart     # Repo validation state
+├── analysis_provider.dart       # Current analysis state (with credit consumption)
+├── history_provider.dart        # Analysis history (with update support)
+└── validation_provider.dart     # Validation state management
+
+# Note: Auth and credits state managed via services with StreamProviders
 ```
 
 #### 4.1.4 Services
 ```
 lib/services/
-├── api_service.dart             # Backend API client
-├── storage_service.dart         # Local storage (cookies/prefs)
-└── clipboard_service.dart       # Copy-to-clipboard utility
+├── github_service.dart          # GitHub API integration (static code analysis)
+├── app_runtime_service.dart     # Live app fetching and analysis (NEW!)
+├── openai_service.dart          # OpenAI GPT-4o mini integration (analysis + validation)
+│                                # - Static code prompts
+│                                # - Runtime analysis prompts
+├── storage_service.dart         # Encrypted local storage (SharedPreferences) with update support
+├── auth_service.dart            # Supabase authentication
+├── credits_service.dart         # Credits management (with refund support)
+├── payment_service.dart         # RevenueCat payment integration
+└── validation_service.dart      # Fix/implementation validation (1 credit each)
 ```
 
 #### 4.1.5 Models
 ```
 lib/models/
-├── analysis_request.dart        # Request payload
-├── analysis_result.dart         # Response data
-├── security_issue.dart          # Security finding model
-├── monitoring_recommendation.dart # Monitoring suggestion
-└── analysis_history_item.dart   # History entry
+├── analysis_type.dart           # Enum for analysis types (Security, Monitoring)
+├── analysis_mode.dart           # Enum for analysis modes (Static Code, Runtime) - NEW!
+├── analysis_result.dart         # Response data (with JSON serialization + analysisMode)
+├── runtime_analysis_data.dart   # Runtime app data model - NEW!
+│   ├── DetectedTools            # 17+ monitoring tools detection
+│   ├── PerformanceMetrics       # Page load, TTFB, ratings
+│   └── SecurityConfig           # HTTPS, headers, cookies, security score
+├── security_issue.dart          # Security finding model (with validation fields)
+├── monitoring_recommendation.dart # Monitoring suggestion (with validation fields)
+├── severity.dart                # Severity enum
+├── validation_status.dart       # Enum for validation states
+├── validation_result.dart       # Validation response data
+├── user_profile.dart            # User profile with credits
+└── credit_package.dart          # Credit package definitions
 ```
 
 ### 4.2 Backend Components
@@ -221,6 +284,10 @@ class SecurityIssue implements Finding {
   final String description;
   final String aiGenerationRisk;
   final String claudeCodePrompt;
+  final String? filePath;
+  final int? lineNumber;
+  final ValidationStatus validationStatus; // notStarted | validating | passed | failed | error
+  final ValidationResult? validationResult;
 }
 ```
 
@@ -233,10 +300,38 @@ class MonitoringRecommendation implements Finding {
   final String description;
   final String businessValue;
   final String claudeCodePrompt;
+  final String? filePath;
+  final int? lineNumber;
+  final ValidationStatus validationStatus; // notStarted | validating | passed | failed | error
+  final ValidationResult? validationResult;
 }
 ```
 
-### 5.5 Database Schema
+### 5.5 Validation Status
+```dart
+enum ValidationStatus {
+  notStarted,  // Default state, not yet validated
+  validating,  // Currently validating fix/implementation
+  passed,      // Validation successful, fix works
+  failed,      // Validation failed, issues remain
+  error,       // Validation error occurred
+}
+```
+
+### 5.6 Validation Result
+```dart
+class ValidationResult {
+  final String id;
+  final ValidationStatus status;
+  final DateTime timestamp;
+  final String? summary;           // Brief validation summary
+  final String? details;           // Detailed explanation
+  final List<String>? remainingIssues;  // Issues found if failed
+  final String? recommendation;    // Next steps if failed
+}
+```
+
+### 5.7 Database Schema
 ```sql
 -- analyses table
 CREATE TABLE analyses (
@@ -266,7 +361,21 @@ CREATE TABLE demo_examples (
 
 ## 6. Analysis Flow (Detailed)
 
-### 6.1 Security Analysis Pipeline
+### 6.1 URL Detection & Routing
+```
+User Input URL
+    │
+    ▼
+Validators.detectUrlType()
+    │
+    ├─> GitHub URL (github.com/owner/repo)
+    │   └─> AnalysisMode.staticCode
+    │
+    └─> App URL (https://yourapp.com)
+        └─> AnalysisMode.runtime
+```
+
+### 6.2 Static Code - Security Analysis Pipeline
 ```
 1. Repository Retrieval
    └─> GitHub API: Fetch file tree & code files
@@ -312,7 +421,7 @@ CREATE TABLE demo_examples (
    └─> Save to SQLite, return to frontend
 ```
 
-### 6.2 Monitoring Analysis Pipeline
+### 6.3 Static Code - Monitoring Analysis Pipeline
 ```
 1. Repository Retrieval
    └─> Same as security analysis
@@ -354,6 +463,226 @@ CREATE TABLE demo_examples (
 
 5. Storage & Return
    └─> Save to SQLite, return to frontend
+```
+
+### 6.4 Runtime - Security Analysis Pipeline
+```
+1. App URL Validation
+   └─> Validate URL format and accessibility
+
+2. Live App Fetching (AppRuntimeService)
+   └─> HTTP GET request with proper headers
+   └─> Measure TTFB and page load time
+   └─> Extract HTML content
+
+3. Runtime Data Collection
+   ├─> HTTP Security Headers Analysis
+   │   ├─> HTTPS, HSTS, CSP, X-Frame-Options
+   │   ├─> X-Content-Type-Options, Referrer-Policy
+   │   └─> Permissions-Policy, CORS
+   │
+   ├─> Cookie Security Analysis
+   │   ├─> Secure flag
+   │   ├─> HttpOnly flag
+   │   └─> SameSite attribute
+   │
+   ├─> Performance Metrics
+   │   ├─> Page load time
+   │   └─> Time to First Byte (TTFB)
+   │
+   └─> Monitoring Tools Detection (17+ tools)
+       ├─> Analytics: GA, Mixpanel, Segment, etc.
+       ├─> Error Tracking: Sentry, Bugsnag, etc.
+       ├─> APM: New Relic, Datadog, etc.
+       └─> Session Replay: Hotjar, FullStory, etc.
+
+4. AI Analysis (OpenAI GPT-4o mini)
+   Input Prompt:
+   """
+   You are a security expert analyzing DEPLOYED applications.
+
+   Focus on RUNTIME security issues:
+   - Missing or misconfigured security headers
+   - Insecure cookie configurations
+   - CORS misconfigurations
+   - Exposed sensitive data in HTML/JS
+   - Missing HTTPS or weak TLS
+
+   Detected Configuration:
+   - Security Score: X/10
+   - Headers: [detected headers]
+   - Cookies: [cookie analysis]
+   - Performance: [metrics]
+
+   Return JSON:
+   {
+     "summary": { "total": int, "bySeverity": {...} },
+     "issues": [
+       {
+         "title": "...",
+         "severity": "critical|high|medium|low",
+         "description": "Runtime security issue",
+         "runtimeRisk": "Why this matters in production",
+         "claudeCodePrompt": "How to fix in deployment",
+         "filePath": null,
+         "lineNumber": null
+       }
+     ]
+   }
+   """
+
+5. Result Parsing & Validation
+   └─> Parse JSON, validate structure
+
+6. Storage & Return
+   └─> Save to local storage with analysisMode: runtime
+```
+
+### 6.5 Runtime - Monitoring Analysis Pipeline
+```
+1. App URL Validation
+   └─> Same as runtime security
+
+2. Live App Fetching
+   └─> Same as runtime security
+
+3. Runtime Data Collection
+   ├─> Monitoring Tools Detection
+   │   ├─> Google Analytics, Mixpanel, Amplitude, etc.
+   │   ├─> Sentry, Bugsnag, Rollbar, etc.
+   │   ├─> New Relic, Datadog, AppDynamics
+   │   └─> Meta Pixel, LinkedIn Tag
+   │
+   └─> Performance Metrics
+       ├─> Page load time analysis
+       └─> Performance rating
+
+4. AI Analysis (OpenAI GPT-4o mini)
+   Input Prompt:
+   """
+   You are an observability expert analyzing DEPLOYED apps.
+
+   Focus on what monitoring is MISSING or INCOMPLETE:
+   - No analytics (or missing conversion tracking)
+   - No error tracking (or incomplete setup)
+   - Missing performance monitoring
+   - Business metrics gaps
+
+   Detected Tools:
+   ✓ Google Analytics detected
+   ✗ No error tracking
+   ✗ No session replay
+
+   Return JSON:
+   {
+     "summary": { "total": int, "byCategory": {...} },
+     "recommendations": [
+       {
+         "title": "...",
+         "category": "analytics|error_tracking|business_metrics",
+         "description": "What's missing",
+         "businessValue": "Impact on business",
+         "claudeCodePrompt": "How to implement",
+         "filePath": null,
+         "lineNumber": null
+       }
+     ]
+   }
+   """
+
+5. Result Parsing & Validation
+   └─> Parse JSON, validate structure
+
+6. Storage & Return
+   └─> Save to local storage with analysisMode: runtime
+```
+
+### 6.6 Fix Validation Pipeline (Static Code Only)
+```
+1. Credit Check
+   └─> Verify user has ≥1 credit for validation
+
+2. Credit Consumption
+   └─> Consume 1 credit before validation starts
+
+3. Update Status
+   └─> Set finding validationStatus to "validating"
+
+4. Repository Code Fetch
+   └─> Fetch updated code from GitHub repository
+   └─> Same logic as analysis (filter relevant files, max 100KB)
+
+5. AI Validation (OpenAI GPT-4o mini)
+   For Security Issues:
+   Input Prompt:
+   """
+   You are a security expert validating a fix.
+
+   Original Issue:
+   - Title: {issue.title}
+   - Severity: {issue.severity}
+   - Description: {issue.description}
+   - File: {issue.filePath}:{issue.lineNumber}
+
+   Updated Code: [fetched code]
+
+   Validation Checklist:
+   1. Vulnerable code pattern removed/fixed
+   2. Fix addresses root cause
+   3. No new security issues introduced
+   4. Follows security best practices
+
+   Return JSON:
+   {
+     "status": "passed" | "failed",
+     "summary": "Brief summary",
+     "details": "Detailed explanation",
+     "remainingIssues": ["..."] (if failed),
+     "recommendation": "..." (if failed)
+   }
+   """
+
+   For Monitoring Recommendations:
+   Input Prompt:
+   """
+   You are an observability expert validating implementation.
+
+   Original Recommendation:
+   - Title: {rec.title}
+   - Category: {rec.category}
+   - Business Value: {rec.businessValue}
+   - File: {rec.filePath}:{rec.lineNumber}
+
+   Updated Code: [fetched code]
+
+   Validation Checklist:
+   1. Monitoring/tracking code added
+   2. Captures recommended metrics/events
+   3. Proper instrumentation
+   4. Follows best practices
+
+   Return JSON: (same format as security)
+   """
+
+6. Result Parsing
+   └─> Parse JSON, create ValidationResult
+
+7. Update Finding
+   └─> Update SecurityIssue/MonitoringRecommendation with validation result
+   └─> Set validationStatus to "passed", "failed", or "error"
+
+8. Persist Update
+   └─> Update AnalysisResult in storage
+   └─> Encrypted storage preserves validation history
+
+9. UI Update
+   └─> ValidationProvider triggers state update
+   └─> Results page rebuilds with validation badge and result
+
+Error Handling:
+   └─> On any error: Refund 1 credit
+   └─> Set validationStatus to "error"
+   └─> Show error message to user
 ```
 
 ---

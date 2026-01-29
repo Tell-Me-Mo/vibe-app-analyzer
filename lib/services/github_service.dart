@@ -1,20 +1,20 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/app_config.dart';
 import '../utils/validators.dart';
 
 class GitHubService {
   final Dio _dio;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   GitHubService()
       : _dio = Dio(BaseOptions(
-          baseUrl: AppConfig.githubApiUrl,
           connectTimeout: const Duration(seconds: 30),
           receiveTimeout: const Duration(seconds: 60),
           sendTimeout: const Duration(seconds: 30),
           headers: {
-            'Accept': 'application/vnd.github.v3+json',
-            'Authorization': 'Bearer ${AppConfig.githubToken}',
+            'Content-Type': 'application/json',
           },
         ));
 
@@ -24,18 +24,52 @@ class GitHubService {
       throw Exception('Invalid GitHub URL');
     }
 
+    return await _callGitHubProxy('/repos/${parts['owner']}/${parts['repo']}');
+  }
+
+  /// Calls the GitHub proxy Edge Function
+  Future<Map<String, dynamic>> _callGitHubProxy(
+    String endpoint, {
+    Map<String, String>? queryParams,
+  }) async {
     try {
-      final response = await _dio.get('/repos/${parts['owner']}/${parts['repo']}');
+      final supabaseUrl = AppConfig.supabaseUrl;
+      final supabaseKey = AppConfig.supabaseAnonKey;
+      final functionUrl = '$supabaseUrl/functions/v1/github-proxy';
+
+      // Get the current session token
+      final session = _supabase.auth.currentSession;
+      if (session == null) {
+        throw Exception('No active session. Please sign in.');
+      }
+
+      final response = await _dio.post(
+        functionUrl,
+        data: {
+          'endpoint': endpoint,
+          if (queryParams != null) 'queryParams': queryParams,
+        },
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${session.accessToken}',
+            'apikey': supabaseKey,
+          },
+        ),
+      );
+
+      final data = response.data;
+      if (data == null || data is! Map<String, dynamic>) {
+        throw Exception('Invalid response from GitHub service');
+      }
 
       // Check if repository is private
-      final repoData = response.data;
-      if (repoData is Map<String, dynamic> && repoData['private'] == true) {
+      if (data['private'] == true) {
         throw Exception(
           'Private repositories are not supported yet. Please use a public repository.',
         );
       }
 
-      return response.data;
+      return data;
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         throw Exception(
@@ -43,15 +77,17 @@ class GitHubService {
         );
       } else if (e.response?.statusCode == 403) {
         throw Exception(
-          'Access forbidden. The repository may be private or your GitHub token lacks permissions.',
+          'Access forbidden. The repository may be private or requires authentication.',
         );
+      } else if (e.response?.statusCode == 401) {
+        throw Exception('Authentication failed. Please sign in again.');
       }
-      throw Exception('Failed to fetch repository: ${e.message}');
+      throw Exception('Failed to fetch from GitHub: ${e.message}');
     } catch (e) {
       if (e is Exception) {
         rethrow;
       }
-      throw Exception('Failed to fetch repository: $e');
+      throw Exception('Failed to fetch from GitHub: $e');
     }
   }
 
@@ -62,38 +98,37 @@ class GitHubService {
     }
 
     try {
-      final response = await _dio.get(
+      final data = await _callGitHubProxy(
         '/repos/${parts['owner']}/${parts['repo']}/git/trees/main',
-        queryParameters: {'recursive': '1'},
+        queryParams: {'recursive': '1'},
       );
 
-      final tree = response.data['tree'] as List;
+      final tree = data['tree'] as List?;
+      if (tree == null) {
+        throw Exception('Invalid tree response');
+      }
       return tree.map((e) => e as Map<String, dynamic>).toList();
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
+    } catch (e) {
+      if (e.toString().contains('404') || e.toString().contains('not found')) {
         // Try 'master' branch if 'main' doesn't exist
         try {
-          final response = await _dio.get(
+          final data = await _callGitHubProxy(
             '/repos/${parts['owner']}/${parts['repo']}/git/trees/master',
-            queryParameters: {'recursive': '1'},
+            queryParams: {'recursive': '1'},
           );
 
-          final tree = response.data['tree'] as List;
-          return tree.map((e) => e as Map<String, dynamic>).toList();
-        } on DioException catch (e2) {
-          if (e2.response?.statusCode == 404) {
-            throw Exception(
-              'Repository not found or is private. VibeCheck currently supports public repositories only.',
-            );
+          final tree = data['tree'] as List?;
+          if (tree == null) {
+            throw Exception('Invalid tree response');
           }
-          throw Exception('Failed to fetch repository tree: ${e2.message}');
+          return tree.map((e) => e as Map<String, dynamic>).toList();
+        } catch (e2) {
+          throw Exception(
+            'Repository not found or is private. VibeCheck currently supports public repositories only.',
+          );
         }
-      } else if (e.response?.statusCode == 403) {
-        throw Exception(
-          'Access forbidden. The repository may be private or requires authentication.',
-        );
       }
-      throw Exception('Failed to fetch repository tree: ${e.message}');
+      rethrow;
     }
   }
 
@@ -104,16 +139,11 @@ class GitHubService {
     }
 
     try {
-      final response = await _dio.get(
+      final data = await _callGitHubProxy(
         '/repos/${parts['owner']}/${parts['repo']}/contents/$path',
       );
 
-      // Validate response
-      if (response.data == null || response.data is! Map<String, dynamic>) {
-        throw Exception('Invalid response format from GitHub API');
-      }
-
-      final content = response.data['content'];
+      final content = data['content'];
       if (content == null || content is! String) {
         throw Exception('File content missing or invalid');
       }
@@ -128,18 +158,13 @@ class GitHubService {
       } on FormatException catch (e) {
         throw Exception('Failed to decode file content: ${e.message}');
       }
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        throw Exception('File not found: $path');
-      } else if (e.response?.statusCode == 403) {
-        throw Exception('Access forbidden. Check GitHub token permissions.');
-      }
-      throw Exception('Failed to fetch file content: ${e.message}');
     } catch (e) {
-      if (e is Exception) {
-        rethrow;
+      if (e.toString().contains('404') || e.toString().contains('not found')) {
+        throw Exception('File not found: $path');
+      } else if (e.toString().contains('403') || e.toString().contains('forbidden')) {
+        throw Exception('Access forbidden. Check permissions.');
       }
-      throw Exception('Failed to fetch file content: $e');
+      rethrow;
     }
   }
 

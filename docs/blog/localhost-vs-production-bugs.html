@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Your App Works On Your Laptop. Why Does It Crash In Production? - VibeCheck</title>
+    <meta name="description" content="It works on localhost but crashes in production. Here's why your AI-generated app behaves differently when real users touch it—and how to fix it.">
+    <meta name="keywords" content="localhost vs production, environment variables, production bugs, CORS errors, database connections, production debugging, deployment issues, app crashes production">
+    <meta name="author" content="VibeCheck">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://vibe-checker.dev/blog/localhost-vs-production-bugs.html">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://vibe-checker.dev/blog/localhost-vs-production-bugs.html">
+    <meta property="og:title" content="Your App Works On Your Laptop. Why Does It Crash In Production?">
+    <meta property="og:description" content="It works on localhost but crashes in production. Here's why and how to fix environment-specific bugs before users complain.">
+    <meta property="og:image" content="https://vibe-checker.dev/og-image.png">
+    <meta property="article:published_time" content="2025-01-13T00:00:00Z">
+    <meta property="article:modified_time" content="2025-01-13T00:00:00Z">
+    <meta property="article:author" content="VibeCheck">
+    <meta property="article:section" content="Deployment">
+    <meta property="article:tag" content="Production Bugs">
+    <meta property="article:tag" content="Deployment">
+    <meta property="article:tag" content="Environment Variables">
+    <meta property="article:tag" content="Debugging">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://vibe-checker.dev/blog/localhost-vs-production-bugs.html">
+    <meta property="twitter:title" content="Your App Works On Your Laptop. Why Does It Crash In Production?">
+    <meta property="twitter:description" content="Works on localhost, crashes in production. Here's why and how to fix it.">
+    <meta property="twitter:image" content="https://vibe-checker.dev/og-image.png">
+
+    <!-- Breadcrumb Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://vibe-checker.dev/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://vibe-checker.dev/blog/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Your App Works On Your Laptop. Why Does It Crash In Production?",
+          "item": "https://vibe-checker.dev/blog/localhost-vs-production-bugs.html"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Article Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Your App Works On Your Laptop. Why Does It Crash In Production?",
+      "description": "It works on localhost but crashes in production. Here's why your AI-generated app behaves differently when real users touch it—and how to fix it.",
+      "image": "https://vibe-checker.dev/og-image.png",
+      "author": {
+        "@type": "Organization",
+        "name": "VibeCheck",
+        "url": "https://vibe-checker.dev"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "VibeCheck",
+        "url": "https://vibe-checker.dev",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://vibe-checker.dev/logo.png"
+        }
+      },
+      "datePublished": "2025-01-13",
+      "dateModified": "2025-01-13",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://vibe-checker.dev/blog/localhost-vs-production-bugs.html"
+      },
+      "articleSection": "Deployment",
+      "keywords": ["localhost vs production", "environment variables", "production bugs", "CORS", "deployment debugging", "app crashes"],
+      "articleBody": "A troubleshooting guide for common localhost vs production bugs. Covers environment variables, CORS errors, hardcoded localhost URLs, database connection issues, file path problems, and missing dependencies that cause apps to crash in production."
+    }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #13141f;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+        header {
+            padding: 20px 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+        .back-link {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .back-link:hover { color: var(--text-primary); }
+        article { padding: 80px 0; }
+        .article-header { text-align: center; margin-bottom: 60px; }
+        .article-meta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+        .category {
+            padding: 6px 16px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+        .subtitle {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .content { font-size: 18px; line-height: 1.8; }
+        .content h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 60px 0 24px;
+            color: var(--text-primary);
+        }
+        .content h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 40px 0 16px;
+            color: var(--text-secondary);
+        }
+        .content p {
+            margin-bottom: 24px;
+            color: var(--text-tertiary);
+        }
+        .content ul, .content ol {
+            margin: 24px 0;
+            padding-left: 32px;
+            color: var(--text-tertiary);
+        }
+        .content li { margin-bottom: 12px; }
+        .content strong { color: var(--text-secondary); font-weight: 600; }
+        .problem-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--error);
+            padding: 24px;
+            margin: 32px 0;
+            border-radius: 8px;
+        }
+        .problem-box h4 {
+            color: var(--error);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .solution-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success);
+            padding: 24px;
+            margin: 24px 0;
+            border-radius: 8px;
+        }
+        .solution-box h4 {
+            color: var(--success);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cta-section {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 48px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 60px 0;
+        }
+        .cta-section h3 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+        .cta-section p {
+            color: var(--text-tertiary);
+            margin-bottom: 32px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+        .cta-button:hover { transform: translateY(-2px); }
+        footer {
+            padding: 48px 0;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="../" class="logo">VibeCheck</a>
+                <a href="./" class="back-link">← Back to Blog</a>
+            </nav>
+        </div>
+    </header>
+
+    <article>
+        <div class="container">
+            <div class="article-header">
+                <div class="article-meta">
+                    <span class="category">Production</span>
+                    <span>8 min read</span>
+                </div>
+                <h1>Your App Works On Your Laptop. Why Does It Crash In Production?</h1>
+                <p class="subtitle">It works on localhost but crashes in production. Here's why your AI-generated app behaves differently when real users touch it—and how to fix it.</p>
+            </div>
+
+            <div class="content">
+                <p>You tested your app. Everything works perfectly. Login works. Features work. You deploy to production.</p>
+
+                <p>Five minutes later: "The app is broken. Nothing loads."</p>
+
+                <p><strong>But it works on your laptop!</strong></p>
+
+                <p>Here's why production is different—and how to fix the 7 most common localhost vs production bugs.</p>
+
+                <h2>Bug #1: Hardcoded localhost URLs</h2>
+
+                <div class="problem-box">
+                    <h4>🔴 The Problem</h4>
+                    <p>Your API calls point to <code>http://localhost:3000</code>. On your laptop, this works. In production, it tries to connect to the server's own localhost—not your API.</p>
+                    <div class="code-block">
+// ❌ Hardcoded localhost
+fetch('http://localhost:3000/api/users')
+                    </div>
+                </div>
+
+                <div class="solution-box">
+                    <h4>✅ The Fix: Use Environment Variables</h4>
+                    <div class="code-block">
+// In .env.local (development)
+NEXT_PUBLIC_API_URL=http://localhost:3000
+
+// In .env.production
+NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+
+// In your code
+fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`)
+                    </div>
+                    <p>Now your app uses the right URL for each environment.</p>
+                </div>
+
+                <h2>Bug #2: Missing Environment Variables</h2>
+
+                <p>You set <code>DATABASE_URL</code> in your local <code>.env</code> file. But you forgot to set it on Vercel/Railway/Render.</p>
+
+                <div class="problem-box">
+                    <h4>🔴 What Happens</h4>
+                    <p>Your app tries to connect to the database. <code>DATABASE_URL</code> is undefined. Connection fails. App crashes.</p>
+                </div>
+
+                <div class="solution-box">
+                    <h4>✅ The Fix: Set Environment Variables in Your Host</h4>
+                    <p><strong>Vercel:</strong> Settings → Environment Variables → Add all your .env variables</p>
+                    <p><strong>Railway:</strong> Variables tab → Add each one</p>
+                    <p><strong>Render:</strong> Environment → Add environment variables</p>
+                    <p><strong>Important:</strong> Never commit <code>.env</code> files to GitHub. Add <code>.env*</code> to <code>.gitignore</code>.</p>
+                </div>
+
+                <h2>Bug #3: CORS Errors</h2>
+
+                <p>Your frontend is at <code>yourdomain.com</code>. Your API is at <code>api.yourdomain.com</code>. The browser blocks requests.</p>
+
+                <div class="problem-box">
+                    <h4>🔴 The Error</h4>
+                    <div class="code-block">
+Access to fetch at 'https://api.yourdomain.com' from origin 'https://yourdomain.com'
+has been blocked by CORS policy
+                    </div>
+                </div>
+
+                <div class="solution-box">
+                    <h4>✅ The Fix: Enable CORS on Your Backend</h4>
+                    <div class="code-block">
+// Express.js
+const cors = require('cors');
+app.use(cors({
+  origin: ['https://yourdomain.com'],
+  credentials: true
+}));
+
+// FastAPI (Python)
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://yourdomain.com"],
+    allow_credentials=True,
+)
+                    </div>
+                </div>
+
+                <h2>Bug #4: HTTP Instead of HTTPS</h2>
+
+                <p>Your production site uses HTTPS. But your API calls use HTTP. Modern browsers block mixed content.</p>
+
+                <div class="problem-box">
+                    <h4>🔴 Browser Error</h4>
+                    <p>"Mixed Content: The page was loaded over HTTPS, but requested an insecure resource. This request has been blocked."</p>
+                </div>
+
+                <div class="solution-box">
+                    <h4>✅ The Fix</h4>
+                    <p>Make sure ALL your URLs use HTTPS in production:</p>
+                    <ul>
+                        <li>API endpoints: <code>https://api.yourdomain.com</code></li>
+                        <li>Images: <code>https://cdn.yourdomain.com</code></li>
+                        <li>External resources: Always use HTTPS</li>
+                    </ul>
+                </div>
+
+                <h2>Bug #5: Database Connection Limits</h2>
+
+                <p>On localhost, you're the only user. In production, 100 users are hitting your app at once. Your database has a connection limit of 10. Queries start failing.</p>
+
+                <div class="problem-box">
+                    <h4>🔴 The Error</h4>
+                    <div class="code-block">
+Error: too many connections for database
+                    </div>
+                </div>
+
+                <div class="solution-box">
+                    <h4>✅ The Fix: Use Connection Pooling</h4>
+                    <div class="code-block">
+// Instead of creating a new connection per request
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 20, // Maximum 20 connections
+  idleTimeoutMillis: 30000,
+});
+
+// Reuse connections from the pool
+const client = await pool.connect();
+const result = await client.query('SELECT * FROM users');
+client.release(); // Return connection to pool
+                    </div>
+                </div>
+
+                <h2>Bug #6: File Paths That Work Locally But Fail in Production</h2>
+
+                <div class="problem-box">
+                    <h4>🔴 The Problem</h4>
+                    <div class="code-block">
+// ❌ Absolute path that only exists on your laptop
+const file = fs.readFileSync('/Users/you/project/data.json')
+                    </div>
+                    <p>In production, <code>/Users/you/project/</code> doesn't exist.</p>
+                </div>
+
+                <div class="solution-box">
+                    <h4>✅ The Fix: Use Relative Paths</h4>
+                    <div class="code-block">
+// ✅ Relative to the current file
+const path = require('path');
+const file = fs.readFileSync(path.join(__dirname, 'data.json'))
+                    </div>
+                </div>
+
+                <h2>Bug #7: Missing Dependencies</h2>
+
+                <p>You installed a package locally but forgot to add it to <code>package.json</code>.</p>
+
+                <div class="problem-box">
+                    <h4>🔴 What Happens</h4>
+                    <p>Works on your laptop (package is in <code>node_modules</code>). Crashes in production (package not installed).</p>
+                    <div class="code-block">
+Error: Cannot find module 'some-package'
+                    </div>
+                </div>
+
+                <div class="solution-box">
+                    <h4>✅ The Fix</h4>
+                    <p>Always install with <code>--save</code> or just use <code>npm install</code> (it saves by default now):</p>
+                    <div class="code-block">
+npm install package-name
+
+# NOT this (doesn't save to package.json):
+npm install -g package-name
+                    </div>
+                    <p><strong>Before deploying:</strong> Delete <code>node_modules</code> and run <code>npm install</code> to make sure everything installs correctly.</p>
+                </div>
+
+                <div class="cta-section">
+                    <h3>Find Production Issues Before Launch</h3>
+                    <p>VibeCheck tests your app in a production-like environment and catches localhost vs production bugs before your users do.</p>
+                    <a href="https://app.vibe-checker.dev" target="_blank" rel="noopener noreferrer" class="cta-button">Test My App Free →</a>
+                </div>
+
+                <h2>Pre-Launch Checklist</h2>
+
+                <p>Before you deploy to production:</p>
+
+                <ol>
+                    <li><strong>Check for hardcoded URLs:</strong> Search your code for <code>localhost</code>, <code>127.0.0.1</code>, <code>:3000</code></li>
+                    <li><strong>Set environment variables:</strong> Copy all variables from <code>.env</code> to your hosting platform</li>
+                    <li><strong>Enable CORS:</strong> Add your production domain to allowed origins</li>
+                    <li><strong>Use HTTPS everywhere:</strong> All URLs should start with <code>https://</code></li>
+                    <li><strong>Test with production database:</strong> Don't use your local database for testing production</li>
+                    <li><strong>Check file paths:</strong> Use relative paths, not absolute</li>
+                    <li><strong>Verify dependencies:</strong> Run <code>npm ci</code> to ensure clean install</li>
+                </ol>
+
+                <h2>Quick Debug Tips</h2>
+
+                <p>When something breaks in production but not locally:</p>
+
+                <ul>
+                    <li><strong>Check browser console:</strong> Look for CORS, HTTPS, and network errors</li>
+                    <li><strong>Check server logs:</strong> Environment variable issues show up here</li>
+                    <li><strong>Compare environments:</strong> What's different between localhost and production?</li>
+                    <li><strong>Use staging:</strong> Deploy to a staging environment first to catch issues</li>
+                </ul>
+
+                <h2>The Bottom Line</h2>
+
+                <p>Localhost is forgiving. Production is not.</p>
+
+                <p>The differences are predictable: URLs, environment variables, CORS, HTTPS, connection limits, file paths, and dependencies.</p>
+
+                <p>Fix these before launch, and your production deployment will be smooth.</p>
+
+                <p><strong>Your app will work for users the same way it works for you.</strong></p>
+            </div>
+        </div>
+    </article>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 VibeCheck. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
