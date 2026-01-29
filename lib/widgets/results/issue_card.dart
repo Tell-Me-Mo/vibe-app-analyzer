@@ -7,6 +7,9 @@ import '../common/severity_badge.dart';
 import '../common/category_badge.dart';
 import '../common/validation_status_badge.dart';
 import '../common/validation_result_display.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_typography.dart';
+import '../../theme/app_spacing.dart';
 
 class IssueCard extends StatefulWidget {
   final SecurityIssue issue;
@@ -34,92 +37,93 @@ class _IssueCardState extends State<IssueCard> {
         final isMobile = constraints.maxWidth < 600;
 
         return Container(
-          margin: EdgeInsets.only(bottom: isMobile ? 12 : 10),
+          margin: EdgeInsets.only(bottom: isMobile ? 12 : 16),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
-            borderRadius: BorderRadius.circular(isMobile ? 12 : 10),
-            border: Border.all(
-              color: const Color(0xFF1E293B),
-              width: 1,
-            ),
+            color: AppColors.backgroundTertiary,
+            borderRadius: AppRadius.radiusLG,
+            border: Border.all(color: AppColors.borderSubtle, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 14 : 16,
-              vertical: isMobile ? 14 : 12,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      _isExpanded = !_isExpanded;
-                    });
-                  },
-                  borderRadius: BorderRadius.circular(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.lg),
+                  bottom: Radius.circular(_isExpanded ? 0 : AppRadius.lg),
+                ),
+                child: Padding(
+                  padding: AppSpacing.paddingLG,
                   child: isMobile
                       ? _buildMobileHeader(context)
                       : _buildDesktopHeader(context),
                 ),
-                if (_isExpanded) ...[
-                  SizedBox(height: isMobile ? 10 : 12),
-                  Padding(
-                    padding: EdgeInsets.only(left: isMobile ? 0 : 28),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                      // Description with better typography
+              ),
+              if (_isExpanded) ...[
+                const Divider(height: 1, color: AppColors.borderSubtle),
+                Padding(
+                  padding: AppSpacing.paddingLG,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Description
                       Text(
                         widget.issue.description,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontSize: 14,
-                          height: 1.5,
-                          color: const Color(0xFFCBD5E1),
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                          height: 1.6,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      AppSpacing.verticalGapLG,
 
-                      // AI Risk Warning - more prominent
+                      // AI Risk Warning
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: AppSpacing.paddingMD,
                         decoration: BoxDecoration(
-                          color: Colors.amber.shade900.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.severityHigh.withValues(alpha: 0.08),
+                          borderRadius: AppRadius.radiusMD,
                           border: Border.all(
-                            color: Colors.amber.shade700.withValues(alpha: 0.25),
-                            width: 1,
+                            color: AppColors.severityHigh.withValues(
+                              alpha: 0.2,
+                            ),
                           ),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Icon(
-                              Icons.warning_rounded,
-                              color: Colors.amber.shade400,
+                              Icons.warning_amber_rounded,
+                              color: AppColors.severityHigh,
                               size: 20,
                             ),
-                            const SizedBox(width: 10),
+                            AppSpacing.horizontalGapMD,
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     'AI Generation Risk',
-                                    style: TextStyle(
-                                      color: Colors.amber.shade300,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 0.5,
+                                    style: AppTypography.labelSmall.copyWith(
+                                      color: AppColors.severityHigh,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     widget.issue.aiGenerationRisk,
-                                    style: TextStyle(
-                                      color: Colors.amber.shade100,
-                                      fontSize: 13,
-                                      height: 1.4,
+                                    style: AppTypography.bodySmall.copyWith(
+                                      color: AppColors.textPrimary,
                                     ),
                                   ),
                                 ],
@@ -128,134 +132,160 @@ class _IssueCardState extends State<IssueCard> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      AppSpacing.verticalGapLG,
 
-                      // Claude Code Prompt - cleaner design
+                      // Claude Code Prompt
                       Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E293B),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: const Color(0xFF334155),
-                            width: 1,
-                          ),
+                          color: AppColors.backgroundSecondary,
+                          borderRadius: AppRadius.radiusMD,
+                          border: Border.all(color: AppColors.borderSubtle),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Header with copy button
+                            // Header
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
-                                vertical: 10,
+                                vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(7),
-                                  topRight: Radius.circular(7),
+                                color: AppColors.backgroundPrimary,
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(7),
+                                ),
+                                border: const Border(
+                                  bottom: BorderSide(
+                                    color: AppColors.borderSubtle,
+                                  ),
                                 ),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
                                     children: [
                                       Icon(
-                                        Icons.code_rounded,
+                                        Icons.terminal_rounded,
                                         size: 16,
-                                        color: Theme.of(context).colorScheme.primary,
+                                        color: AppColors.textSecondary,
                                       ),
-                                      const SizedBox(width: 6),
+                                      const SizedBox(width: 8),
                                       Text(
                                         'Claude Code Prompt',
-                                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                        style: AppTypography.labelSmall
+                                            .copyWith(
                                               fontWeight: FontWeight.w600,
-                                              color: Theme.of(context).colorScheme.primary,
-                                              fontSize: 12,
+                                              color: AppColors.textSecondary,
                                             ),
                                       ),
                                     ],
                                   ),
-                                  TextButton.icon(
-                                    onPressed: () {
-                                      Clipboard.setData(ClipboardData(text: widget.issue.claudeCodePrompt));
+                                  InkWell(
+                                    onTap: () {
+                                      Clipboard.setData(
+                                        ClipboardData(
+                                          text: widget.issue.claudeCodePrompt,
+                                        ),
+                                      );
                                       NotificationService.showSuccess(
                                         context,
-                                        message: 'Prompt copied to clipboard!',
+                                        message: 'Prompt copied!',
                                       );
                                     },
-                                    icon: const Icon(Icons.copy_rounded, size: 14),
-                                    label: const Text('Copy', style: TextStyle(fontSize: 11)),
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      minimumSize: Size.zero,
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(4),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.copy_rounded,
+                                            size: 14,
+                                            color: AppColors.primaryBlue,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Copy',
+                                            style: AppTypography.labelSmall
+                                                .copyWith(
+                                                  color: AppColors.primaryBlue,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            // Prompt content
+                            // Content
                             Padding(
-                              padding: const EdgeInsets.all(12),
+                              padding: AppSpacing.paddingMD,
                               child: Text(
                                 widget.issue.claudeCodePrompt,
-                                style: const TextStyle(
-                                  fontFamily: 'monospace',
-                                  fontSize: 12,
-                                  height: 1.5,
-                                  color: Color(0xFFE2E8F0),
+                                style: AppTypography.monoMedium.copyWith(
+                                  fontSize: 13,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      // Validation Result Display with button
+
+                      // Validation
                       if (widget.issue.validationResult != null) ...[
-                        const SizedBox(height: 16),
+                        AppSpacing.verticalGapLG,
                         ValidationResultDisplay(
                           result: widget.issue.validationResult!,
                           onRevalidate: widget.onValidate != null
                               ? () => widget.onValidate!(widget.issue)
                               : null,
-                          isValidating: widget.issue.validationStatus == ValidationStatus.validating,
+                          isValidating:
+                              widget.issue.validationStatus ==
+                              ValidationStatus.validating,
                         ),
-                      ]
-                      // Show button if no validation result yet
-                      else if (widget.onValidate != null) ...[
-                        const SizedBox(height: 16),
+                      ] else if (widget.onValidate != null) ...[
+                        AppSpacing.verticalGapLG,
                         Align(
-                          alignment: isMobile ? Alignment.center : Alignment.centerRight,
+                          alignment: Alignment.centerRight,
                           child: ElevatedButton.icon(
-                            onPressed: widget.issue.validationStatus == ValidationStatus.validating
+                            onPressed:
+                                widget.issue.validationStatus ==
+                                    ValidationStatus.validating
                                 ? null
                                 : () => widget.onValidate!(widget.issue),
-                            icon: widget.issue.validationStatus == ValidationStatus.validating
+                            icon:
+                                widget.issue.validationStatus ==
+                                    ValidationStatus.validating
                                 ? const SizedBox(
                                     width: 16,
                                     height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
                                   )
-                                : const Icon(Icons.check_circle_outline_rounded, size: 16),
+                                : const Icon(
+                                    Icons.check_circle_outline_rounded,
+                                    size: 18,
+                                  ),
                             label: Text(
-                              widget.issue.validationStatus == ValidationStatus.validating
-                                  ? 'Validating Fix...'
+                              widget.issue.validationStatus ==
+                                      ValidationStatus.validating
+                                  ? 'Validating...'
                                   : 'Validate Fix (1 credit)',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                              backgroundColor: const Color(0xFF0891B2),
+                              backgroundColor: AppColors.primaryBlue,
                               foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
                               ),
-                              elevation: 0,
                             ),
                           ),
                         ),
@@ -264,45 +294,41 @@ class _IssueCardState extends State<IssueCard> {
                   ),
                 ),
               ],
-              ],
-            ),
+            ],
           ),
         );
       },
     );
   }
 
-  // Mobile-first header: Vertical stacking for better readability
   Widget _buildMobileHeader(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Row 1: Expand icon + Title
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              _isExpanded ? Icons.expand_less : Icons.expand_more,
-              color: Theme.of(context).colorScheme.primary,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 widget.issue.title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+                style: AppTypography.titleMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              _isExpanded
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
+              color: AppColors.textTertiary,
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        // Row 2: Badges in a compact wrap
+        AppSpacing.verticalGapSM,
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             SeverityBadge(severity: widget.issue.severity),
             CategoryBadge(category: widget.issue.category),
@@ -314,41 +340,43 @@ class _IssueCardState extends State<IssueCard> {
     );
   }
 
-  // Desktop header: Compact horizontal layout
   Widget _buildDesktopHeader(BuildContext context) {
     return Row(
       children: [
-        // Expand icon
-        Icon(
-          _isExpanded ? Icons.expand_less : Icons.expand_more,
-          color: Theme.of(context).colorScheme.primary,
-          size: 18,
-        ),
-        const SizedBox(width: 10),
-
-        // Badges - more compact
-        SeverityBadge(severity: widget.issue.severity),
-        const SizedBox(width: 8),
-        CategoryBadge(category: widget.issue.category),
-
-        if (widget.issue.validationStatus != ValidationStatus.notStarted) ...[
-          const SizedBox(width: 8),
-          ValidationStatusBadge(status: widget.issue.validationStatus),
-        ],
-
-        const SizedBox(width: 12),
-
-        // Title - more compact font
         Expanded(
-          child: Text(
-            widget.issue.title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.issue.title,
+                style: AppTypography.titleMedium.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  SeverityBadge(severity: widget.issue.severity),
+                  AppSpacing.horizontalGapSM,
+                  CategoryBadge(category: widget.issue.category),
+                  if (widget.issue.validationStatus !=
+                      ValidationStatus.notStarted) ...[
+                    AppSpacing.horizontalGapSM,
+                    ValidationStatusBadge(
+                      status: widget.issue.validationStatus,
+                    ),
+                  ],
+                ],
+              ),
+            ],
           ),
+        ),
+        const SizedBox(width: 16),
+        Icon(
+          _isExpanded
+              ? Icons.keyboard_arrow_up_rounded
+              : Icons.keyboard_arrow_down_rounded,
+          color: AppColors.textTertiary,
         ),
       ],
     );

@@ -28,11 +28,10 @@ class AnalyticsService {
         return MapEntry(key, value ?? 'null');
       });
 
-      await _analytics.logEvent(
-        name: name,
-        parameters: filteredParams,
+      await _analytics.logEvent(name: name, parameters: filteredParams);
+      debugPrint(
+        'Analytics Event: $name${parameters != null ? ' - $parameters' : ''}',
       );
-      debugPrint('Analytics Event: $name${parameters != null ? ' - $parameters' : ''}');
     } catch (e) {
       debugPrint('Failed to log analytics event: $e');
     }
@@ -90,23 +89,17 @@ class AnalyticsService {
   }
 
   /// Log user authentication
-  Future<void> logLogin({
-    required String method,
-  }) async {
+  Future<void> logLogin({required String method}) async {
     await _analytics.logLogin(loginMethod: method);
   }
 
   /// Log user sign up
-  Future<void> logSignUp({
-    required String method,
-  }) async {
+  Future<void> logSignUp({required String method}) async {
     await _analytics.logSignUp(signUpMethod: method);
   }
 
   /// Log search event
-  Future<void> logSearch({
-    required String searchTerm,
-  }) async {
+  Future<void> logSearch({required String searchTerm}) async {
     await _analytics.logSearch(searchTerm: searchTerm);
   }
 
@@ -191,5 +184,21 @@ class AnalyticsService {
     } catch (e) {
       debugPrint('Failed to set analytics collection: $e');
     }
+  }
+
+  /// Log user feedback (thumbs up/down)
+  Future<void> logFeedback({
+    required String resultId,
+    required bool isPositive,
+    String? feedbackText,
+  }) async {
+    await logEvent(
+      name: 'analysis_feedback',
+      parameters: {
+        'result_id': resultId,
+        'is_positive': isPositive ? 1 : 0,
+        if (feedbackText != null) 'feedback_text': feedbackText,
+      },
+    );
   }
 }

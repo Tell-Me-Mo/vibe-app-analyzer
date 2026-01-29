@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../models/analysis_result.dart';
 import '../models/analysis_type.dart';
-import '../models/analysis_mode.dart';
 import '../models/security_issue.dart';
 import '../models/monitoring_recommendation.dart';
 import '../providers/history_provider.dart';
@@ -15,11 +14,12 @@ import '../services/analytics_service.dart';
 import '../data/demo_data.dart';
 import '../widgets/results/issue_card.dart';
 import '../widgets/results/recommendation_card.dart';
-import '../widgets/common/glass_card.dart';
 import '../widgets/common/gradient_icon.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../theme/app_spacing.dart';
+import '../services/export_service.dart';
+import '../widgets/results/feedback_widget.dart';
 
 class ResultsPage extends ConsumerStatefulWidget {
   final String resultId;
@@ -50,13 +50,10 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
       parent: _animationController,
       curve: Curves.easeOut,
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
     _animationController.forward();
   }
 
@@ -67,32 +64,15 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
   }
 
   AnalysisResult? _getResult(WidgetRef ref) {
-    print('🔍 [RESULTS PAGE] Looking for result with ID: ${widget.resultId}');
     final history = ref.read(historyProvider);
-    print('🔍 [RESULTS PAGE] History size: ${history.length}');
-
-    if (history.isNotEmpty) {
-      print('🔍 [RESULTS PAGE] History IDs: ${history.map((r) => r.id).toList()}');
-    }
-
     // Try to find in history first
     for (final result in history) {
-      if (result.id == widget.resultId) {
-        print('🔍 [RESULTS PAGE] ✅ Found result in history!');
-        return result;
-      }
+      if (result.id == widget.resultId) return result;
     }
-
-    print('🔍 [RESULTS PAGE] Not found in history, checking demo data...');
     // Then try demo data
     for (final result in DemoData.demoExamples) {
-      if (result.id == widget.resultId) {
-        print('🔍 [RESULTS PAGE] ✅ Found result in demo data!');
-        return result;
-      }
+      if (result.id == widget.resultId) return result;
     }
-
-    print('🔍 [RESULTS PAGE] ❌ Result not found anywhere!');
     return null;
   }
 
@@ -100,7 +80,6 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
     final result = _getResult(ref);
     if (result == null || !mounted) return;
 
-    // Track validation initiation
     await AnalyticsService().logEvent(
       name: 'validation_initiated',
       parameters: {
@@ -110,14 +89,20 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
       },
     );
 
-    // Extract repository name from URL
-    final repositoryName = result.repositoryUrl?.split('/').last.replaceAll('.git', '') ?? 'Unknown';
+    if (!mounted) return;
 
-    await ref.read(validationProvider.notifier).validateSecurityFix(
+    final repositoryName = result.repositoryUrl
+        .split('/')
+        .last
+        .replaceAll('.git', '');
+
+    await ref
+        .read(validationProvider.notifier)
+        .validateSecurityFix(
           context: context,
           resultId: result.id,
           issue: issue,
-          repositoryUrl: result.repositoryUrl ?? '',
+          repositoryUrl: result.repositoryUrl,
           repositoryName: repositoryName,
           analysisMode: result.analysisMode,
           onInsufficientCredits: () {
@@ -127,22 +112,16 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
               title: 'Insufficient Credits',
               message: 'Please purchase more credits to validate fixes.',
             );
-            // Track insufficient credits during validation
-            AnalyticsService().logEvent(
-              name: 'validation_insufficient_credits',
-              parameters: {
-                'validation_type': 'security_issue',
-              },
-            );
           },
         );
   }
 
-  Future<void> _handleValidateMonitoringRecommendation(MonitoringRecommendation recommendation) async {
+  Future<void> _handleValidateMonitoringRecommendation(
+    MonitoringRecommendation recommendation,
+  ) async {
     final result = _getResult(ref);
     if (result == null || !mounted) return;
 
-    // Track validation initiation
     await AnalyticsService().logEvent(
       name: 'validation_initiated',
       parameters: {
@@ -152,14 +131,20 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
       },
     );
 
-    // Extract repository name from URL
-    final repositoryName = result.repositoryUrl?.split('/').last.replaceAll('.git', '') ?? 'Unknown';
+    if (!mounted) return;
 
-    await ref.read(validationProvider.notifier).validateMonitoringImplementation(
+    final repositoryName = result.repositoryUrl
+        .split('/')
+        .last
+        .replaceAll('.git', '');
+
+    await ref
+        .read(validationProvider.notifier)
+        .validateMonitoringImplementation(
           context: context,
           resultId: result.id,
           recommendation: recommendation,
-          repositoryUrl: result.repositoryUrl ?? '',
+          repositoryUrl: result.repositoryUrl,
           repositoryName: repositoryName,
           analysisMode: result.analysisMode,
           onInsufficientCredits: () {
@@ -167,22 +152,103 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
             NotificationService.showWarning(
               context,
               title: 'Insufficient Credits',
-              message: 'Please purchase more credits to validate implementations.',
-            );
-            // Track insufficient credits during validation
-            AnalyticsService().logEvent(
-              name: 'validation_insufficient_credits',
-              parameters: {
-                'validation_type': 'monitoring_recommendation',
-              },
+              message:
+                  'Please purchase more credits to validate implementations.',
             );
           },
         );
   }
 
+  void _showBadgeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: AppColors.backgroundTertiary,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.radiusXL,
+          side: const BorderSide(color: AppColors.borderSubtle),
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Padding(
+            padding: AppSpacing.paddingXL,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.verified_rounded,
+                      color: AppColors.primaryBlue,
+                    ),
+                    AppSpacing.horizontalGapMD,
+                    Text('Get Your Badge', style: AppTypography.headlineSmall),
+                  ],
+                ),
+                AppSpacing.verticalGapLG,
+                Text(
+                  'Add this badge to your README.md to show your code is Vibe Checked.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                AppSpacing.verticalGapLG,
+                Container(
+                  padding: AppSpacing.paddingMD,
+                  decoration: BoxDecoration(
+                    color: AppColors.backgroundSecondary,
+                    borderRadius: AppRadius.radiusMD,
+                    border: Border.all(color: AppColors.borderSubtle),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '[![Vibe Check](https://img.shields.io/badge/Vibe-Checked-blue)](https://vibe-checker.dev)',
+                          style: AppTypography.monoMedium.copyWith(
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          Clipboard.setData(
+                            const ClipboardData(
+                              text:
+                                  '[![Vibe Check](https://img.shields.io/badge/Vibe-Checked-blue)](https://vibe-checker.dev)',
+                            ),
+                          );
+                          Navigator.pop(context);
+                          NotificationService.showSuccess(
+                            context,
+                            message: 'Badge markdown copied!',
+                          );
+                        },
+                        icon: const Icon(Icons.copy_rounded, size: 20),
+                        tooltip: 'Copy Markdown',
+                      ),
+                    ],
+                  ),
+                ),
+                AppSpacing.verticalGapLG,
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Watch history and validation state to rebuild when validation completes
     ref.watch(historyProvider);
     ref.watch(validationProvider);
 
@@ -196,17 +262,17 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
             children: [
               Icon(
                 Icons.search_off_rounded,
-                size: 80,
+                size: 64,
                 color: AppColors.textMuted,
               ),
-              AppSpacing.verticalGapXL,
+              AppSpacing.verticalGapLG,
               Text(
                 'Analysis not found',
-                style: AppTypography.headlineMedium.copyWith(
-                  color: AppColors.textTertiary,
+                style: AppTypography.headlineSmall.copyWith(
+                  color: AppColors.textSecondary,
                 ),
               ),
-              AppSpacing.verticalGapXL,
+              AppSpacing.verticalGapLG,
               TextButton(
                 onPressed: () => context.go('/'),
                 child: const Text('Go back home'),
@@ -224,655 +290,467 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
         : AppColors.gradientMonitoring;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background gradient
-          _buildBackgroundGradient(),
-
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: AppSpacing.paddingXXL,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1200),
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Header with back button
-                          _buildModernHeader(context, result, gradient),
-                          AppSpacing.verticalGapHuge,
-
-                          // Summary
-                          _buildModernSummary(context, result, gradient, dateFormat),
-                          AppSpacing.verticalGapHuge,
-
-                          // Results
-                          _buildResultsList(context, result),
-                        ],
+      backgroundColor: AppColors.backgroundPrimary,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: AppSpacing.paddingLG,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(context, result, gradient),
+                      AppSpacing.verticalGapXL,
+                      _buildSummarySection(
+                        context,
+                        result,
+                        gradient,
+                        dateFormat,
                       ),
-                    ),
+                      AppSpacing.verticalGapXL,
+                      _buildResultsList(context, result),
+                      AppSpacing.verticalGapXXL,
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBackgroundGradient() {
-    return Positioned.fill(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topRight,
-            radius: 1.5,
-            colors: [
-              AppColors.primaryBlue.withValues(alpha: 0.06),
-              AppColors.backgroundPrimary.withValues(alpha: 0.0),
-            ],
-          ),
         ),
       ),
     );
   }
 
-  Widget _buildModernHeader(
+  Widget _buildHeader(
     BuildContext context,
     AnalysisResult result,
     List<Color> gradient,
   ) {
-    return Row(
-      children: [
-        // Back button
-        IconButton(
-          onPressed: () => context.go('/'),
-          icon: const Icon(Icons.arrow_back_rounded),
-          style: IconButton.styleFrom(
-            backgroundColor: AppColors.surfaceGlass.withValues(alpha: 0.6),
-          ),
-        ),
-        AppSpacing.horizontalGapLG,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 768;
 
-        // Gradient icon with glow
-        GradientIcon(
-          icon: result.analysisType == AnalysisType.security
-              ? Icons.security_rounded
-              : Icons.show_chart_rounded,
-          size: 32,
-          gradient: gradient,
-          padding: AppSpacing.paddingLG,
-        ),
-        AppSpacing.horizontalGapLG,
-
-        // Title and URL
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                result.repositoryName,
-                style: AppTypography.headlineMedium.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              AppSpacing.verticalGapSM,
-
-              // Copyable URL
-              InkWell(
-                onTap: () async {
-                  await Clipboard.setData(
-                    ClipboardData(text: result.repositoryUrl),
-                  );
-                  if (context.mounted) {
-                    NotificationService.showSuccess(
-                      context,
-                      message: 'Repository URL copied to clipboard!',
-                    );
-                  }
-                },
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        result.repositoryUrl,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: AppColors.primaryBlue,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    AppSpacing.horizontalGapSM,
-                    Icon(
-                      Icons.copy_rounded,
-                      size: 16,
-                      color: AppColors.primaryBlue,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildModernSummary(
-    BuildContext context,
-    AnalysisResult result,
-    List<Color> gradient,
-    DateFormat dateFormat,
-  ) {
-    return GlassCard(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 600;
-
+        if (isMobile) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Compact header - responsive layout
-              if (isMobile) ...[
-                // Mobile: Stack vertically
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              IconButton(
+                onPressed: () => context.go('/'),
+                icon: const Icon(Icons.arrow_back_rounded),
+                style: IconButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  alignment: Alignment.centerLeft,
+                ),
+              ),
+              AppSpacing.verticalGapMD,
+              Row(
+                children: [
+                  GradientIcon(
+                    icon: result.analysisType == AnalysisType.security
+                        ? Icons.security_rounded
+                        : Icons.show_chart_rounded,
+                    size: 28,
+                    gradient: gradient,
+                    padding: EdgeInsets.zero,
+                  ),
+                  AppSpacing.horizontalGapMD,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ShaderMask(
-                          shaderCallback: (bounds) => LinearGradient(
-                            colors: gradient,
-                          ).createShader(bounds),
-                          child: const Icon(
-                            Icons.analytics_rounded,
-                            color: AppColors.textPrimary,
-                            size: 20,
-                          ),
-                        ),
-                        AppSpacing.horizontalGapSM,
                         Text(
-                          'Analysis Summary',
-                          style: AppTypography.titleLarge.copyWith(
+                          result.repositoryName,
+                          style: AppTypography.headlineSmall.copyWith(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        InkWell(
+                          onTap: () async {
+                            await Clipboard.setData(
+                              ClipboardData(text: result.repositoryUrl),
+                            );
+                            if (context.mounted) {
+                              NotificationService.showSuccess(
+                                context,
+                                message: 'URL copied!',
+                              );
+                            }
+                          },
+                          child: Text(
+                            result.repositoryUrl,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textTertiary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                    AppSpacing.verticalGapSM,
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      children: [
-                        _buildCompactBadge(
-                          result.analysisType.displayName,
-                          gradient.first,
-                          Icons.shield_rounded,
-                        ),
-                        _buildCompactBadge(
-                          result.analysisMode.shortLabel,
-                          result.analysisMode == AnalysisMode.staticCode
-                              ? AppColors.primaryPurple
-                              : AppColors.success,
-                          result.analysisMode == AnalysisMode.staticCode
-                              ? Icons.code_rounded
-                              : Icons.apps_rounded,
-                        ),
-                        _buildCompactBadge(
-                          dateFormat.format(result.timestamp),
-                          AppColors.textTertiary,
-                          Icons.access_time_rounded,
-                        ),
-                      ],
+                  ),
+                ],
+              ),
+              AppSpacing.verticalGapLG,
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showBadgeDialog(context),
+                      icon: const Icon(Icons.verified_rounded, size: 16),
+                      label: const Text('Get Badge'),
                     ),
-                  ],
-                ),
-              ] else ...[
-                // Desktop: Horizontal layout
-                Row(
-                  children: [
-                    ShaderMask(
-                      shaderCallback: (bounds) => LinearGradient(
-                        colors: gradient,
-                      ).createShader(bounds),
-                      child: const Icon(
-                        Icons.analytics_rounded,
-                        color: AppColors.textPrimary,
-                        size: 22,
-                      ),
+                  ),
+                  AppSpacing.horizontalGapMD,
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => ExportService().downloadReport(result),
+                      icon: const Icon(Icons.download_rounded, size: 16),
+                      label: const Text('Export'),
                     ),
-                    AppSpacing.horizontalGapMD,
-                    Text(
-                      'Analysis Summary',
-                      style: AppTypography.titleLarge.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    const Spacer(),
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      children: [
-                        _buildCompactBadge(
-                          result.analysisType.displayName,
-                          gradient.first,
-                          Icons.shield_rounded,
-                        ),
-                        _buildCompactBadge(
-                          result.analysisMode.shortLabel,
-                          result.analysisMode == AnalysisMode.staticCode
-                              ? AppColors.primaryPurple
-                              : AppColors.success,
-                          result.analysisMode == AnalysisMode.staticCode
-                              ? Icons.code_rounded
-                              : Icons.apps_rounded,
-                        ),
-                        _buildCompactBadge(
-                          dateFormat.format(result.timestamp),
-                          AppColors.textTertiary,
-                          Icons.access_time_rounded,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-              AppSpacing.verticalGapXL,
-
-              // Summary stats - responsive grid
-              _buildStatsGrid(result, isMobile),
+                  ),
+                ],
+              ),
             ],
           );
-        },
-      ),
-    );
-  }
+        }
 
-  Widget _buildStatsGrid(AnalysisResult result, bool isMobile) {
-    if (isMobile) {
-      // Mobile: Horizontal scrollable chips - super compact
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
+        return Row(
           children: [
-            _buildCompactStatChip(
-              'Total',
-              result.summary.total,
-              AppColors.textPrimary,
-              null,
-              result,
+            IconButton(
+              onPressed: () => context.go('/'),
+              icon: const Icon(Icons.arrow_back_rounded),
+              tooltip: 'Back',
             ),
-            const SizedBox(width: 8),
-            _buildCompactStatChip(
-              'Critical',
-              result.summary.bySeverity?['critical'] ?? 0,
-              AppColors.severityCritical,
-              'critical',
-              result,
+            AppSpacing.horizontalGapLG,
+            GradientIcon(
+              icon: result.analysisType == AnalysisType.security
+                  ? Icons.security_rounded
+                  : Icons.show_chart_rounded,
+              size: 32,
+              gradient: gradient,
+              padding: AppSpacing.paddingSM,
             ),
-            const SizedBox(width: 8),
-            _buildCompactStatChip(
-              'High',
-              result.summary.bySeverity?['high'] ?? 0,
-              AppColors.severityHigh,
-              'high',
-              result,
-            ),
-            const SizedBox(width: 8),
-            _buildCompactStatChip(
-              'Medium',
-              result.summary.bySeverity?['medium'] ?? 0,
-              AppColors.severityMedium,
-              'medium',
-              result,
-            ),
-            const SizedBox(width: 8),
-            _buildCompactStatChip(
-              'Low',
-              result.summary.bySeverity?['low'] ?? 0,
-              AppColors.severityLow,
-              'low',
-              result,
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Desktop: All in one row or 3-2 grid based on width
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth > 700;
-        return isWide
-            ? Row(
+            AppSpacing.horizontalGapMD,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: _buildFilterableStatCard(
-                      'Total',
-                      result.summary.total,
-                      AppColors.textPrimary,
-                      null,
-                      result,
+                  Text(
+                    result.repositoryName,
+                    style: AppTypography.headlineSmall.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  AppSpacing.horizontalGapMD,
-                  Expanded(
-                    child: _buildFilterableStatCard(
-                      'Critical',
-                      result.summary.bySeverity?['critical'] ?? 0,
-                      AppColors.severityCritical,
-                      'critical',
-                      result,
-                    ),
-                  ),
-                  AppSpacing.horizontalGapMD,
-                  Expanded(
-                    child: _buildFilterableStatCard(
-                      'High',
-                      result.summary.bySeverity?['high'] ?? 0,
-                      AppColors.severityHigh,
-                      'high',
-                      result,
-                    ),
-                  ),
-                  AppSpacing.horizontalGapMD,
-                  Expanded(
-                    child: _buildFilterableStatCard(
-                      'Medium',
-                      result.summary.bySeverity?['medium'] ?? 0,
-                      AppColors.severityMedium,
-                      'medium',
-                      result,
-                    ),
-                  ),
-                  AppSpacing.horizontalGapMD,
-                  Expanded(
-                    child: _buildFilterableStatCard(
-                      'Low',
-                      result.summary.bySeverity?['low'] ?? 0,
-                      AppColors.severityLow,
-                      'low',
-                      result,
+                  InkWell(
+                    onTap: () async {
+                      await Clipboard.setData(
+                        ClipboardData(text: result.repositoryUrl),
+                      );
+                      if (context.mounted) {
+                        NotificationService.showSuccess(
+                          context,
+                          message: 'URL copied!',
+                        );
+                      }
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          result.repositoryUrl,
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.textTertiary,
+                          ),
+                        ),
+                        AppSpacing.horizontalGapXS,
+                        Icon(
+                          Icons.copy_rounded,
+                          size: 14,
+                          color: AppColors.textTertiary,
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              )
-            : Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildFilterableStatCard(
-                          'Total',
-                          result.summary.total,
-                          AppColors.textPrimary,
-                          null,
-                          result,
-                        ),
-                      ),
-                      AppSpacing.horizontalGapMD,
-                      Expanded(
-                        child: _buildFilterableStatCard(
-                          'Critical',
-                          result.summary.bySeverity?['critical'] ?? 0,
-                          AppColors.severityCritical,
-                          'critical',
-                          result,
-                        ),
-                      ),
-                      AppSpacing.horizontalGapMD,
-                      Expanded(
-                        child: _buildFilterableStatCard(
-                          'High',
-                          result.summary.bySeverity?['high'] ?? 0,
-                          AppColors.severityHigh,
-                          'high',
-                          result,
-                        ),
-                      ),
-                    ],
-                  ),
-                  AppSpacing.verticalGapMD,
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildFilterableStatCard(
-                          'Medium',
-                          result.summary.bySeverity?['medium'] ?? 0,
-                          AppColors.severityMedium,
-                          'medium',
-                          result,
-                        ),
-                      ),
-                      AppSpacing.horizontalGapMD,
-                      Expanded(
-                        child: _buildFilterableStatCard(
-                          'Low',
-                          result.summary.bySeverity?['low'] ?? 0,
-                          AppColors.severityLow,
-                          'low',
-                          result,
-                        ),
-                      ),
-                      const Expanded(child: SizedBox()),
-                    ],
-                  ),
-                ],
-              );
-      },
-    );
-  }
-
-  Widget _buildCompactBadge(String label, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(
-          color: color.withValues(alpha: 0.25),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          AppSpacing.horizontalGapXS,
-          Text(
-            label,
-            style: AppTypography.labelSmall.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Compact stat chip for mobile - minimal, modern style
-  Widget _buildCompactStatChip(
-    String label,
-    int count,
-    Color color,
-    String? severity,
-    AnalysisResult result,
-  ) {
-    final isSelected = severity != null && _selectedSeverities.contains(severity);
-    final isDisabled = count == 0;
-    // Enable filtering for both security and monitoring analysis
-    final isFilterable = !isDisabled;
-
-    return InkWell(
-      onTap: !isFilterable ? null : () {
-        setState(() {
-          if (severity == null) {
-            _selectedSeverities.clear();
-          } else {
-            if (_selectedSeverities.contains(severity)) {
-              _selectedSeverities.remove(severity);
-            } else {
-              _selectedSeverities.add(severity);
-            }
-          }
-        });
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? color.withValues(alpha: 0.18)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? color.withValues(alpha: 0.5)
-                : color.withValues(alpha: 0.25),
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '$count',
-              style: AppTypography.titleLarge.copyWith(
-                color: isDisabled ? color.withValues(alpha: 0.3) : color,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                height: 1,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: AppTypography.labelSmall.copyWith(
-                color: isDisabled
-                    ? AppColors.textTertiary.withValues(alpha: 0.4)
-                    : AppColors.textTertiary,
-                fontWeight: FontWeight.w500,
-                fontSize: 10,
-                height: 1,
+            OutlinedButton.icon(
+              onPressed: () => _showBadgeDialog(context),
+              icon: const Icon(Icons.verified_rounded, size: 18),
+              label: const Text('Get Badge'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+              ),
+            ),
+            AppSpacing.horizontalGapMD,
+            ElevatedButton.icon(
+              onPressed: () => ExportService().downloadReport(result),
+              icon: const Icon(Icons.download_rounded, size: 18),
+              label: const Text('Export Report'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterableStatCard(
-    String label,
-    int count,
-    Color color,
-    String? severity,
-    AnalysisResult result,
-  ) {
-    final isSelected = severity != null && _selectedSeverities.contains(severity);
-    final isDisabled = count == 0;
-    // Enable filtering for both security and monitoring analysis
-    final isFilterable = !isDisabled;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 150;
-
-        return InkWell(
-          onTap: !isFilterable ? null : () {
-            setState(() {
-              if (severity == null) {
-                // "Total" clears all filters
-                _selectedSeverities.clear();
-              } else {
-                if (_selectedSeverities.contains(severity)) {
-                  _selectedSeverities.remove(severity);
-                } else {
-                  _selectedSeverities.add(severity);
-                }
-              }
-            });
-          },
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? AppSpacing.sm : AppSpacing.md,
-              vertical: isMobile ? AppSpacing.sm : AppSpacing.md,
-            ),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? color.withValues(alpha: 0.2)
-                  : color.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(
-                color: isSelected
-                    ? color.withValues(alpha: 0.5)
-                    : color.withValues(alpha: 0.15),
-                width: isSelected ? 2 : 1,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '$count',
-                  style: AppTypography.headlineMedium.copyWith(
-                    color: isDisabled ? color.withValues(alpha: 0.3) : color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: isMobile ? 20 : 24,
-                  ),
-                ),
-                SizedBox(height: isMobile ? 2 : 4),
-                Text(
-                  label,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: isDisabled
-                        ? AppColors.textTertiary.withValues(alpha: 0.4)
-                        : AppColors.textTertiary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: isMobile ? 10 : 11,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
         );
       },
     );
   }
 
+  Widget _buildSummarySection(
+    BuildContext context,
+    AnalysisResult result,
+    List<Color> gradient,
+    DateFormat dateFormat,
+  ) {
+    return Container(
+      padding: AppSpacing.paddingLG,
+      decoration: BoxDecoration(
+        color: AppColors.backgroundTertiary,
+        borderRadius: AppRadius.radiusLG,
+        border: Border.all(color: AppColors.borderSubtle),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Analysis Summary',
+                style: AppTypography.titleMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              _buildTag(
+                result.analysisType.displayName,
+                gradient.first.withValues(alpha: 0.1),
+                gradient.first,
+              ),
+              AppSpacing.horizontalGapSM,
+              _buildTag(
+                dateFormat.format(result.timestamp),
+                AppColors.backgroundTertiary,
+                AppColors.textSecondary,
+              ),
+            ],
+          ),
+          AppSpacing.verticalGapLG,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 600;
+
+              if (isMobile) {
+                return GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: AppSpacing.md,
+                  crossAxisSpacing: AppSpacing.md,
+                  childAspectRatio: 1.5,
+                  children: [
+                    _buildStatCard(
+                      'Total Issues',
+                      result.summary.total,
+                      AppColors.textPrimary,
+                      null,
+                    ),
+                    _buildStatCard(
+                      'Critical',
+                      result.summary.bySeverity?['critical'] ?? 0,
+                      AppColors.severityCritical,
+                      'critical',
+                    ),
+                    _buildStatCard(
+                      'High',
+                      result.summary.bySeverity?['high'] ?? 0,
+                      AppColors.severityHigh,
+                      'high',
+                    ),
+                    _buildStatCard(
+                      'Medium',
+                      result.summary.bySeverity?['medium'] ?? 0,
+                      AppColors.severityMedium,
+                      'medium',
+                    ),
+                    _buildStatCard(
+                      'Low',
+                      result.summary.bySeverity?['low'] ?? 0,
+                      AppColors.severityLow,
+                      'low',
+                    ),
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      'Total',
+                      result.summary.total,
+                      AppColors.textPrimary,
+                      null,
+                    ),
+                  ),
+                  AppSpacing.horizontalGapMD,
+                  Expanded(
+                    child: _buildStatCard(
+                      'Critical',
+                      result.summary.bySeverity?['critical'] ?? 0,
+                      AppColors.severityCritical,
+                      'critical',
+                    ),
+                  ),
+                  AppSpacing.horizontalGapMD,
+                  Expanded(
+                    child: _buildStatCard(
+                      'High',
+                      result.summary.bySeverity?['high'] ?? 0,
+                      AppColors.severityHigh,
+                      'high',
+                    ),
+                  ),
+                  AppSpacing.horizontalGapMD,
+                  Expanded(
+                    child: _buildStatCard(
+                      'Medium',
+                      result.summary.bySeverity?['medium'] ?? 0,
+                      AppColors.severityMedium,
+                      'medium',
+                    ),
+                  ),
+                  AppSpacing.horizontalGapMD,
+                  Expanded(
+                    child: _buildStatCard(
+                      'Low',
+                      result.summary.bySeverity?['low'] ?? 0,
+                      AppColors.severityLow,
+                      'low',
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTag(String text, Color bg, Color fg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppRadius.full),
+      ),
+      child: Text(
+        text,
+        style: AppTypography.labelSmall.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(
+    String label,
+    int count,
+    Color color,
+    String? severity,
+  ) {
+    final isSelected =
+        severity != null && _selectedSeverities.contains(severity);
+    final isDisabled = count == 0;
+    final isFilterable = !isDisabled && severity != null;
+
+    return InkWell(
+      onTap: isFilterable
+          ? () {
+              setState(() {
+                if (_selectedSeverities.contains(severity)) {
+                  _selectedSeverities.remove(severity);
+                } else {
+                  _selectedSeverities.add(severity);
+                }
+              });
+            }
+          : null,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: AppSpacing.paddingMD,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: 0.1)
+              : AppColors.backgroundTertiary,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(
+            color: isSelected
+                ? color.withValues(alpha: 0.5)
+                : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              count.toString(),
+              style: AppTypography.headlineMedium.copyWith(
+                color: isDisabled ? AppColors.textMuted : color,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: AppTypography.labelSmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildResultsList(BuildContext context, AnalysisResult result) {
-    // Filter items based on selected severities (works for both security and monitoring)
     final filteredSecurityIssues = _selectedSeverities.isEmpty
         ? (result.securityIssues ?? [])
         : (result.securityIssues ?? [])
-            .where((issue) => _selectedSeverities.contains(issue.severity.value))
-            .toList();
+              .where(
+                (issue) => _selectedSeverities.contains(issue.severity.value),
+              )
+              .toList();
 
-    // Filter monitoring recommendations by severity
     final filteredRecommendations = _selectedSeverities.isEmpty
         ? (result.monitoringRecommendations ?? [])
         : (result.monitoringRecommendations ?? [])
-            .where((rec) => _selectedSeverities.contains(rec.severity.value))
-            .toList();
+              .where((rec) => _selectedSeverities.contains(rec.severity.value))
+              .toList();
 
     final totalItems = result.analysisType == AnalysisType.security
         ? result.securityIssues?.length ?? 0
@@ -882,76 +760,46 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
         ? filteredSecurityIssues.length
         : filteredRecommendations.length;
 
-    final showingFiltered = _selectedSeverities.isNotEmpty;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section title with gradient accent and filter info
         Row(
           children: [
+            Text(
+              result.analysisType == AnalysisType.security
+                  ? 'Security Issues'
+                  : 'Recommendations',
+              style: AppTypography.titleLarge.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            AppSpacing.horizontalGapSM,
             Container(
-              width: 4,
-              height: 28,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: result.analysisType == AnalysisType.security
-                      ? AppColors.gradientSecurity
-                      : AppColors.gradientMonitoring,
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+                color: AppColors.backgroundTertiary,
+                borderRadius: BorderRadius.circular(AppRadius.full),
+              ),
+              child: Text(
+                '$filteredCount / $totalItems',
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.textSecondary,
                 ),
-                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            AppSpacing.horizontalGapMD,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    result.analysisType == AnalysisType.security
-                        ? 'Security Issues'
-                        : 'Recommendations',
-                    style: AppTypography.headlineMedium.copyWith(
-                      fontSize: 20,
-                    ),
-                  ),
-                  if (showingFiltered) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      'Showing $filteredCount of $totalItems',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.textTertiary,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            // Clear filters button
-            if (showingFiltered)
+            const Spacer(),
+            if (_selectedSeverities.isNotEmpty)
               TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _selectedSeverities.clear();
-                  });
-                },
-                icon: const Icon(Icons.clear_rounded, size: 16),
-                label: const Text('Clear filters'),
+                onPressed: () => setState(() => _selectedSeverities.clear()),
+                icon: const Icon(Icons.clear_rounded, size: 14),
+                label: const Text('Clear Filters'),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primaryBlue,
-                  textStyle: AppTypography.labelSmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  foregroundColor: AppColors.textSecondary,
                 ),
               ),
           ],
         ),
-        AppSpacing.verticalGapXL,
-
-        // List of filtered issues/recommendations
+        AppSpacing.verticalGapLG,
         if (filteredCount == 0)
           Center(
             child: Padding(
@@ -959,15 +807,15 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
               child: Column(
                 children: [
                   Icon(
-                    Icons.filter_alt_off_rounded,
+                    Icons.filter_list_off_rounded,
                     size: 48,
-                    color: AppColors.textTertiary.withValues(alpha: 0.5),
+                    color: AppColors.textMuted,
                   ),
                   AppSpacing.verticalGapMD,
                   Text(
-                    'No items match the selected filters',
+                    'No items match filters',
                     style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.textTertiary,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -977,7 +825,7 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
         else if (result.analysisType == AnalysisType.security)
           ...filteredSecurityIssues.map(
             (issue) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: IssueCard(
                 issue: issue,
                 repositoryUrl: result.repositoryUrl,
@@ -988,7 +836,7 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
         else
           ...filteredRecommendations.map(
             (recommendation) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: RecommendationCard(
                 recommendation: recommendation,
                 repositoryUrl: result.repositoryUrl,
@@ -996,6 +844,16 @@ class _ResultsPageState extends ConsumerState<ResultsPage>
               ),
             ),
           ),
+
+        if (filteredCount > 0) ...[
+          AppSpacing.verticalGapXXL,
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: FeedbackWidget(resultId: result.id),
+            ),
+          ),
+        ],
       ],
     );
   }

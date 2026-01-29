@@ -13,7 +13,7 @@ class DemoData {
   ];
 
   static final AnalysisResult _securityDemoExample = AnalysisResult(
-    id: const Uuid().v4(),
+    id: 'demo-security-123',
     repositoryUrl: 'https://github.com/demo/ecommerce-app',
     repositoryName: 'ecommerce-app',
     analysisType: AnalysisType.security,
@@ -21,12 +21,7 @@ class DemoData {
     timestamp: DateTime.now().subtract(const Duration(days: 2)),
     summary: AnalysisSummary(
       total: 5,
-      bySeverity: {
-        'critical': 2,
-        'high': 1,
-        'medium': 1,
-        'low': 1,
-      },
+      bySeverity: {'critical': 2, 'high': 1, 'medium': 1, 'low': 1},
     ),
     securityIssues: [
       SecurityIssue(
@@ -102,11 +97,7 @@ class DemoData {
     timestamp: DateTime.now().subtract(const Duration(days: 1)),
     summary: AnalysisSummary(
       total: 4,
-      byCategory: {
-        'analytics': 2,
-        'error_tracking': 1,
-        'business_metrics': 1,
-      },
+      byCategory: {'analytics': 2, 'error_tracking': 1, 'business_metrics': 1},
     ),
     monitoringRecommendations: [
       MonitoringRecommendation(
