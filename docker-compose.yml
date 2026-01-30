@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # VibeCheck Flutter Web App (app.vibe-checker.dev)
+  frontend:
+    image: ${DOCKER_USERNAME:-yourusername}/vibecheck-frontend:${FRONTEND_VERSION:-latest}
+    container_name: vibecheck-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - vibecheck-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`app.vibe-checker.dev`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+
+  # VibeCheck Docs/Marketing Website (vibe-checker.dev)
+  docs:
+    image: ${DOCKER_USERNAME:-yourusername}/vibecheck-docs:${DOCS_VERSION:-latest}
+    container_name: vibecheck-docs
+    restart: unless-stopped
+    ports:
+      - "${DOCS_PORT:-3001}:80"
+    networks:
+      - vibecheck-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.docs.rule=Host(`vibe-checker.dev`) || Host(`www.vibe-checker.dev`)"
+      - "traefik.http.routers.docs.entrypoints=websecure"
+      - "traefik.http.routers.docs.tls.certresolver=letsencrypt"
+      - "traefik.http.services.docs.loadbalancer.server.port=80"
+      # Redirect www to non-www
+      - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www\\.(.+)"
+      - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://$${1}"
+      - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
+      - "traefik.http.routers.docs.middlewares=www-redirect"
+
+networks:
+  vibecheck-network:
+    driver: bridge

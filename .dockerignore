@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Build outputs
+build/
+.dart_tool/
+.packages
+
+# Documentation (built separately)
+docs/
+
+# Tests
+test/
+integration_test/
+
+# Development files
+.env.local
+.env.*.local
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github/
+
+# Miscellaneous
+*.md
+!README.md
+LICENSE
+docker-compose*.yml
+.dockerignore
+Makefile
