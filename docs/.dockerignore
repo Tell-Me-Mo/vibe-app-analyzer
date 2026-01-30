@@ -1,0 +1,18 @@
+# Markdown files (not served)
+*.md
+!README.md
+
+# Git
+.git
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local development
+.env
+.env.*
+
+# Build artifacts
+node_modules/

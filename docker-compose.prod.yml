@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # Traefik Reverse Proxy with automatic SSL
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      # API and Dashboard
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
+      # Entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # HTTP to HTTPS redirect
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      # Let's Encrypt
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      # Docker provider
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=vibecheck-network"
+      # Logging
+      - "--log.level=INFO"
+      - "--accesslog=true"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-certificates:/letsencrypt
+    networks:
+      - vibecheck-network
+    labels:
+      # Dashboard
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN:-vibe-checker.dev}`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.middlewares=traefik-auth"
+      # Basic auth for dashboard (generate with: htpasswd -nb admin password)
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH:-admin:$$apr1$$xyz$$hash}"
+
+  # VibeCheck Flutter Web App (app.vibe-checker.dev)
+  frontend:
+    image: ${DOCKER_USERNAME}/vibecheck-frontend:${FRONTEND_VERSION:-latest}
+    container_name: vibecheck-frontend
+    restart: unless-stopped
+    networks:
+      - vibecheck-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${APP_DOMAIN:-app.vibe-checker.dev}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      # Security headers
+      - "traefik.http.middlewares.frontend-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.frontend-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.frontend-headers.headers.stsPreload=true"
+      - "traefik.http.routers.frontend.middlewares=frontend-headers"
+
+  # VibeCheck Docs/Marketing Website (vibe-checker.dev)
+  docs:
+    image: ${DOCKER_USERNAME}/vibecheck-docs:${DOCS_VERSION:-latest}
+    container_name: vibecheck-docs
+    restart: unless-stopped
+    networks:
+      - vibecheck-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      # Handle both www and non-www
+      - "traefik.http.routers.docs.rule=Host(`${DOMAIN:-vibe-checker.dev}`) || Host(`www.${DOMAIN:-vibe-checker.dev}`)"
+      - "traefik.http.routers.docs.entrypoints=websecure"
+      - "traefik.http.routers.docs.tls.certresolver=letsencrypt"
+      - "traefik.http.services.docs.loadbalancer.server.port=80"
+      # www to non-www redirect
+      - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www\\.(.+)"
+      - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://$${1}"
+      - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
+      # Security headers
+      - "traefik.http.middlewares.docs-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.docs-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.docs-headers.headers.stsPreload=true"
+      - "traefik.http.routers.docs.middlewares=www-redirect,docs-headers"
+
+networks:
+  vibecheck-network:
+    driver: bridge
+
+volumes:
+  traefik-certificates:
