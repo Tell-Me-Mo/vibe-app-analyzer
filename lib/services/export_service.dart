@@ -1,6 +1,6 @@
 import 'dart:convert';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
 import '../models/analysis_result.dart';
 import '../models/analysis_type.dart';
 import '../models/security_issue.dart';
@@ -101,14 +101,19 @@ class ExportService {
   void downloadReport(AnalysisResult result) {
     final markdown = generateMarkdownReport(result);
     final bytes = utf8.encode(markdown);
-    final blob = html.Blob([bytes]);
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.AnchorElement(href: url)
-      ..setAttribute(
-        'download',
-        'vibe-check-report-${result.id.substring(0, 8)}.md',
-      )
-      ..click();
-    html.Url.revokeObjectUrl(url);
+
+    // Create blob with WASM-compatible API
+    final jsArray = bytes.toJS;
+    final blob = web.Blob([jsArray].toJS);
+    final url = web.URL.createObjectURL(blob);
+
+    // Create anchor element and trigger download
+    final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
+    anchor.href = url;
+    anchor.download = 'vibe-check-report-${result.id.substring(0, 8)}.md';
+    anchor.click();
+
+    // Clean up
+    web.URL.revokeObjectURL(url);
   }
 }

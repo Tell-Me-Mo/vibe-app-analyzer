@@ -52,6 +52,9 @@ dependencies:
   url_launcher: ^6.3.2
   flutter_dotenv: ^6.0.0
 
+  # Web (WASM-compatible)
+  web: ^1.1.0
+
   # Routing
   go_router: ^17.0.0
 
